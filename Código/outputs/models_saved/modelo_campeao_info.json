@@ -1,0 +1,52 @@
+{
+  "modelo_campeao": "Random Forest",
+  "score_mcda": 79.5,
+  "criterios_chave": {
+    "R2_teste_cego": 0.911964384154877,
+    "RMSE_teste_um_min": 19.328320743381923,
+    "MAE_teste_um_min": 5.14770708376617,
+    "R2_CV_medio": 0.7136,
+    "violacao_fisica_pct": 0.0,
+    "latencia_lote_1000_ms": 21.047356000635773
+  },
+  "arquivos_acoplamento_etapa_4": {
+    "checkpoint_relativo": "random_forest/rf_kinetics_v1.joblib",
+    "config_relativo": "random_forest/rf_config.json",
+    "classe_python": "KineticsRandomForest",
+    "modulo": "Código.etapas.etapa_3_2.subetapa_3_2_2_random_forest.modelo_rf"
+  },
+  "ranking_completo_mcda": [
+    {
+      "posicao": 1,
+      "modelo": "Random Forest",
+      "score_mcda": 79.5,
+      "R2_teste": 0.911964384154877,
+      "RMSE_teste": 19.328320743381923,
+      "R2_CV": 0.7136
+    },
+    {
+      "posicao": 2,
+      "modelo": "XGBoost",
+      "score_mcda": 71.29648558833448,
+      "R2_teste": 0.8009286092445962,
+      "RMSE_teste": 29.06493431638982,
+      "R2_CV": 0.6503
+    },
+    {
+      "posicao": 3,
+      "modelo": "MLP",
+      "score_mcda": 67.15903077342837,
+      "R2_teste": 0.8297195138703343,
+      "RMSE_teste": 26.881120101558647,
+      "R2_CV": 0.256
+    },
+    {
+      "posicao": 4,
+      "modelo": "SVR",
+      "score_mcda": 20.939199416583218,
+      "R2_teste": 0.6031125920775756,
+      "RMSE_teste": 41.039171125809894,
+      "R2_CV": 0.0743
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "referencia": "Bortot Coelho (2017), Tabela 5.9 e Capítulo 4",
+  "cinetica": {
+    "modelo": "Conversão Progressiva",
+    "etapa_controladora": "Reação Química Superficial",
+    "ks_um_por_min": 18000.0,
+    "alpha_nominal_um_por_min": 5500.0,
+    "temperatura_referencia_C": 40.0
+  },
+  "especie_solida": {
+    "material": "Concentrado ustulado de zinco (calcina)",
+    "origem": "Nexa Resources - Unidade Três Marias (MG)",
+    "teor_ZnO_pct_m_m": 76.1,
+    "teor_Zn_total_pct_m_m": 65.0,
+    "teor_ferrita_ZnFe2O4_pct_m_m": 10.2,
+    "teor_Fe_total_pct_m_m": 4.7,
+    "densidade_molar_ZnO_mol_L": 69.2,
+    "densidade_aparente_solido_g_cm3": 4.40,
+    "massa_molar_ZnO_g_mol": 81.38
+  },
+  "granulometria_RRB": {
+    "modelo": "Rosin-Rammler-Bennett",
+    "D63_2_um": 41.65,
+    "m_dispersao": 1.022,
+    "diametro_medio_um": 41.28,
+    "coeficiente_variacao_CV": 0.97,
+    "Dmin_discretizacao_um": 0.1,
+    "Dmax_discretizacao_um": 297.0
+  },
+  "reator_bancada": {
+    "tipo": "Batelada agitada encamisada",
+    "volume_solucao_L": 0.40,
+    "rotacao_padrao_rpm": 1000
+  },
+  "reator_planta_piloto": {
+    "configuracao": "Cascata de 3 reatores CSTR em série",
+    "volume_unitario_reator_L": 6.0,
+    "volume_total_L": 18.0,
+    "rotacao_padrao_rpm": 500,
+    "escoamento_validado": "Mistura Perfeita (CSTR Ideal)"
+  }
+}

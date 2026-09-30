@@ -1,0 +1,17 @@
+{
+  "model_type": "KineticsSVR",
+  "kernel": "rbf",
+  "C": 100.0,
+  "epsilon": 0.1,
+  "gamma": "0.5",
+  "target_transform": "log1p",
+  "feature_names": [
+    "temperatura_C",
+    "CA0_mol_L",
+    "razao_molar_eta",
+    "t_min"
+  ],
+  "n_support_vectors": 165,
+  "support_ratio": 0.2080706179066835,
+  "is_fitted": true
+}

@@ -1,0 +1,5 @@
+categoria,n_series,r2_medio_fpm,rmse_medio_fpm,r2_medio_ddm,rmse_medio_ddm,r2_medio_hibrido,rmse_medio_hibrido,mae_medio_hibrido
+efeito_temperatura,5,-2.07484,0.45593,-0.62731,0.30470,0.58453,0.16621,0.13629
+efeito_granulometria,6,-2.10761,0.48714,-0.23173,0.26129,0.50526,0.19399,0.15248
+efeito_agitacao,5,-1.72663,0.29516,-10.37968,0.46779,0.50888,0.12469,0.09750
+GLOBAL_BALARINI_TOTAL,16,-1.45140,0.43129,-0.69689,0.35883,0.62200,0.16936,0.13024

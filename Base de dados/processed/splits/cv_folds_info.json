@@ -1,0 +1,90 @@
+[
+  {
+    "fold": 1,
+    "n_train_samples": 549,
+    "n_val_samples": 244,
+    "train_ensaios": [
+      2,
+      3,
+      4,
+      6,
+      9,
+      10,
+      12,
+      13,
+      15
+    ],
+    "val_ensaios": [
+      1,
+      5,
+      11,
+      16
+    ]
+  },
+  {
+    "fold": 2,
+    "n_train_samples": 610,
+    "n_val_samples": 183,
+    "train_ensaios": [
+      1,
+      2,
+      3,
+      5,
+      6,
+      9,
+      11,
+      12,
+      13,
+      16
+    ],
+    "val_ensaios": [
+      4,
+      10,
+      15
+    ]
+  },
+  {
+    "fold": 3,
+    "n_train_samples": 610,
+    "n_val_samples": 183,
+    "train_ensaios": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      10,
+      11,
+      12,
+      15,
+      16
+    ],
+    "val_ensaios": [
+      3,
+      9,
+      13
+    ]
+  },
+  {
+    "fold": 4,
+    "n_train_samples": 610,
+    "n_val_samples": 183,
+    "train_ensaios": [
+      1,
+      3,
+      4,
+      5,
+      9,
+      10,
+      11,
+      13,
+      15,
+      16
+    ],
+    "val_ensaios": [
+      2,
+      6,
+      12
+    ]
+  }
+]
