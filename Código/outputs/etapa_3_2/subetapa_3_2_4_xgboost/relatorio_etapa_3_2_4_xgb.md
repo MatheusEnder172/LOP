@@ -10,7 +10,7 @@ Investigaram-se cinco configurações sob o mesmo protocolo de **GroupKFold (4 d
 4. **XGB-Otimizado (Campeão)**: `n_estimators=120`, `learning_rate=0.05`, `max_depth=5`, `subsample=0.85`, `colsample=0.85`.
 5. **XGB-LinearTarget (Sem Log1p)**: Treinado em escala linear direta para evidenciar a necessidade de compressão logarítmica.
 
-A configuração campeã foi a **XGB-Profundo (Deep)**, alcançando **$R^2 = 0.8325$ no Treino** e **$R^2 = 0.8009$ no Teste Cego**.
+A configuração campeã foi a **XGB-Baseline (Default)**, alcançando **$R^2 = 0.9995$ no Treino** e **$R^2 = 0.8117$ no Teste Cego**.
 
 ---
 
@@ -18,26 +18,26 @@ A configuração campeã foi a **XGB-Profundo (Deep)**, alcançando **$R^2 = 0.8
 
 | Configuração | Estimadores | Taxa (η) | Max Depth | Subsample | Colsample | Target | $R^2$ Médio (CV) | RMSE (µm/min) | MAE (µm/min) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **XGB-Baseline (Default)** | 100 | 0.1 | 6 | 1.0 | 1.0 | `log1p` | **0.5235 ± 0.2370** | 57.42 | 9.95 |
-| **XGB-Regularizado (Shallow)** | 100 | 0.05 | 4 | 0.8 | 0.8 | `log1p` | **0.6268 ± 0.1676** | 55.44 | 9.28 |
-| **XGB-Profundo (Deep)** | 150 | 0.05 | 8 | 0.8 | 0.8 | `log1p` | **0.6503 ± 0.2176** | 52.13 | 9.40 |
-| **XGB-Otimizado (Campeão)** | 120 | 0.05 | 5 | 0.85 | 0.85 | `log1p` | **0.6475 ± 0.1714** | 53.40 | 9.27 |
-| **XGB-LinearTarget (Sem Log1p)** | 100 | 0.05 | 5 | 0.85 | 0.85 | `linear` | **0.6846 ± 0.0793** | 49.64 | 10.54 |
+| **XGB-Baseline (Default)** | 100 | 0.1 | 6 | 1.0 | 1.0 | `log1p` | **0.8559 ± 0.0531** | 3.18 | 1.25 |
+| **XGB-Regularizado (Shallow)** | 100 | 0.05 | 4 | 0.8 | 0.8 | `log1p` | **0.6975 ± 0.1512** | 4.69 | 1.55 |
+| **XGB-Profundo (Deep)** | 150 | 0.05 | 8 | 0.8 | 0.8 | `log1p` | **0.8176 ± 0.1552** | 3.62 | 1.41 |
+| **XGB-Otimizado (Campeão)** | 120 | 0.05 | 5 | 0.85 | 0.85 | `log1p` | **0.7768 ± 0.1442** | 4.03 | 1.46 |
+| **XGB-LinearTarget (Sem Log1p)** | 100 | 0.05 | 5 | 0.85 | 0.85 | `linear` | **0.7648 ± 0.0693** | 4.07 | 1.77 |
 
 ---
 
-## 3. Desempenho Global do Modelo Campeão (XGB-Profundo (Deep))
+## 3. Desempenho Global do Modelo Campeão (XGB-Baseline (Default))
 
 * **Conjunto de Treino (13 ensaios — 793 amostras)**:
-  * $R^2$: **0.8325**
-  * RMSE: **38.09 µm/min**
-  * MAE: **4.82 µm/min**
-  * Erro Máximo: **553.32 µm/min**
+  * $R^2$: **0.9995**
+  * RMSE: **0.19 µm/min**
+  * MAE: **0.04 µm/min**
+  * Erro Máximo: **3.72 µm/min**
 * **Conjunto de Teste Cego (3 ensaios — 183 amostras intocadas: Ens 8, 14 e 7)**:
-  * $R^2$: **0.8009**
-  * RMSE: **29.06 µm/min**
-  * MAE: **6.76 µm/min**
-  * Erro Máximo: **269.93 µm/min**
+  * $R^2$: **0.8117**
+  * RMSE: **3.70 µm/min**
+  * MAE: **1.43 µm/min**
+  * Erro Máximo: **27.97 µm/min**
   * **Violação Física ($|v| < 0$): 0,00%** (restrição termodinâmica garantida estritamente).
 
 ---
@@ -46,9 +46,9 @@ A configuração campeã foi a **XGB-Profundo (Deep)**, alcançando **$R^2 = 0.8
 
 | Ensaio | Regime Físico-Químico | $C_{A0}$ (mol/L) | η (-) | $R^2$ Individual | RMSE (µm/min) | MAE (µm/min) |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
-| **7** | Forte Excesso Ácido | 0.50 | 3.1 | **0.7759** | 35.27 | 12.11 |
-| **8** | Estequiométrico Neutro | 0.50 | 1.0 | **0.9801** | 8.69 | 1.87 |
-| **14** | Leve Excesso Ácido | 1.00 | 1.5 | **0.6350** | 34.85 | 6.30 |
+| **7** | Forte Excesso Ácido | 0.50 | 3.1 | **0.4608** | 6.37 | 3.98 |
+| **8** | Estequiométrico Neutro | 0.50 | 1.0 | **0.9925** | 0.48 | 0.10 |
+| **14** | Leve Excesso Ácido | 1.00 | 1.5 | **0.9965** | 0.57 | 0.22 |
 
 ---
 
@@ -56,10 +56,9 @@ A configuração campeã foi a **XGB-Profundo (Deep)**, alcançando **$R^2 = 0.8
 
 | Atributo | Significado Físico-Químico | Importância por Ganho (Gain) | Importância por Permutação (Teste Cego) |
 | :--- | :--- | :---: | :---: |
-| `t_min` | Tempo de reação (decaimento cinético rápido) | **45.1%** | **ΔR² = 2.0642 ± 0.3716** |
-| `razao_molar_eta` | Razão estequiométrica (potencial termodinâmico) | **33.9%** | **ΔR² = -0.0576 ± 0.0500** |
-| `CA0_mol_L` | Força motriz de concentração ácida | **21.0%** | **ΔR² = -0.0820 ± 0.0556** |
-| `temperatura_C` | Temperatura do banho (invariante na bancada) | **0.0%** | **ΔR² = 0.0000 ± 0.0000** |
+| `t_min` | Tempo de reação (decaimento cinético rápido) | **48.1%** | **ΔR² = 2.1897 ± 0.3833** |
+| `razao_molar_eta` | Razão estequiométrica (potencial termodinâmico) | **34.8%** | **ΔR² = 0.6039 ± 0.1565** |
+| `CA0_mol_L` | Força motriz de concentração ácida | **17.1%** | **ΔR² = 0.1095 ± 0.0695** |
 
 ---
 

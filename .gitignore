@@ -23,7 +23,9 @@ ENV/
 *.swp
 *.swo
 
-# Arquivos do Sistema Operacional
+# Arquivos do Sistema Operacional e Temporarios
 Thumbs.db
 desktop.ini
 .DS_Store
+~$*
+*.tmp

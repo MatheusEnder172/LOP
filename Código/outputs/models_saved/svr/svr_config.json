@@ -6,12 +6,11 @@
   "gamma": "0.5",
   "target_transform": "log1p",
   "feature_names": [
-    "temperatura_C",
     "CA0_mol_L",
     "razao_molar_eta",
     "t_min"
   ],
-  "n_support_vectors": 165,
-  "support_ratio": 0.2080706179066835,
+  "n_support_vectors": 136,
+  "support_ratio": 0.17435897435897435,
   "is_fitted": true
 }

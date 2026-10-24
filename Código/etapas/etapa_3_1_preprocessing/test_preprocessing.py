@@ -57,20 +57,24 @@ def test_partition_strictness_zero_leakage(dense_df: pd.DataFrame) -> None:
 
 
 def test_partition_sample_counts(dense_df: pd.DataFrame, exp_df: pd.DataFrame) -> None:
-    """Valida a contagem exata de amostras nos datasets denso e pontual."""
+    """Valida a contagem exata de amostras nos datasets denso e pontual em t > 0 (sem t = 0)."""
     partitioner = DataPartitioner(test_ensaios=[7, 8, 14])
 
-    # Dataset denso (61 pontos por ensaio)
+    # Dataset denso em t > 0 (60 pontos por ensaio: 0.25 a 15.0 min)
     train_dense, test_dense = partitioner.split_dataframe(dense_df)
-    assert len(train_dense) == 13 * 61 == 793, f"Esperado 793 amostras de treino denso, obtido {len(train_dense)}"
-    assert len(test_dense) == 3 * 61 == 183, f"Esperado 183 amostras de teste denso, obtido {len(test_dense)}"
-    assert len(dense_df) == 976
+    assert len(train_dense) == 13 * 60 == 780, f"Esperado 780 amostras de treino denso (t > 0), obtido {len(train_dense)}"
+    assert len(test_dense) == 3 * 60 == 180, f"Esperado 180 amostras de teste denso (t > 0), obtido {len(test_dense)}"
+    assert len(dense_df) == 960
+    assert np.all(train_dense["t_min"] > 0.0)
+    assert np.all(test_dense["t_min"] > 0.0)
 
-    # Dataset pontual (8 pontos por ensaio)
+    # Dataset pontual em t > 0 (7 pontos experimentais por ensaio: 0.5 a 15.0 min)
     train_exp, test_exp = partitioner.split_dataframe(exp_df)
-    assert len(train_exp) == 13 * 8 == 104, f"Esperado 104 amostras de treino pontual, obtido {len(train_exp)}"
-    assert len(test_exp) == 3 * 8 == 24, f"Esperado 24 amostras de teste pontual, obtido {len(test_exp)}"
-    assert len(exp_df) == 128
+    assert len(train_exp) == 13 * 7 == 91, f"Esperado 91 amostras de treino pontual (t > 0), obtido {len(train_exp)}"
+    assert len(test_exp) == 3 * 7 == 21, f"Esperado 21 amostras de teste pontual (t > 0), obtido {len(test_exp)}"
+    assert len(exp_df) == 112
+    assert np.all(train_exp["t_min"] > 0.0)
+    assert np.all(test_exp["t_min"] > 0.0)
 
 
 def test_groupkfold_integrity(dense_df: pd.DataFrame) -> None:
@@ -113,12 +117,10 @@ def test_feature_target_scaler_properties(dense_df: pd.DataFrame) -> None:
     X_train_s = scaler.transform_X(X_train)
     y_train_s = scaler.transform_y(y_train)
 
-    # Médias de treino devem ser ~0
+    # Médias de treino devem ser ~0 e desvios-padrão das 3 features ativas [CA0, eta, t] devem ser 1.0
+    assert X_train.shape[1] == 3, f"Esperado 3 features [CA0_mol_L, razao_molar_eta, t_min], obtido {X_train.shape[1]}"
     np.testing.assert_allclose(X_train_s.mean(axis=0), 0.0, atol=1e-7)
-    # Temperatura (coluna 0) é constante a 40 °C na bancada -> std é 0.0
-    # As demais 3 features (CA0, eta, t) têm variação -> std é 1.0
-    np.testing.assert_allclose(X_train_s[:, 0].std(), 0.0, atol=1e-7)
-    np.testing.assert_allclose(X_train_s[:, 1:].std(axis=0), 1.0, atol=1e-7)
+    np.testing.assert_allclose(X_train_s.std(axis=0), 1.0, atol=1e-7)
     np.testing.assert_allclose(float(y_train_s.mean()), 0.0, atol=1e-7)
     np.testing.assert_allclose(float(y_train_s.std()), 1.0, atol=1e-7)
 

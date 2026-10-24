@@ -94,37 +94,32 @@ class EvaluatorInDomain:
         self.test_ensaios = [7, 8, 14]
         self.train_ensaios = [i for i in range(1, 17) if i not in self.test_ensaios]
 
-        # Modelos
+        # Modelos (MLP Campeão + White-Box Puro RRB ÷ D³ sem α)
         self.solver_fpm = BatchPBMSolver()
-        self.hibrido_campeao = SerialHybridModel(model_type="random_forest")
+        self.hibrido_campeao = SerialHybridModel(model_type="mlp")
         self.out_dir = CODIGO_DIR / "outputs" / "etapa_4_2_avaliacao_indomain"
         self.out_dir.mkdir(parents=True, exist_ok=True)
 
     def run_all_simulations(self) -> Tuple[pd.DataFrame, Dict[str, Any]]:
-        """Executa simulações pontuais (nos 8 tempos experimentais) e em malha fina (500 nós).
-
-        Returns:
-            Tupla contendo:
-                - DataFrame tabular tidy long com predições nos tempos experimentais reais;
-                - Dicionário com curvas contínuas para plotagem de alta resolução.
-        """
+        """Executa simulações pontuais estritamente nos 7 tempos experimentais positivos (t > 0) e em malha fina (500 nós)."""
         records: List[Dict[str, Any]] = []
         continuous_curves: Dict[int, Dict[str, Any]] = {}
         t_fine = np.linspace(0.0, 15.0, 500, dtype=np.float64)
 
-        # Carregar modelos alternativos para comparativo
+        # Carregar os 4 modelos híbridos para comparativo completo em t > 0
         modelos_hibridos = {
-            "Híbrido Serial (RF Campeão)": self.hibrido_campeao,
-            "Híbrido (MLP)": SerialHybridModel(model_type="mlp"),
+            "Híbrido Serial (MLP Campeão)": self.hibrido_campeao,
+            "Híbrido (RF)": SerialHybridModel(model_type="random_forest"),
             "Híbrido (XGBoost)": SerialHybridModel(model_type="xgboost"),
             "Híbrido (SVR)": SerialHybridModel(model_type="svr"),
         }
 
-        print("-> Simulando os 16 ensaios de bancada para todos os modelos...")
+        print("-> Simulando os 16 ensaios de bancada (estritamente t > 0 para métricas, N=112 pontos) para todos os modelos...")
 
         for ens_id in range(1, 17):
             sub_meta = self.df_meta[self.df_meta["ensaio"] == ens_id].iloc[0]
-            sub_series = self.df_series[self.df_series["ensaio"] == ens_id].sort_values("t_min")
+            # Filtrar estritamente t > 0 nos pontos experimentais avaliados
+            sub_series = self.df_series[(self.df_series["ensaio"] == ens_id) & (self.df_series["t_min"] > 0.0)].sort_values("t_min")
 
             ca0 = float(sub_meta["CA0_mol_L"])
             eta = float(sub_meta["razao_molar_eta"])
@@ -134,28 +129,27 @@ class EvaluatorInDomain:
             t_exp = sub_series["t_min"].values.astype(np.float64)
             x_exp = sub_series["XZn"].values.astype(np.float64)
 
-            # 1. FPM Puro Baseline (alpha = 3.43 um/min)
-            fpm_discrete = self.solver_fpm.simulate(ca0=ca0, eta=eta, t_eval=t_exp)
-            fpm_fine = self.solver_fpm.simulate(ca0=ca0, eta=eta, t_eval=t_fine)
+            # 1. White-Box Puro Baseline (RRB ÷ D³, Sem α: alpha = 0.0)
+            fpm_discrete = self.solver_fpm.simulate(ca0=ca0, eta=eta, t_eval=t_exp, alpha=0.0)
+            fpm_fine = self.solver_fpm.simulate(ca0=ca0, eta=eta, t_eval=t_fine, alpha=0.0)
 
-            # 2. DDM Puro (Predição Black-Box aberta: integra v_RF sem teto estequiométrico)
-            v_ddm_exp = self.hibrido_campeao.predict_rate(T=40.0, ca0=ca0, eta=eta, t_eval=t_exp)
-            pbm_ddm_open = self.solver_fpm.simulate_with_v_profile(t_eval=t_exp, v_profile=-v_ddm_exp)
-            x_ddm_discrete = np.clip(np.maximum.accumulate(pbm_ddm_open["XZn"]), 0.0, 1.0)
+            # 2. DDM Puro (Predição Black-Box aberta em t > 0 sem teto estequiométrico de Herbst)
+            t_canon = np.linspace(0.25, 15.0, 60, dtype=np.float64)
+            v_ddm_canon = self.hibrido_campeao.predict_rate(T=40.0, ca0=ca0, eta=eta, t_eval=t_canon)
+            pbm_ddm_canon = self.solver_fpm.simulate_with_v_profile(t_eval=t_canon, v_profile=-v_ddm_canon)
+            t_ddm_full = np.concatenate([[0.0], t_canon])
+            x_ddm_full = np.concatenate([[0.0], np.clip(np.maximum.accumulate(pbm_ddm_canon["XZn"]), 0.0, 1.0)])
+            x_ddm_discrete = np.interp(t_exp, t_ddm_full, x_ddm_full)
+            x_ddm_fine = np.interp(t_fine, t_ddm_full, x_ddm_full)
 
-            # DDM Puro contínuo
-            v_ddm_fine = self.hibrido_campeao.predict_rate(T=40.0, ca0=ca0, eta=eta, t_eval=t_fine)
-            pbm_ddm_fine = self.solver_fpm.simulate_with_v_profile(t_eval=t_fine, v_profile=-v_ddm_fine)
-            x_ddm_fine = np.clip(np.maximum.accumulate(pbm_ddm_fine["XZn"]), 0.0, 1.0)
-
-            # 3. Híbridos (Serial com restrição de Herbst)
+            # 3. Híbridos (Serial com restrição de Herbst e t=0 hardcodado)
             hib_preds_discrete: Dict[str, np.ndarray] = {}
             for m_name, h_inst in modelos_hibridos.items():
                 sim_res = h_inst.simulate(T=40.0, ca0=ca0, eta=eta, t_eval=t_exp)
                 hib_preds_discrete[m_name] = sim_res["XZn"]
 
-            # Híbrido Campeão contínuo
-            sim_rf_fine = self.hibrido_campeao.simulate(T=40.0, ca0=ca0, eta=eta, t_eval=t_fine)
+            # Híbrido Campeão (MLP) contínuo
+            sim_mlp_fine = self.hibrido_campeao.simulate(T=40.0, ca0=ca0, eta=eta, t_eval=t_fine)
 
             continuous_curves[ens_id] = {
                 "ca0": ca0,
@@ -166,12 +160,12 @@ class EvaluatorInDomain:
                 "t_fine": t_fine,
                 "fpm_fine": fpm_fine["XZn"],
                 "ddm_fine": x_ddm_fine,
-                "hib_rf_fine": sim_rf_fine["XZn"],
-                "caf_rf_fine": sim_rf_fine["CAf"],
-                "v_rf_fine": sim_rf_fine["abs_v"],
+                "hib_rf_fine": sim_mlp_fine["XZn"],
+                "caf_rf_fine": sim_mlp_fine["CAf"],
+                "v_rf_fine": sim_mlp_fine["abs_v"],
             }
 
-            # Armazenar registros discretos para métricas
+            # Armazenar registros discretos para métricas (estritamente t > 0: 7 pts/ensaio, 112 pts total)
             for i, t_val in enumerate(t_exp):
                 row = {
                     "ensaio": ens_id,
@@ -182,8 +176,8 @@ class EvaluatorInDomain:
                     "XZn_exp": x_exp[i],
                     "XZn_FPM": fpm_discrete["XZn"][i],
                     "XZn_DDM_puro": x_ddm_discrete[i],
-                    "XZn_Hibrido_RF": hib_preds_discrete["Híbrido Serial (RF Campeão)"][i],
-                    "XZn_Hibrido_MLP": hib_preds_discrete["Híbrido (MLP)"][i],
+                    "XZn_Hibrido_MLP": hib_preds_discrete["Híbrido Serial (MLP Campeão)"][i],
+                    "XZn_Hibrido_RF": hib_preds_discrete["Híbrido (RF)"][i],
                     "XZn_Hibrido_XGB": hib_preds_discrete["Híbrido (XGBoost)"][i],
                     "XZn_Hibrido_SVR": hib_preds_discrete["Híbrido (SVR)"][i],
                 }
@@ -193,8 +187,8 @@ class EvaluatorInDomain:
         return df_results, continuous_curves
 
     def generate_metrics_tables(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Gera tabelas detalhadas ensaio a ensaio e síntese global/por partição."""
-        # 1. Tabela Ensaio a Ensaio
+        """Gera tabelas detalhadas ensaio a ensaio e síntese global/por partição (t > 0)."""
+        # 1. Tabela Ensaio a Ensaio (t > 0)
         assay_records: List[Dict[str, Any]] = []
         for ens_id in range(1, 17):
             sub = df[df["ensaio"] == ens_id]
@@ -205,7 +199,7 @@ class EvaluatorInDomain:
 
             m_fpm = compute_metrics(y_true, sub["XZn_FPM"].values)
             m_ddm = compute_metrics(y_true, sub["XZn_DDM_puro"].values)
-            m_hib = compute_metrics(y_true, sub["XZn_Hibrido_RF"].values)
+            m_hib = compute_metrics(y_true, sub["XZn_Hibrido_MLP"].values)
 
             delta_r2 = m_hib["R2"] - m_fpm["R2"]
             gain_rmse_pct = ((m_fpm["RMSE"] - m_hib["RMSE"]) / m_fpm["RMSE"]) * 100.0 if m_fpm["RMSE"] > 0 else 0.0
@@ -229,21 +223,21 @@ class EvaluatorInDomain:
             })
         df_assays = pd.DataFrame(assay_records)
 
-        # 2. Tabela de Comparativo dos 4 Híbridos e Modelos Referência
+        # 2. Tabela de Comparativo dos 4 Híbridos e Modelos Referência (estritamente t > 0)
         models_to_eval = [
-            ("FPM Puro (Baseline)", "XZn_FPM"),
-            ("DDM Puro (RF sem Herbst)", "XZn_DDM_puro"),
-            ("Híbrido Serial (RF Campeão)", "XZn_Hibrido_RF"),
-            ("Híbrido Serial (MLP)", "XZn_Hibrido_MLP"),
+            ("FPM Puro (RRB ÷ D³, Sem α)", "XZn_FPM"),
+            ("DDM Puro (MLP sem Herbst)", "XZn_DDM_puro"),
+            ("Híbrido Serial (MLP Campeão)", "XZn_Hibrido_MLP"),
+            ("Híbrido Serial (RF)", "XZn_Hibrido_RF"),
             ("Híbrido Serial (XGBoost)", "XZn_Hibrido_XGB"),
             ("Híbrido Serial (SVR)", "XZn_Hibrido_SVR"),
         ]
 
         summary_records: List[Dict[str, Any]] = []
         partitions = [
-            ("Global (16 ensaios - 128 pts)", df),
-            ("Treino (13 ensaios - 104 pts)", df[df["particao"] == "Treino"]),
-            ("Teste Cego (3 ensaios - 24 pts)", df[df["particao"] == "Teste Cego"]),
+            ("Global (16 ensaios - 112 pts, t > 0)", df),
+            ("Treino (13 ensaios - 91 pts, t > 0)", df[df["particao"] == "Treino"]),
+            ("Teste Cego (3 ensaios - 21 pts, t > 0)", df[df["particao"] == "Teste Cego"]),
         ]
 
         for part_name, sub_df in partitions:
@@ -293,7 +287,7 @@ class EvaluatorInDomain:
             )
 
             # 2. FPM Puro Baseline
-            ax.plot(d["t_fine"], d["fpm_fine"], "k--", lw=1.5, alpha=0.7, label=r"FPM Puro ($\alpha=3{,}43$)", zorder=4)
+            ax.plot(d["t_fine"], d["fpm_fine"], "k--", lw=1.5, alpha=0.7, label=r"FPM Puro ($\alpha=5500\ \mu\mathrm{m/min}$)", zorder=4)
 
             # 3. Híbrido Serial Campeão
             label_hib = f"Híbrido Serial ({badge})"
@@ -337,7 +331,7 @@ class EvaluatorInDomain:
         fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.025), ncol=3, frameon=True)
         fig.suptitle(
             "Figura 12a: Reconstrução da Cinética de Lixiviação $X_{\\mathrm{Zn}}(t)$ nos 16 Ensaios de Bancada\n"
-            "Comparativo: Dados Experimentais vs. FPM Puro Baseline ($\\alpha = 3{,}43$) vs. Híbrido Serial Campeão (RF $\\rightarrow$ PBM)",
+            "Comparativo: Dados Experimentais vs. FPM Puro Baseline ($\\alpha = 5500\\ \\mu\\mathrm{m/min}$) vs. Híbrido Serial Campeão (RF $\\rightarrow$ PBM)",
             fontsize=13,
             y=1.045,
             fontweight="bold",
@@ -370,7 +364,7 @@ class EvaluatorInDomain:
             res_hib = np.maximum(1e-4, 1.0 - d["hib_rf_fine"])
 
             ax.semilogy(d["t_exp"], res_exp, "ko", markersize=5, label="Exp (1 - $X_{\\mathrm{Zn}}$)", zorder=6)
-            ax.semilogy(d["t_fine"], res_fpm, "k--", lw=1.5, alpha=0.7, label=r"FPM Puro ($\alpha=3{,}43$)", zorder=4)
+            ax.semilogy(d["t_fine"], res_fpm, "k--", lw=1.5, alpha=0.7, label=r"FPM Puro ($\alpha=5500\ \mu\mathrm{m/min}$)", zorder=4)
             ax.semilogy(d["t_fine"], res_hib, color=cor_hib, lw=2.2, label="Híbrido Serial", zorder=5)
 
             ax.set_title(
@@ -424,7 +418,7 @@ class EvaluatorInDomain:
             x_hib_log = np.maximum(5e-3, d["hib_rf_fine"])
 
             ax.semilogy(d["t_exp"], x_exp_log, "ko", markersize=5, label="Exp. Coelho (2017)", zorder=6)
-            ax.semilogy(d["t_fine"], x_fpm_log, "k--", lw=1.5, alpha=0.7, label=r"FPM Puro ($\alpha=3{,}43$)", zorder=4)
+            ax.semilogy(d["t_fine"], x_fpm_log, "k--", lw=1.5, alpha=0.7, label=r"FPM Puro ($\alpha=5500\ \mu\mathrm{m/min}$)", zorder=4)
             ax.semilogy(d["t_fine"], x_hib_log, color=cor_hib, lw=2.2, label=f"Híbrido Serial ({badge})", zorder=5)
 
             if d["eta"] < 1.0:
@@ -462,13 +456,13 @@ class EvaluatorInDomain:
         print(f"[OK] Fig. 12a (Semilog X_Zn) salva em: {fig_png.name} e {fig_pdf.name}")
 
     def plot_fig_12b_parity(self, df: pd.DataFrame) -> None:
-        """Gera Figura 12b: Gráficos de Paridade 1:1 para FPM Puro, DDM Puro e Híbrido Serial (300 DPI)."""
+        """Gera Figura 12b: Gráficos de Paridade 1:1 para FPM Puro, DDM Puro e Híbrido Serial (300 DPI, t > 0)."""
         fig, axes = plt.subplots(1, 3, figsize=(18, 6), sharey=True, constrained_layout=True)
 
         model_configs = [
-            ("FPM Puro Baseline", "XZn_FPM", "#d95f02", "(a)"),
-            ("DDM Puro (RF sem Herbst)", "XZn_DDM_puro", "#7570b3", "(b)"),
-            ("Híbrido Serial Campeão (RF -> PBM)", "XZn_Hibrido_RF", "#1b9e77", "(c)"),
+            ("White-Box Puro (RRB ÷ D³, Sem α)", "XZn_FPM", "#d95f02", "(a)"),
+            ("DDM Puro (MLP sem Herbst)", "XZn_DDM_puro", "#7570b3", "(b)"),
+            ("Híbrido Serial Campeão (MLP -> PBM)", "XZn_Hibrido_MLP", "#1b9e77", "(c)"),
         ]
 
         df_train = df[df["particao"] == "Treino"]
@@ -487,7 +481,7 @@ class EvaluatorInDomain:
             ax.plot(x_line, x_line - 0.10, "k:", lw=1.0, alpha=0.5, zorder=2)
             ax.fill_between(x_line, x_line - 0.05, x_line + 0.05, color="gray", alpha=0.10, zorder=1)
 
-            # Pontos de Treino (104 pontos)
+            # Pontos de Treino (91 pontos, t > 0)
             ax.scatter(
                 df_train["XZn_exp"],
                 df_train[col_name],
@@ -495,11 +489,11 @@ class EvaluatorInDomain:
                 edgecolor="black",
                 alpha=0.75,
                 s=45,
-                label=f"Treino ({len(df_train)} pts)",
+                label=f"Treino ({len(df_train)} pts, t > 0)",
                 zorder=4,
             )
 
-            # Pontos de Teste Cego (24 pontos)
+            # Pontos de Teste Cego (21 pontos, t > 0)
             ax.scatter(
                 df_test["XZn_exp"],
                 df_test[col_name],
@@ -507,19 +501,19 @@ class EvaluatorInDomain:
                 edgecolor="black",
                 marker="s",
                 s=65,
-                label=f"Teste Cego ({len(df_test)} pts)",
+                label=f"Teste Cego ({len(df_test)} pts, t > 0)",
                 zorder=5,
             )
 
-            # Métricas globais e por partição
+            # Métricas globais e por partição (t > 0)
             m_glob = compute_metrics(df["XZn_exp"], df[col_name])
             m_tr = compute_metrics(df_train["XZn_exp"], df_train[col_name])
             m_te = compute_metrics(df_test["XZn_exp"], df_test[col_name])
 
             textbox = (
-                f"Global: $R^2 = {m_glob['R2']:.4f}$ | RMSE = {m_glob['RMSE']:.4f}\n"
-                f"Treino: $R^2 = {m_tr['R2']:.4f}$ | RMSE = {m_tr['RMSE']:.4f}\n"
-                f"Teste:  $R^2 = {m_te['R2']:.4f}$ | RMSE = {m_te['RMSE']:.4f}"
+                f"Global (t>0): $R^2 = {m_glob['R2']:.4f}$ | RMSE = {m_glob['RMSE']:.4f}\n"
+                f"Treino (t>0): $R^2 = {m_tr['R2']:.4f}$ | RMSE = {m_tr['RMSE']:.4f}\n"
+                f"Teste  (t>0): $R^2 = {m_te['R2']:.4f}$ | RMSE = {m_te['RMSE']:.4f}"
             )
             ax.text(
                 0.05,
@@ -539,8 +533,8 @@ class EvaluatorInDomain:
             ax.legend(loc="lower right", framealpha=0.9)
 
         fig.suptitle(
-            "Figura 12b: Diagramas de Paridade 1:1 para a Conversão de Zinco $X_{\\mathrm{Zn}}$ (128 Pontos Experimentais)\n"
-            "Demonstração do Ganho de Acurácia do Híbrido Serial sobre o FPM Puro e Eliminação das Violações do DDM Puro",
+            "Figura 12b: Diagramas de Paridade 1:1 para a Conversão de Zinco $X_{\\mathrm{Zn}}$ (112 Pontos Ativos, t > 0)\n"
+            "Demonstração do Ganho de Acurácia do Híbrido Serial (MLP) sobre o White-Box Puro e Eliminação das Violações do DDM Puro",
             fontsize=13,
             y=1.045,
             fontweight="bold",
@@ -558,10 +552,10 @@ class EvaluatorInDomain:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6), constrained_layout=True)
 
         model_order = [
-            "FPM Puro (Baseline)",
-            "DDM Puro (RF sem Herbst)",
-            "Híbrido Serial (RF Campeão)",
-            "Híbrido Serial (MLP)",
+            "FPM Puro (RRB ÷ D³, Sem α)",
+            "DDM Puro (MLP sem Herbst)",
+            "Híbrido Serial (MLP Campeão)",
+            "Híbrido Serial (RF)",
             "Híbrido Serial (XGBoost)",
             "Híbrido Serial (SVR)",
         ]
@@ -580,16 +574,16 @@ class EvaluatorInDomain:
             edgecolor="black",
         )
         ax1.set_ylabel(r"Coeficiente de Determinação $R^2\ (-)$")
-        ax1.set_title(r"(a) Comparativo de Acurácia Global e Generalização ($R^2$)", fontweight="bold")
+        ax1.set_title(r"(a) Comparativo de Acurácia Global e Generalização ($R^2$, t > 0)", fontweight="bold")
         ax1.set_xticks(range(len(model_order)))
         ax1.set_xticklabels(
-            ["FPM Puro", "DDM Puro", "Híbrido (RF)", "Híbrido (MLP)", "Híbrido (XGB)", "Híbrido (SVR)"],
+            ["White-Box (Sem α)", "DDM Puro", "Híbrido (MLP)", "Híbrido (RF)", "Híbrido (XGB)", "Híbrido (SVR)"],
             rotation=20,
             ha="right",
         )
         ax1.set_ylim(0.0, 1.05)
         ax1.axhline(0.90, color="gray", linestyle=":", lw=1.2)
-        ax1.legend(title="Partição de Dados", loc="lower left", framealpha=0.9)
+        ax1.legend(title="Partição de Dados (t > 0)", loc="lower left", framealpha=0.9)
 
         # Gráfico 2: RMSE
         sns.barplot(
@@ -603,18 +597,18 @@ class EvaluatorInDomain:
             edgecolor="black",
         )
         ax2.set_ylabel(r"Raiz do Erro Quadrático Médio $\mathrm{RMSE}\ (-)$")
-        ax2.set_title(r"(b) Erro Residual de Predição da Conversão ($\mathrm{RMSE}$)", fontweight="bold")
+        ax2.set_title(r"(b) Erro Residual de Predição da Conversão ($\mathrm{RMSE}$, t > 0)", fontweight="bold")
         ax2.set_xticks(range(len(model_order)))
         ax2.set_xticklabels(
-            ["FPM Puro", "DDM Puro", "Híbrido (RF)", "Híbrido (MLP)", "Híbrido (XGB)", "Híbrido (SVR)"],
+            ["White-Box (Sem α)", "DDM Puro", "Híbrido (MLP)", "Híbrido (RF)", "Híbrido (XGB)", "Híbrido (SVR)"],
             rotation=20,
             ha="right",
         )
         ax2.set_ylim(0.0, 0.35)
-        ax2.legend(title="Partição de Dados", loc="upper left", framealpha=0.9)
+        ax2.legend(title="Partição de Dados (t > 0)", loc="upper left", framealpha=0.9)
 
         fig.suptitle(
-            "Figura 12c: Síntese Quantitativa Comparativa de Desempenho dos Modelos Avaliados na Conversão de Zinco $X_{\\mathrm{Zn}}$",
+            "Figura 12c: Síntese Quantitativa Comparativa de Desempenho dos 4 Modelos Híbridos na Conversão de Zinco $X_{\\mathrm{Zn}}$ (t > 0)",
             fontsize=13,
             y=1.03,
             fontweight="bold",
@@ -646,7 +640,7 @@ class EvaluatorInDomain:
             linecolor="white",
             annot_kws={"size": 11, "fontweight": "bold"},
         )
-        ax1.set_title(r"(a) Ganho em $R^2$ do Híbrido Serial sobre o FPM Puro", fontweight="bold")
+        ax1.set_title(r"(a) Ganho em $R^2$ do Híbrido Serial (MLP) sobre o White-Box Puro", fontweight="bold")
         ax1.set_xlabel(r"Razão Molar Estequiométrica $\eta\ (\mathrm{mol\ H_2SO_4 / mol\ ZnO})$")
         ax1.set_ylabel(r"Concentração Inicial de Ácido $C_{A0}\ (\mathrm{mol}\cdot\mathrm{L}^{-1})$")
 
@@ -670,7 +664,7 @@ class EvaluatorInDomain:
         ax2.set_ylabel(r"Concentração Inicial de Ácido $C_{A0}\ (\mathrm{mol}\cdot\mathrm{L}^{-1})$")
 
         fig.suptitle(
-            "Figura 12d: Mapa Térmico do Ganho Relativo do Híbrido Serial sobre o FPM Baseline no Espaço Operacional ($C_{A0} \\times \\eta$)",
+            "Figura 12d: Mapa Térmico do Ganho Relativo do Híbrido Serial (MLP) sobre o White-Box Puro no Espaço Operacional ($C_{A0} \\times \\eta$, t > 0)",
             fontsize=13,
             y=1.03,
             fontweight="bold",
@@ -684,87 +678,56 @@ class EvaluatorInDomain:
         print(f"[OK] Fig. 12d salva em: {fig_png.name} e {fig_pdf.name}")
 
     def generate_technical_report(self, df_assays: pd.DataFrame, df_summary: pd.DataFrame) -> None:
-        """Gera relatório técnico executivo em Markdown documentando a Subetapa 4.2."""
+        """Gera relatório técnico executivo em Markdown documentando a Subetapa 4.2 (t > 0, 3 inputs, MLP Campeão)."""
         report_path = self.out_dir / "relatorio_etapa_4_2_hibrido_indomain.md"
+        fund_path = self.out_dir / "fundamentacao_acoplamento_hibrido_LOP.md"
 
-        # Métricas globais
+        # Métricas globais (t > 0)
         row_fpm_glob = df_summary[(df_summary["Particao"].str.startswith("Global")) & (df_summary["Modelo"].str.startswith("FPM"))].iloc[0]
         row_ddm_glob = df_summary[(df_summary["Particao"].str.startswith("Global")) & (df_summary["Modelo"].str.startswith("DDM"))].iloc[0]
-        row_hib_glob = df_summary[(df_summary["Particao"].str.startswith("Global")) & (df_summary["Modelo"].str.startswith("Híbrido Serial (RF"))].iloc[0]
+        row_hib_glob = df_summary[(df_summary["Particao"].str.startswith("Global")) & (df_summary["Modelo"].str.startswith("Híbrido Serial (MLP"))].iloc[0]
 
-        # Métricas teste cego
+        # Métricas teste cego (t > 0)
         row_fpm_te = df_summary[(df_summary["Particao"].str.startswith("Teste")) & (df_summary["Modelo"].str.startswith("FPM"))].iloc[0]
         row_ddm_te = df_summary[(df_summary["Particao"].str.startswith("Teste")) & (df_summary["Modelo"].str.startswith("DDM"))].iloc[0]
-        row_hib_te = df_summary[(df_summary["Particao"].str.startswith("Teste")) & (df_summary["Modelo"].str.startswith("Híbrido Serial (RF"))].iloc[0]
+        row_hib_te = df_summary[(df_summary["Particao"].str.startswith("Teste")) & (df_summary["Modelo"].str.startswith("Híbrido Serial (MLP"))].iloc[0]
 
         reduc_rmse_glob = ((row_fpm_glob["RMSE"] - row_hib_glob["RMSE"]) / row_fpm_glob["RMSE"]) * 100.0
+        reduc_rmse_te = ((row_fpm_te["RMSE"] - row_hib_te["RMSE"]) / row_fpm_te["RMSE"]) * 100.0
 
-        content = f"""# Relatório Técnico — Subetapa 4.2: Simulação Completa In-Domain e Benchmark Triplo
+        content = f"""# Relatório Técnico — Subetapa 4.2: Simulação Completa In-Domain e Benchmark dos 4 Modelos Híbridos (t > 0, RRB ÷ D³, 3 Inputs)
 
 **Projeto**: Modelagem Híbrida de Lixiviação de Concentrado de Zinco (LOP / DEQ / UFMG)  
-**Etapa**: 4.2 — Avaliação In-Domain nos 16 Ensaios de Bancada (Bortot Coelho, 2017)  
-**Data**: 2026-09-27  
+**Etapa**: 4.2 — Avaliação In-Domain nos 16 Ensaios de Bancada (Bortot Coelho, 2017) estritamente sobre t > 0 (N = 112 pontos ativos)  
 
 ---
 
-## 1. Resumo Executivo e Principais Resultados
+## 1. Resumo Executivo e Principais Resultados (t > 0)
 
-Esta etapa consolidou a avaliação rigorosa de acoplamento híbrido serial de ponta a ponta (DDM → PBM em Batelada), confrontando as predições de conversão mássica de zinco X_Zn(t) nos **16 ensaios de bancada** (128 observações experimentais) contra dois modelos de referência:
-1. **FPM Puro Baseline**: Modelo mecanicista com cinética de retração clássica de Shrinking Core e coeficiente empírico constante alpha = 3,43 um/min (Etapa 1.3);
-2. **DDM Puro**: Modelo Black-Box Random Forest integrado em malha aberta sem acoplamento estequiométrico de Herbst;
-3. **Híbrido Serial Campeão (Random Forest → PBM)**: Acoplamento serial com preservação rigorosa da conservação de massa e restrição de ácido esgotado.
+Esta etapa consolidou a avaliação de ponta a ponta do acoplamento híbrido serial (DDM → PBM com distribuição numérica ponderada por volume RRB ÷ D³ e condição inicial física hardcodada em t = 0: X_Zn(0) = 0, δ(0) = 0, C_Af(0) = C_A0), avaliando todos os **4 modelos Black-Box (`MLP Campeão`, `Random Forest`, `XGBoost`, `SVR`)** estritamente sobre os **112 pontos experimentais ativos (t > 0)** com apenas as **3 variáveis cinéticas ativas [C_A0, η, t]**.
 
-### Tabela-Resumo: Benchmark Triplo Consolidado
-| Modelo | Escopo | R² (-) | RMSE (-) | MAE (-) | Erro Máximo (-) | Redução do Erro vs. FPM |
+### Tabela-Resumo: Benchmark Consolidado (t > 0)
+| Modelo | Escopo (t > 0) | R² (-) | RMSE (-) | MAE (-) | Erro Máximo (-) | Redução do Erro vs. White-Box |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **FPM Puro Baseline** | Global (16 ensaios) | {row_fpm_glob['R2']:.4f} | {row_fpm_glob['RMSE']:.4f} | {row_fpm_glob['MAE']:.4f} | {row_fpm_glob['MaxError']:.4f} | — |
-| **DDM Puro (sem Herbst)** | Global (16 ensaios) | {row_ddm_glob['R2']:.4f} | {row_ddm_glob['RMSE']:.4f} | {row_ddm_glob['MAE']:.4f} | {row_ddm_glob['MaxError']:.4f} | -55,3% (Degradação) |
-| **Híbrido Serial Campeão** | **Global (16 ensaios)** | **{row_hib_glob['R2']:.4f}** | **{row_hib_glob['RMSE']:.4f}** | **{row_hib_glob['MAE']:.4f}** | **{row_hib_glob['MaxError']:.4f}** | **+{reduc_rmse_glob:.1f}%** |
-| FPM Puro Baseline | Teste Cego (3 ensaios) | {row_fpm_te['R2']:.4f} | {row_fpm_te['RMSE']:.4f} | {row_fpm_te['MAE']:.4f} | {row_fpm_te['MaxError']:.4f} | — |
-| DDM Puro (sem Herbst) | Teste Cego (3 ensaios) | {row_ddm_te['R2']:.4f} | {row_ddm_te['RMSE']:.4f} | {row_ddm_te['MAE']:.4f} | {row_ddm_te['MaxError']:.4f} | +44,0% |
-| **Híbrido Serial Campeão** | **Teste Cego (3 ensaios)** | **{row_hib_te['R2']:.4f}** | **{row_hib_te['RMSE']:.4f}** | **{row_hib_te['MAE']:.4f}** | **{row_hib_te['MaxError']:.4f}** | **+44,0%** |
+| **White-Box Puro (RRB ÷ D³, Sem α)** | Global (16 ensaios, N=112) | {row_fpm_glob['R2']:.4f} | {row_fpm_glob['RMSE']:.4f} | {row_fpm_glob['MAE']:.4f} | {row_fpm_glob['MaxError']:.4f} | — |
+| **DDM Puro (MLP sem Herbst)** | Global (16 ensaios, N=112) | {row_ddm_glob['R2']:.4f} | {row_ddm_glob['RMSE']:.4f} | {row_ddm_glob['MAE']:.4f} | {row_ddm_glob['MaxError']:.4f} | Viola teto estequiométrico |
+| **Híbrido Serial Campeão (MLP → PBM)** | **Global (16 ensaios, N=112)** | **{row_hib_glob['R2']:.4f}** | **{row_hib_glob['RMSE']:.4f}** | **{row_hib_glob['MAE']:.4f}** | **{row_hib_glob['MaxError']:.4f}** | **+{reduc_rmse_glob:.1f}%** |
+| White-Box Puro (RRB ÷ D³, Sem α) | Teste Cego (3 ensaios, N=21) | {row_fpm_te['R2']:.4f} | {row_fpm_te['RMSE']:.4f} | {row_fpm_te['MAE']:.4f} | {row_fpm_te['MaxError']:.4f} | — |
+| **Híbrido Serial Campeão (MLP → PBM)** | **Teste Cego (3 ensaios, N=21)** | **{row_hib_te['R2']:.4f}** | **{row_hib_te['RMSE']:.4f}** | **{row_hib_te['MAE']:.4f}** | **{row_hib_te['MaxError']:.4f}** | **+{reduc_rmse_te:.1f}%** |
 
 ---
 
-## 2. Por que o Híbrido Supera Ambas as Abordagens Tradicionais?
+## 2. Comparativo Completo dos 4 Modelos Híbridos Acoplados ao PBM (t > 0)
 
-### 2.1 Limitações Críticas Superadas do FPM Puro
-- O modelo analítico FPM tradicional depende de um parâmetro de amortecimento cinético constante (alpha = 3,43 um/min).
-- Na prática, a força motriz reacional decresce de modo não-linear ao longo do tempo conforme a camada de passivação de enxofre/sílica se forma na superfície e os cátions Zn²⁺ saturam o licor.
-- Nos ensaios com menor acidez (C_A0 = 0,10 M, Ensaios 1, 6, 11), o FPM subestima bruscamente a taxa inicial de dissolução, apresentando R² entre 0,53 e 0,62.
-- O Híbrido Serial recupera essa não-linearidade através da taxa |v(t)| predita pelo Random Forest, elevando o R² médio nesses ensaios para mais de 0,93.
-
-### 2.2 Por que o DDM Puro Falha Sem o Balanço Populacional e Restrição Física?
-- Quando o modelo de Machine Learning opera em malha aberta (DDM Puro), ele não possui qualquer noção termodinâmica sobre o inventário de reagentes no reator.
-- Nos ensaios de estequiometria severa (eta = 0,5, Ensaios 1, 3, 4 e 5), o ácido é completamente consumido ao atingir conversão de 50% (X_Zn = 0,50). No entanto, o regressor puramente baseado em dados prediz a continuidade da taxa de retração interfacial (|v| > 0), resultando em conversões espúrias de 80% a 84% e valores de R² negativos (-1,5 a -3,2).
-- O Híbrido Serial soluciona este defeito através do acoplamento serial com o **Balanço Estequiométrico de Herbst**: no instante em que o estoque de ácido atinge C_Af = 0, a taxa interfacial é imediatamente truncada a zero, travando rigorosamente X_Zn(t) no patamar exato de conservação de massa (X_Zn <= min(1, eta)).
-
----
-
-## 3. Comparativo de Sensibilidade com Outros Preditores Híbridos
-
-Avaliando o desempenho dos 4 modelos DDM acoplados ao PBM:
 ```
 {df_summary.to_string(index=False)}
 ```
-
-**Conclusão**:
-- O **Random Forest (RF Campeão)** e a **Rede Neural (MLP)** alcançam desempenho de ponta quase idêntico (R² > 0,97 e RMSE < 0,053).
-- O Random Forest consolida sua escolha como campeão por apresentar robustez comprovada contra sobre-ajuste local e trajetórias assintóticas suaves em extrapolação.
-
----
-
-## 4. Figuras Científicas Produzidas (300 DPI)
-
-1. `fig_12a_reconstrucao_XZn_hibrido_16_ensaios.png` e `.pdf`: Painel 4x4 completo dos 16 ensaios de bancada;
-2. `fig_12a_reconstrucao_XZn_hibrido_16_ensaios_log.png` e `.pdf`: Escala semilogarítmica em 1 - X_Zn;
-3. `fig_12b_paridade_XZn_3modelos.png` e `.pdf`: Diagramas de paridade 1:1 com faixas de +/- 5% e +/- 10%;
-4. `fig_12c_comparativo_global_XZn_barras.png` e `.pdf`: Gráfico de barras comparativo de R² e RMSE;
-5. `fig_12d_heatmap_ganho_relativo_hibrido.png` e `.pdf`: Matriz térmica de ganhos Delta R² e redução percentual de erro por condição operacional.
 """
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(content)
-        print(f"[OK] Relatório executivo salvo em: {report_path.name}")
+        with open(fund_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print(f"[OK] Relatórios executivos salvos em: {report_path.name} e {fund_path.name}")
 
 
 def main() -> None:

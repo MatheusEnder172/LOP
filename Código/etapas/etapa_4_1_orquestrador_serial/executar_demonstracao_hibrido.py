@@ -63,27 +63,27 @@ def executar_demonstracao() -> None:
     res_8 = hibrido.simulate_experiment(ensaio_id=8, use_experimental_timepoints_only=False)
     res_8_exp = hibrido.simulate_experiment(ensaio_id=8, use_experimental_timepoints_only=True)
 
-    # Também roda o FPM Puro (Baseline) para comparação no Ensaio 8
-    fpm_res_8 = hibrido.solver.simulate(ca0=0.50, eta=1.0, t_eval=res_8["t"])
+    # Também roda o FPM Puro (Baseline RRB ÷ D³, Sem α) para comparação no Ensaio 8
+    fpm_res_8 = hibrido.solver.simulate(ca0=0.50, eta=1.0, t_eval=res_8["t"], alpha=0.0)
 
     # 3. Geração da Figura 4-Painéis Demonstrativa (300 DPI)
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(14, 10))
 
-    # Painel (a): Taxa de retração interfacial |v(t)|
-    ax1.plot(res_8["t"], res_8["abs_v"], color="#2ca02c", lw=2.0, label="Predição DDM (|v| Random Forest)")
+    # Painel (a): Taxa de retração interfacial |v(t)| em t > 0
+    ax1.plot(res_8["t"][res_8["t"] > 0], res_8["abs_v"][res_8["t"] > 0], color="#1f77b4", lw=2.0, label="Predição DDM (|v| MLP Campeão C∞, t > 0)")
     ax1.set_ylabel(r"$|v(t)|\ (\mu\mathrm{m}\cdot\mathrm{min}^{-1})$")
     ax1.set_xlabel(r"$t\ (\mathrm{min})$")
-    ax1.set_title("(a) Taxa de Retração Interfacial Predita pelo DDM", fontweight="bold")
+    ax1.set_title("(a) Taxa de Retração Interfacial Predita pelo MLP (t > 0)", fontweight="bold")
     ax1.legend(loc="upper right", framealpha=0.9)
 
-    # Painel (b): Deslocamento diametral acumulado delta(t)
-    ax2.plot(res_8["t"], res_8["delta"], color="#1f77b4", lw=2.0, label=r"Deslocamento $\delta(t) = \int_0^t |v| d\tau$")
+    # Painel (b): Deslocamento diametral acumulado delta(t) (com delta(0)=0 hardcodado)
+    ax2.plot(res_8["t"], res_8["delta"], color="#1f77b4", lw=2.0, label=r"Deslocamento $\delta(t) = \int_0^t |v| d\tau\ (\delta(0)=0)$")
     ax2.set_ylabel(r"$\delta(t)\ (\mu\mathrm{m})$")
     ax2.set_xlabel(r"$t\ (\mathrm{min})$")
-    ax2.set_title(r"(b) Retração Diametral Acumulada no PBM", fontweight="bold")
+    ax2.set_title(r"(b) Retração Diametral Acumulada no PBM (RRB ÷ D³)", fontweight="bold")
     ax2.legend(loc="lower right", framealpha=0.9)
 
-    # Painel (c): Fração convertida de zinco X_Zn(t) (Experimento vs. FPM vs. Híbrido)
+    # Painel (c): Fração convertida de zinco X_Zn(t) (Experimento t > 0 vs. FPM vs. Híbrido)
     ax3.errorbar(
         res_8_exp["t_exp"],
         res_8_exp["XZn_exp"],
@@ -91,11 +91,12 @@ def executar_demonstracao() -> None:
         fmt="ko",
         capsize=4,
         markersize=6,
-        label="Dados Experimentais (Ensaio 8 - Teste Cego)",
+        label="Dados Experimentais Ativos (t > 0, Ensaio 8)",
         zorder=5,
     )
-    ax3.plot(fpm_res_8["t"], fpm_res_8["XZn"], "r--", lw=1.8, label=r"FPM Puro Baseline ($\alpha = 3{,}43$)")
-    ax3.plot(res_8["t"], res_8["XZn"], color="#2ca02c", lw=2.2, label="Híbrido Serial (RF -> PBM)")
+    ax3.plot([0.0], [0.0], "ks", markersize=6, label="Condição Inicial Hardcoded (t=0, X_Zn=0)")
+    ax3.plot(fpm_res_8["t"], fpm_res_8["XZn"], "r--", lw=1.8, label=r"White-Box Puro (RRB ÷ D³, $\alpha = 0$)")
+    ax3.plot(res_8["t"], res_8["XZn"], color="#1f77b4", lw=2.2, label="Híbrido Serial Campeão (MLP -> PBM)")
 
     r2_8 = 1.0 - np.sum(res_8_exp["residuos_XZn"] ** 2) / np.sum((res_8_exp["XZn_exp"] - np.mean(res_8_exp["XZn_exp"])) ** 2)
     rmse_8 = np.sqrt(np.mean(res_8_exp["residuos_XZn"] ** 2))
@@ -103,9 +104,9 @@ def executar_demonstracao() -> None:
     ax3.text(
         0.05,
         0.25,
-        f"Híbrido Serial:\n$R^2 = {r2_8:.4f}$\n$\\mathrm{{RMSE}} = {rmse_8:.4f}$",
+        f"Híbrido Serial (t > 0):\n$R^2 = {r2_8:.4f}$\n$\\mathrm{{RMSE}} = {rmse_8:.4f}$",
         transform=ax3.transAxes,
-        bbox=dict(boxstyle="round,pad=0.4", facecolor="white", alpha=0.85, edgecolor="#2ca02c"),
+        bbox=dict(boxstyle="round,pad=0.4", facecolor="white", alpha=0.85, edgecolor="#1f77b4"),
         fontsize=9,
     )
 

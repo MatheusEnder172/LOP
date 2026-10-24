@@ -33,7 +33,7 @@ class DataPartitioner:
 
     DEFAULT_TEST_ENSAIOS: List[int] = [7, 8, 14]
     DEFAULT_TRAIN_ENSAIOS: List[int] = [1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 15, 16]
-    FEATURE_COLS: List[str] = ["temperatura_C", "CA0_mol_L", "razao_molar_eta", "t_min"]
+    FEATURE_COLS: List[str] = ["CA0_mol_L", "razao_molar_eta", "t_min"]
     TARGET_COL: str = "abs_v_alvo_um_min"
 
     def __init__(
@@ -70,6 +70,10 @@ class DataPartitioner:
         """
         if "ensaio" not in df.columns:
             raise ValueError("O DataFrame deve conter a coluna 'ensaio'.")
+
+        # Garantir exclusão estrita de t = 0 (condição inicial t = 0 -> X_Zn = 0 é hardcoded no solver)
+        if "t_min" in df.columns:
+            df = df[df["t_min"] > 0.0].copy()
 
         ensaios_presentes = set(df["ensaio"].unique())
         test_set = set(self.test_ensaios)

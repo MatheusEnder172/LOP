@@ -21,17 +21,21 @@ class LeachingKinetics:
 
     Atributos:
         ks (float): Constante cinética superficial intrínseca (µm/min). Padrão: 1,8e4 µm/min.
-        alpha_nominal (float): Parâmetro empírico nominal de amortecimento da taxa (µm/min). Padrão: 5,5e3 µm/min.
+        alpha_nominal (float): Parâmetro empírico nominal de amortecimento da taxa (µm/min).
+            Na Nova Abordagem (White-Box Puro oficial), alpha_nominal = 0,0 µm/min.
+            A referência histórica da dissertação de Bortot Coelho (2017) é 5500,0 µm/min (ALPHA_HISTORICO_COELHO).
         rho_s (float): Densidade molar de ZnO puro no mineral (mol/L). Padrão: 69,2 mol/L.
         mm_zno (float): Massa molar da zincita ZnO (g/mol). Padrão: 81,38 g/mol.
-        t_zno_operacional (float): Teor operacional de ZnO considerado no carregamento da bancada (0,8138 g_ZnO/g_sólido, equivalente a 1 mol ZnO / 100 g sólido).
+        t_zno_operacional (float): Teor operacional de ZnO considerado no carregamento da bancada (0,8138 g_ZnO/g_sólido).
         t_zno_quimico (float): Teor de ZnO quantificado por digestão amoniacal (0,761 g_ZnO/g_sólido).
     """
+
+    ALPHA_HISTORICO_COELHO: float = 5500.0
 
     def __init__(
         self,
         ks: float = 18000.0,
-        alpha_nominal: float = 5500.0,
+        alpha_nominal: float = 0.0,
         rho_s: float = 69.2,
         mm_zno: float = 81.38,
         t_zno_operacional: float = 0.8138,
@@ -133,7 +137,7 @@ class LeachingKinetics:
         Args:
             ca0: Concentração inicial de ácido sulfúrico (mol/L).
             caf: Concentração instantânea de ácido sulfúrico no licor (mol/L).
-            alpha: Parâmetro de retardamento (µm/min). Se None, usa o nominal.
+            alpha: Parâmetro de retardamento (µm/min). Se None, usa self.alpha_nominal.
 
         Returns:
             Força motriz líquida (µm·mol / (L·min)), truncada em zero se for negativa.
@@ -141,7 +145,7 @@ class LeachingKinetics:
         if alpha is None:
             alpha_val = self.alpha_nominal
         else:
-            alpha_val = alpha
+            alpha_val = float(alpha)
 
         caf_arr = np.maximum(np.asarray(caf, dtype=np.float64), 0.0)
         ca0_arr = float(ca0)
@@ -173,7 +177,7 @@ class LeachingKinetics:
         Args:
             ca0: Concentração inicial de ácido sulfúrico (mol/L).
             caf: Concentração instantânea de ácido sulfúrico no licor (mol/L).
-            alpha: Parâmetro de retardamento (µm/min). Se None, usa o nominal.
+            alpha: Parâmetro de retardamento (µm/min). Se None, usa self.alpha_nominal.
 
         Returns:
             Velocidade de retração dD/dt (µm/min). Sempre <= 0.
@@ -192,14 +196,18 @@ class LeachingKinetics:
 
         ks * Caf* - alpha * (CA0 - Caf*) = 0  =>  Caf* = CA0 * [ alpha / (ks + alpha) ]
 
+        Se alpha = 0 (White-Box Puro), Caf* = 0 (a reação só cessa no esgotamento estequiométrico total).
+
         Args:
             ca0: Concentração inicial de ácido sulfúrico (mol/L).
-            alpha: Parâmetro de retardamento. Se None, usa o nominal.
+            alpha: Parâmetro de retardamento. Se None, usa self.alpha_nominal.
 
         Returns:
             Concentração limite de ácido livre Caf* (mol/L).
         """
         alpha_val = self.alpha_nominal if alpha is None else float(alpha)
+        if alpha_val <= 0.0:
+            return 0.0
         fator = alpha_val / (self.ks + alpha_val)
         return float(ca0 * fator)
 
@@ -211,14 +219,19 @@ class LeachingKinetics:
         Equação 5.3 da dissertação de Bortot Coelho (2017):
         X_max = eta * [ 1 - alpha / (ks + alpha) ], restrito a [0, 1].
 
+        Quando alpha = 0 (White-Box Puro):
+        X_max = min(1.0, eta) (teto estequiométrico rigoroso).
+
         Args:
             eta: Razão molar estequiométrica (H2SO4 / ZnO).
-            alpha: Parâmetro de retardamento. Se None, usa o nominal.
+            alpha: Parâmetro de retardamento. Se None, usa self.alpha_nominal.
 
         Returns:
             Conversão máxima teórica esperada no patamar assintótico.
         """
         alpha_val = self.alpha_nominal if alpha is None else float(alpha)
+        if alpha_val <= 0.0:
+            return float(np.clip(float(eta), 0.0, 1.0))
         fator = 1.0 - (alpha_val / (self.ks + alpha_val))
         x_max = float(eta * fator)
         return float(np.clip(x_max, 0.0, 1.0))

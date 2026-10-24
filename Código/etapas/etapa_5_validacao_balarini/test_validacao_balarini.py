@@ -76,19 +76,20 @@ def test_arrhenius_termodinamica() -> None:
 
 
 def test_predicao_hibrida_balarini_limites_fisicos() -> None:
-    """Verifica que as predições do modelo híbrido respeitam rigorosamente os limites termodinâmicos."""
-    hybrid = SerialHybridModel(model_type="random_forest")
+    """Verifica que as predições do modelo híbrido (MLP Campeão, t > 0) respeitam rigorosamente os limites termodinâmicos."""
+    hybrid = SerialHybridModel(model_type="champion")
     
-    # Simula condição extrema de Balarini (T = 70 °C, CA0 = 0.0408, eta = 1.5)
-    t_test = np.array([0, 1, 5, 10, 20, 30], dtype=float)
+    # Simula condição extrema de Balarini (T = 70 °C, CA0 = 0.0408, eta = 1.5) em t > 0
+    t_test = np.array([0.5, 1, 5, 10, 20, 30], dtype=float)
     v_pred = hybrid.predict_rate(T=70.0, ca0=0.0408, eta=1.5, t_eval=t_test)
     
     assert np.all(v_pred >= 0.0), "Taxa de retração negativa predita pelo DDM!"
     
-    # Simula com convolução monodispersa
+    # Simula com convolução monodispersa a partir de delta(0) = 0 hardcodado
     from scipy.integrate import cumulative_trapezoid
     delta = np.zeros_like(t_test)
-    delta[1:] = cumulative_trapezoid(v_pred, t_test)
+    delta[0] = v_pred[0] * t_test[0]
+    delta[1:] = delta[0] + cumulative_trapezoid(v_pred, t_test)
     x_calc = np.clip(1.0 - np.maximum(0.0, 1.0 - delta / 180.0) ** 3, 0.0, 1.0)
     
     assert np.all(x_calc >= 0.0)

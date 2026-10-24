@@ -156,15 +156,17 @@ def simular_todas_series(
     
     t_fine = np.linspace(0.0, 30.0, 601)  # Malha fina de 0 a 30 min (passo de 3 segundos)
     
-    # 1. Calibração do fator de escala de transferência s sobre a série baseline de 30 °C
+    # 1. Calibração do fator de escala de transferência s sobre a série baseline de 30 °C (estritamente t > 0)
     # A série baseline é Efeito_Temp_30C (dp = 180 µm, 840 rpm, CA0 = 0.0408 mol/L)
-    g_base = df[df["serie_teste"] == "Efeito_Temp_30C"]
+    g_base = df[(df["serie_teste"] == "Efeito_Temp_30C") & (df["tempo_min"] > 0.0)].sort_values("tempo_min")
     t_base = g_base["tempo_min"].values
     x_base = g_base["conversao_zn_exp"].values
     
-    v_raw_base = hybrid_model.predict_rate(T=30.0, ca0=0.0408, eta=1.5, t_eval=t_fine)
+    t_fine_pos = t_fine[t_fine > 0.0]
+    v_raw_base_pos = hybrid_model.predict_rate(T=30.0, ca0=0.0408, eta=1.5, t_eval=t_fine_pos)
     delta_raw_base = np.zeros_like(t_fine)
-    delta_raw_base[1:] = cumulative_trapezoid(v_raw_base, t_fine)
+    delta_raw_base[1] = v_raw_base_pos[0] * t_fine_pos[0]
+    delta_raw_base[2:] = delta_raw_base[1] + cumulative_trapezoid(v_raw_base_pos, t_fine_pos)
     
     # Otimização escalar de s_opt para o domínio de bancada diluída de Balarini (4 g/L H2SO4)
     from scipy.optimize import minimize_scalar
@@ -173,13 +175,13 @@ def simular_todas_series(
         x_calc = np.interp(t_base, t_fine, 1.0 - np.maximum(0.0, 1.0 - d / 180.0) ** 3)
         return float(np.mean((x_base - x_calc) ** 2))
     
-    res_s = minimize_scalar(loss_scale, bounds=(0.05, 1.0), method="bounded")
+    res_s = minimize_scalar(loss_scale, bounds=(0.01, 5.0), method="bounded")
     s_opt = float(res_s.x)
-    print(f"[INFO] Fator de escala de domínio Balarini (Transfer Learning): s_opt = {s_opt:.4f}")
+    print(f"[INFO] Fator de escala de domínio Balarini (Transfer Learning, t > 0): s_opt = {s_opt:.4f}")
     
-    # 2. Loop sobre as 16 séries experimentais
+    # 2. Loop sobre as 16 séries experimentais (avaliando estritamente pontos ativos t > 0, com t=0 hardcodado na EDO)
     for serie in df["serie_teste"].unique():
-        g = df[df["serie_teste"] == serie].sort_values("tempo_min").reset_index(drop=True)
+        g = df[(df["serie_teste"] == serie) & (df["tempo_min"] > 0.0)].sort_values("tempo_min").reset_index(drop=True)
         
         temp_c = float(g["temperatura_c"].iloc[0])
         temp_k = temp_c + 273.15
@@ -192,61 +194,44 @@ def simular_todas_series(
         t_exp = g["tempo_min"].values
         x_exp = g["conversao_zn_exp"].values
         
-        # --- MODELO A: FPM Puro Baseline Mecanicista ---
-        # No FPM clássico (Herbst/Bortot Coelho):
-        # |v_fpm| = max(0, (ks*Caf - alpha*(CA0-Caf)) / (rho_s * fator))
-        # Para Balarini monodisperso:
+        # --- MODELO A: White-Box Puro Baseline Mecanicista (Sem α, δ(0)=0 hardcodado) ---
         delta_fpm = np.zeros_like(t_fine)
         caf_cur = ca0
         for i in range(1, len(t_fine)):
             dt = t_fine[i] - t_fine[i-1]
-            # Encolhimento acumulado anterior
             d_prev = delta_fpm[i-1]
             x_prev = 1.0 - max(0.0, 1.0 - d_prev / dp) ** 3
             caf_cur = max(0.0, ca0 * (1.0 - x_prev / eta))
-            v_step = max(0.0, (kin.ks * caf_cur - kin.alpha_nominal * (ca0 - caf_cur)) / (kin.rho_s * 50.0))
-            # Efeito térmico Arrhenius no FPM
+            v_step = max(0.0, (kin.ks * caf_cur) / (kin.rho_s * 50.0))
             factor_t_fpm = np.exp(-(ea_kj * 1000.0 / r_const) * (1.0 / temp_k - 1.0 / t_ref_k))
             delta_fpm[i] = delta_fpm[i-1] + v_step * factor_t_fpm * dt
             
         x_fpm_fine = np.clip(1.0 - np.maximum(0.0, 1.0 - delta_fpm / dp) ** 3, 0.0, min(1.0, eta))
         x_fpm_pred = np.interp(t_exp, t_fine, x_fpm_fine)
         
-        # --- MODELO B: DDM Puro (Random Forest em Malha Aberta) ---
-        # O Random Forest foi alimentado com [T, CA0, eta, t], sem balanço populacional
-        # Prediz delta diretamente sem acoplamento geométrico
-        v_ddm_raw = hybrid_model.predict_rate(T=temp_c, ca0=ca0, eta=eta, t_eval=t_fine)
+        # --- MODELO B: DDM Puro (Malha Aberta em t > 0 sem acoplamento geométrico PBM) ---
+        v_ddm_pos = hybrid_model.predict_rate(T=temp_c, ca0=ca0, eta=eta, t_eval=t_fine_pos)
         delta_ddm = np.zeros_like(t_fine)
-        delta_ddm[1:] = cumulative_trapezoid(v_ddm_raw, t_fine)
-        # O DDM puro sem PBM assume retração linear simples
+        delta_ddm[1] = v_ddm_pos[0] * t_fine_pos[0]
+        delta_ddm[2:] = delta_ddm[1] + cumulative_trapezoid(v_ddm_pos, t_fine_pos)
         x_ddm_fine = np.clip(delta_ddm / 180.0, 0.0, 1.0)
         x_ddm_pred = np.interp(t_exp, t_fine, x_ddm_fine)
         
-        # --- MODELO C: Híbrido Serial (Random Forest -> PBM Monodisperso com Arrhenius e Hidrodinâmica) ---
-        # 1. Taxa intrínseca aprendida pelo Random Forest a 40 °C
-        v_rf = hybrid_model.predict_rate(T=40.0, ca0=ca0, eta=eta, t_eval=t_fine)
-        
-        # 2. Fator de transferência térmica de Arrhenius
+        # --- MODELO C: Híbrido Serial Campeão (MLP -> PBM Monodisperso com Arrhenius, t > 0, δ(0)=0 hardcodado) ---
+        v_ddm_base_pos = hybrid_model.predict_rate(T=40.0, ca0=ca0, eta=eta, t_eval=t_fine_pos)
         f_arrh = np.exp(-(ea_kj * 1000.0 / r_const) * (1.0 / temp_k - 1.0 / t_ref_k))
-        
-        # 3. Fator hidrodinâmico de agitação (resistência de filme para rpm < 840)
-        # Acima de 840 rpm, f_rpm = 1.0 (regime químico)
         if rpm >= 840:
             f_rpm = 1.0
         else:
             f_rpm = (rpm / 840.0) ** 0.65
             
-        # 4. Taxa acoplada com Transfer Learning:
-        v_hibrido = s_opt * v_rf * f_arrh * f_rpm
+        v_hibrido_pos = s_opt * v_ddm_base_pos * f_arrh * f_rpm
         
-        # 5. Balanço Populacional Monodisperso Exato (PBM):
         delta_hibrido = np.zeros_like(t_fine)
-        delta_hibrido[1:] = cumulative_trapezoid(v_hibrido, t_fine)
+        delta_hibrido[1] = v_hibrido_pos[0] * t_fine_pos[0]
+        delta_hibrido[2:] = delta_hibrido[1] + cumulative_trapezoid(v_hibrido_pos, t_fine_pos)
         
-        # Convolução analítica do PBM para fração monodispersa de diâmetro inicial dp
-        # X_Zn = 1 - (1 - delta / dp)^3
         x_hibrido_fine = 1.0 - np.maximum(0.0, 1.0 - delta_hibrido / dp) ** 3
-        # Projeção termodinâmica inegociável
         x_hibrido_fine = np.clip(x_hibrido_fine, 0.0, min(1.0, eta))
         x_hibrido_pred = np.interp(t_exp, t_fine, x_hibrido_fine)
         
@@ -720,9 +705,9 @@ def main() -> None:
     df_balarini = carregar_dados_balarini()
     print(f"[1/5] Dados de Balarini carregados: {len(df_balarini)} pontos, {df_balarini['serie_teste'].nunique()} séries.")
     
-    # 2. Carregamento do Modelo Híbrido Campeão (Random Forest -> PBM)
-    print("[2/5] Carregando Modelo Híbrido Serial Campeão...")
-    hybrid = SerialHybridModel(model_type="random_forest")
+    # 2. Carregamento do Modelo Híbrido Campeão (MLP -> PBM)
+    print("[2/5] Carregando Modelo Híbrido Serial Campeão (MLP)...")
+    hybrid = SerialHybridModel(model_type="champion")
     print(f"      Modelo carregado: {hybrid.model_name}")
     
     # 3. Análise de Arrhenius e cálculo de Ea

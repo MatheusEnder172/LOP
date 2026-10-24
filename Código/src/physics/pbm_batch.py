@@ -43,8 +43,8 @@ class BatchPBMSolver:
         self,
         granulometry: Optional[RosinRammlerBennet] = None,
         kinetics: Optional[LeachingKinetics] = None,
-        n_mesh_points: int = 1500,
-        n_delta_points: int = 500,
+        n_mesh_points: int = 5000,
+        n_delta_points: int = 600,
         d_min: float = 0.01,
         d_max: float = 297.0,
     ) -> None:
@@ -160,7 +160,11 @@ class BatchPBMSolver:
 
         alpha_eff = self.kinetics.alpha_nominal if alpha is None else float(alpha)
         t_arr = np.asarray(t_eval, dtype=np.float64)
-        t_span = (float(t_arr[0]), float(t_arr[-1]))
+        if np.any(t_arr < 0.0):
+            raise ValueError("Os tempos em t_eval devem ser não-negativos (t >= 0).")
+
+        # Condição inicial física hardcoded em t = 0: delta(0) = 0, XZn(0) = 0, CAf(0) = CA0
+        t_span = (0.0, float(max(t_arr[-1], 1e-6)))
 
         def ode_system(t: float, y: np.ndarray) -> list:
             delta_curr = max(0.0, float(y[0]))
@@ -186,6 +190,13 @@ class BatchPBMSolver:
         caf_sol = np.array([self.kinetics.acid_concentration(ca0, x, eta) for x in x_sol])
         v_sol = np.array([self.kinetics.shrinkage_rate(ca0, c, alpha_eff) for c in caf_sol])
 
+        # Garantir hardcode exato na origem t = 0 quando presente no vetor t_eval
+        mask_t0 = np.isclose(t_arr, 0.0, atol=1e-12)
+        if np.any(mask_t0):
+            delta_sol[mask_t0] = 0.0
+            x_sol[mask_t0] = 0.0
+            caf_sol[mask_t0] = float(ca0)
+
         return {
             "t": sol.t,
             "delta": delta_sol,
@@ -203,8 +214,9 @@ class BatchPBMSolver:
     ) -> Dict[str, Any]:
         """Simula a conversão X_Zn a partir de um perfil arbitrário de velocidades v(t).
 
-        Método preparado para acoplamento híbrido (Fase 4/5), onde uma rede neural
-        ou modelo de Machine Learning fornece a velocidade de retração v(t).
+        Condição inicial física hardcoded em t = 0: delta(0) = 0.0 e X_Zn(0) = 0.0.
+        Suporta tanto vetores t_eval que iniciam em t_1 > 0 (integrando desde t = 0 com
+        delta(t_1) = |v(t_1)| * t_1) quanto vetores que incluem t = 0.
 
         Args:
             t_eval: Vetor de tempos (min).
@@ -222,15 +234,32 @@ class BatchPBMSolver:
         # Taxa de encolhimento não-negativa |v| = -v
         abs_v = np.abs(np.minimum(v_arr, 0.0))
 
-        # Integração cumulativa trapezoidal para obter delta(t)
         delta_profile = np.zeros_like(t_arr)
-        for i in range(1, len(t_arr)):
-            delta_profile[i] = delta_profile[i - 1] + 0.5 * (abs_v[i] + abs_v[i - 1]) * (
-                t_arr[i] - t_arr[i - 1]
-            )
+        if len(t_arr) > 0:
+            if t_arr[0] > 0.0:
+                # Integração desde a condição inicial hardcoded (t=0, delta=0) até o primeiro ponto t_1 > 0
+                delta_profile[0] = abs_v[0] * t_arr[0]
+                start_idx = 1
+            else:
+                # t_arr[0] == 0.0: condição inicial hardcoded delta(0) = 0.0
+                delta_profile[0] = 0.0
+                if len(t_arr) > 1 and np.isclose(abs_v[0], 0.0, atol=1e-12):
+                    # Se t=0 não foi predito pelo Black-Box (v(0)=0 placeholder), integra de 0 a t_1 com |v(t_1)|
+                    delta_profile[1] = abs_v[1] * t_arr[1]
+                    start_idx = 2
+                else:
+                    start_idx = 1
+
+            for i in range(start_idx, len(t_arr)):
+                delta_profile[i] = delta_profile[i - 1] + 0.5 * (abs_v[i] + abs_v[i - 1]) * (
+                    t_arr[i] - t_arr[i - 1]
+                )
 
         x_profile = np.array([self.compute_conversion_from_delta(d) for d in delta_profile])
         x_profile = np.clip(x_profile, 0.0, 1.0)
+        if len(t_arr) > 0 and np.isclose(t_arr[0], 0.0, atol=1e-12):
+            delta_profile[0] = 0.0
+            x_profile[0] = 0.0
 
         return {
             "t": t_arr,

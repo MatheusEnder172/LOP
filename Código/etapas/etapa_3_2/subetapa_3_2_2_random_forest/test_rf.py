@@ -21,17 +21,15 @@ from modelo_rf import KineticsRandomForest
 
 @pytest.fixture
 def synthetic_data():
-    """Gera dados sintéticos com 100 amostras e 4 features físicas."""
+    """Gera dados sintéticos com 100 amostras e 3 features físicas em t > 0."""
     rng = np.random.default_rng(42)
-    # Features: [temperatura_C, CA0_mol_L, razao_molar_eta, t_min]
+    # Features: [CA0_mol_L, razao_molar_eta, t_min]
     X = np.column_stack([
-        np.full(100, 40.0),                     # T constante
-        rng.uniform(0.1, 1.5, size=100),         # CA0
-        rng.choice([0.5, 1.0, 1.5, 3.1], size=100), # eta
-        rng.uniform(0.0, 15.0, size=100),        # t
+        rng.uniform(0.1, 1.5, size=100),             # CA0
+        rng.choice([0.5, 1.0, 1.5, 3.1], size=100),  # eta
+        rng.uniform(0.25, 15.0, size=100),           # t > 0
     ])
-    # Alvo com forte assimetria e picos iniciais (µm/min)
-    y = 500.0 * np.exp(-1.5 * X[:, 3]) + 50.0 * np.exp(-0.2 * X[:, 3]) + rng.uniform(0.01, 1.0, size=100)
+    y = 60.0 * np.exp(-1.5 * X[:, 2]) + 10.0 * np.exp(-0.2 * X[:, 2]) + rng.uniform(0.01, 0.5, size=100)
     return X, y
 
 
@@ -62,27 +60,27 @@ def test_rf_physical_non_negativity_constraint(synthetic_data):
 
     # Teste sob entradas extremas e extrapoladas (espaço fora do domínio)
     X_extreme = np.array([
-        [-50.0, -2.0, -1.0, -10.0],
-        [100.0, 10.0, 10.0, 100.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [40.0, 5.0, 0.2, 50.0],
+        [-2.0, -1.0, -10.0],
+        [10.0, 10.0, 100.0],
+        [0.0, 0.0, 0.25],
+        [5.0, 0.2, 50.0],
     ])
     pred_extreme = rf.predict(X_extreme)
     assert np.all(pred_extreme >= 0.0), "Predições sob condições extremas violaram a não-negatividade!"
 
 
 def test_rf_feature_importances(synthetic_data):
-    """Verifica se o vetor de importância de atributos possui 4 elementos e soma 1.0."""
+    """Verifica se o vetor de importância de atributos possui 3 elementos e soma 1.0."""
     X, y = synthetic_data
     rf = KineticsRandomForest(n_estimators=30, max_depth=6, random_state=42)
     rf.fit(X, y)
 
     importances = rf.feature_importances_
-    assert len(importances) == 4
+    assert len(importances) == 3
     assert np.all(importances >= 0.0)
     assert np.isclose(np.sum(importances), 1.0, atol=1e-5)
     # Como t_min governa o decaimento exponencial sintético, sua importância deve ser positiva
-    assert importances[3] > 0.0
+    assert importances[2] > 0.0
 
 
 def test_rf_reproducibility(synthetic_data):

@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apresentação de Possíveis Melhorias - LOP/UFMG</title>
+
+  <style>
+    :root {
+      --bg: #07111b;
+      --panel: #0f1824;
+      --border: #213855;
+      --text: #e9f3ff;
+      --muted: #7fb3ff;
+      --accent: #1565c0;
+      --green: #2e7d32;
+      --gold: #ffd54f;
+      --orange: #e65100;
+      --red: #c62828;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(8, 18, 30, 0.94);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 0 18px;
+      z-index: 10;
+    }
+
+    .brand {
+      font-weight: bold;
+      color: var(--muted);
+      margin-right: 12px;
+    }
+
+    .toolbar input {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #111d2c;
+      color: var(--text);
+      min-width: 220px;
+    }
+
+    .toolbar button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #111d2c;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .toolbar button:hover {
+      background: #172638;
+    }
+
+    .counter {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .progress {
+      position: fixed;
+      top: 64px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #111d2c;
+    }
+
+    .progress div {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--green), var(--gold));
+      width: 0%;
+    }
+
+    .slide-title {
+      position: fixed;
+      top: 72px;
+      left: 24px;
+      font-size: 14px;
+      color: var(--muted);
+      z-index: 9;
+    }
+
+    .deck {
+      max-width: 1100px;
+      margin: 100px auto 40px;
+      padding: 24px;
+    }
+
+    .slide {
+      display: none;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      min-height: 480px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    h1 {
+      color: var(--gold);
+    }
+
+    h2 {
+      color: var(--muted);
+    }
+
+    p, li {
+      line-height: 1.55;
+    }
+
+    .badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .badge {
+      background: #111d2c;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #111d2c;
+      color: var(--muted);
+    }
+
+    .top10 {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bar-row span {
+      min-width: 260px;
+    }
+
+    .bar {
+      flex: 1;
+      height: 18px;
+      background: #111d2c;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--green), var(--gold));
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .timeline-item {
+      background: #111d2c;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-body {
+      width: min(900px, 92vw);
+      max-height: 80vh;
+      overflow: auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      margin-top: 12px;
+    }
+
+    .grid-card {
+      background: #111d2c;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .grid-card:hover {
+      background: #172638;
+    }
+
+    .close {
+      margin-top: 16px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #111d2c;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .notes {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 360px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      display: none;
+      z-index: 15;
+    }
+
+    .notes.open {
+      display: block;
+    }
+
+    .notes strong {
+      color: var(--gold);
+    }
+
+    #confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 18;
+    }
+
+    #confetti span {
+      position: absolute;
+      width: 8px;
+      height: 12px;
+      animation: fall 1s linear forwards;
+    }
+
+    @keyframes fall {
+      from {
+        transform: translateY(-20px) rotate(0deg);
+        opacity: 1;
+      }
+      to {
+        transform: translateY(120vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="toolbar">
+    <div class="brand">LOP/UFMG</div>
+
+    <input id="searchInput" placeholder="Buscar slides..." />
+
+    <button data-action="grid">Grid</button>
+    <button data-action="notes">Notas</button>
+    <button data-action="help">Atalhos</button>
+    <button data-action="prev">Anterior</button>
+    <button data-action="next">Próximo</button>
+
+    <div class="counter">
+      <span id="counter">1/16</span>
+    </div>
+  </div>
+
+  <div class="progress">
+    <div id="progressBar"></div>
+  </div>
+
+  <div class="slide-title" id="slideTitle"></div>
+
+  <div class="deck" id="slides"></div>
+
+  <div class="notes" id="notes">
+    <strong>Nota de fala</strong>
+    <p id="notesText"></p>
+  </div>
+
+  <div class="modal" id="gridModal">
+    <div class="modal-body">
+      <h2>Slides</h2>
+      <div class="grid" id="gridCards"></div>
+      <button class="close" data-close="gridModal">Fechar</button>
+    </div>
+  </div>
+
+  <div class="modal" id="helpModal">
+    <div class="modal-body">
+      <h2>Atalhos de teclado</h2>
+      <table>
+        <tr>
+          <th>Atalho</th>
+          <th>Função</th>
+        </tr>
+        <tr>
+          <td>Seta direita / Espaço</td>
+          <td>Próximo slide</td>
+        </tr>
+        <tr>
+          <td>Seta esquerda</td>
+          <td>Slide anterior</td>
+        </tr>
+        <tr>
+          <td>Home</td>
+          <td>Ir para o primeiro slide</td>
+        </tr>
+        <tr>
+          <td>End</td>
+          <td>Ir para o último slide</td>
+        </tr>
+        <tr>
+          <td>O ou G</td>
+          <td>Abrir grade de slides</td>
+        </tr>
+        <tr>
+          <td>N</td>
+          <td>Toggle notas de fala</td>
+        </tr>
+        <tr>
+          <td>?</td>
+          <td>Abrir atalhos</td>
+        </tr>
+        <tr>
+          <td>/</td>
+          <td>Focar busca</td>
+        </tr>
+        <tr>
+          <td>Escape</td>
+          <td>Fechar modais</td>
+        </tr>
+      </table>
+
+      <button class="close" data-close="helpModal">Fechar</button>
+    </div>
+  </div>
+
+  <div id="confetti"></div>
+
+  <script>
+    const slides = [
+      {
+        id: "capa",
+        title: "Capa",
+        notes: "Apresentar o plano de melhorias como evolução natural do projeto, não como correção de falhas.",
+        content: `
+          <h1>Possíveis Melhorias para o Projeto LOP</h1>
+          <p>Plano de evolução científica, de validação, de engenharia de software e de documentação.</p>
+
+          <div class="badges">
+            <span class="badge">LOP</span>
+            <span class="badge">UFMG</span>
+            <span class="badge">Híbrido Serial</span>
+            <span class="badge">Random Forest</span>
+            <span class="badge">PBM</span>
+            <span class="badge">Balarini</span>
+          </div>
+        `
+      },
+      {
+        id: "contexto",
+        title: "Contexto atual",
+        notes: "Mostrar que o projeto já está maduro e que as melhorias propostas são incrementais.",
+        content: `
+          <h2>Contexto atual</h2>
+          <p>O projeto já possui PBM, Machine Learning, benchmark, testes, figuras, relatórios e apresentações.</p>
+
+          <table>
+            <tr>
+              <th>Componente</th>
+              <th>Status atual</th>
+            </tr>
+            <tr>
+              <td>Modelo campeão</td>
+              <td>Random Forest</td>
+            </tr>
+            <tr>
+              <td>Teste cego RF</td>
+              <td>R² = 0,9120; RMSE = 19,33 µm/min</td>
+            </tr>
+            <tr>
+              <td>Híbrido in-domain</td>
+              <td>R² = 0,9737; RMSE = 0,0526</td>
+            </tr>
+            <tr>
+              <td>Validação Balarini</td>
+              <td>R² = 0,6220; RMSE = 0,1694</td>
+            </tr>
+            <tr>
+              <td>Conservação de massa</td>
+              <td>0,00% de violações</td>
+            </tr>
+            <tr>
+              <td>Suíte de testes</td>
+              <td>66 testes aprovados</td>
+            </tr>
+          </table>
+        `
+      },
+      {
+        id: "quick-wins",
+        title: "Prioridade 1 — Quick wins",
+        notes: "Essas melhorias têm alto impacto e baixo esforço imediato.",
+        content: `
+          <h2>Prioridade 1 — Quick wins</h2>
+
+          <ol>
+            <li>Intervalo de confiança para métricas.</li>
+            <li>Bootstrap para R², RMSE e MAE.</li>
+            <li>Conformal prediction para X_Zn(t).</li>
+            <li>Model cards para cada modelo.</li>
+            <li>CI com pytest --cov.</li>
+            <li>Linting, formatação e type hints.</li>
+            <li>Logging estruturado.</li>
+            <li>Config centralizada.</li>
+            <li>Versionamento de dados.</li>
+            <li>Figuras com bandas de confiança.</li>
+          </ol>
+        `
+      },
+      {
+        id: "incerteza",
+        title: "Incerteza de previsão",
+        notes: "Incerteza é uma das melhorias mais fortes para artigo, defesa e validação.",
+        content: `
+          <h2>Incerteza de previsão</h2>
+          <p>Adicionar intervalos de confiança e de previsão fortalece a defesa científica.</p>
+
+          <table>
+            <tr>
+              <th>Melhoria</th>
+              <th>Benefício</th>
+            </tr>
+            <tr>
+              <td>Bootstrap</td>
+              <td>Intervalo de confiança para métricas.</td>
+            </tr>
+            <tr>
+              <td>Conformal prediction</td>
+              <td>Intervalos de previsão calibrados.</td>
+            </tr>
+            <tr>
+              <td>Quantile regression</td>
+              <td>Previsão de percentis.</td>
+            </tr>
+            <tr>
+              <td>Ensemble uncertainty</td>
+              <td>Quantifica variância entre modelos.</td>
+            </tr>
+            <tr>
+              <td>Bayesian calibration</td>
+              <td>Parâmetros físicos com posterior.</td>
+            </tr>
+            <tr>
+              <td>Reliability diagram</td>
+              <td>Verifica calibração da incerteza.</td>
+            </tr>
+          </table>
+        `
+      },
+      {
+        id: "validacao-estatistica",
+        title: "Validação estatística",
+        notes: "A validação estatística pode transformar métricas pontuais em conclusões robustas.",
+        content: `
+          <h2>Validação estatística</h2>
+
+          <table>
+            <tr>
+              <th>Melhoria</th>
+              <th>Justificativa</th>
+            </tr>
+            <tr>
+              <td>Nested cross-validation</td>
+              <td>Evita otimização excessiva de hiperparâmetros.</td>
+            </tr>
+            <tr>
+              <td>Leave-one-ensayo-out</td>
+              <td>Validação por ensaio completo.</td>
+            </tr>
+            <tr>
+              <td>Stratified GroupKFold</td>
+              <td>Equilíbrio entre regimes de η.</td>
+            </tr>
+            <tr>
+              <td>Paired bootstrap test</td>
+              <td>Compara modelos com significância.</td>
+            </tr>
+            <tr>
+              <td>Residual autocorrelation</td>
+              <td>Verifica dependência temporal.</td>
+            </tr>
+            <tr>
+              <td>Heterocedasticidade</td>
+              <td>Verifica se o erro muda por regime.</td>
+            </tr>
+          </table>
+        `
+      },
+      {
+        id: "fisica",
+        title: "Física e restrições",
+        notes: "O modelo híbrido já impõe restrições no PBM, mas o ML pode ser melhor regularizado.",
+        content: `
+          <h2>Física e restrições no ML</h2>
+
+          <ul>
+            <li>Adicionar monotonicidade em t.</li>
+            <li>Adicionar monotonicidade em C_A0.</li>
+            <li>Adicionar monotonicidade em η.</li>
+            <li>Garantir |v(t)| ≥ 0 durante o treino.</li>
+            <li>Garantir dδ/dt ≥ 0.</li>
+            <li>Garantir X_Zn ≤ η.</li>
+            <li>Garantir C_Af ≥ 0.</li>
+            <li>Penalizar violações físicas na otimização.</li>
+            <li>Usar event detection no PBM.</li>
+            <li>Usar physics-informed ML.</li>
+          </ul>
+
+          <p>
+            Possível arquitetura:
+            <strong>ML prediz |v(t)| + restrição física + PBM impõe conservação de massa.</strong>
+          </p>
+        `
+      },
+      {
+        id: "feature-engineering",
+        title: "Feature engineering físico-químico",
+        notes: "Feature engineering pode melhorar muito a generalização em Balarini e planta piloto.",
+        content: `
+          <h2>Feature engineering físico-químico</h2>
+
+          <table>
+            <tr>
+              <th>Feature</th>
+              <th>Justificativa</th>
+            </tr>
+            <tr>
+              <td>C_Af(t)</td>
+              <td>Acidez residual.</td>
+            </tr>
+            <tr>
+              <td>C_A_consumed</td>
+              <td>Ácido já consumido.</td>
+            </tr>
+            <tr>
+              <td>X_Zn(t)</td>
+              <td>Conversão atual.</td>
+            </tr>
+            <tr>
+              <td>δ(t)</td>
+              <td>Retração acumulada.</td>
+            </tr>
+            <tr>
+              <td>D(t)</td>
+              <td>Diâmetro atual.</td>
+            </tr>
+            <tr>
+              <td>dp</td>
+              <td>Classe granulométrica.</td>
+            </tr>
+            <tr>
+              <td>rpm</td>
+              <td>Hidrodinâmica.</td>
+            </tr>
+            <tr>
+              <td>1/T</td>
+              <td>Linearização de Arrhenius.</td>
+            </tr>
+            <tr>
+              <td>ln(1 + |v|)</td>
+              <td>Escala logarítmica do target.</td>
+            </tr>
+            <tr>
+              <td>1 - X_Zn</td>
+              <td>Fração sólida não reagida.</td>
+            </tr>
+            <tr>
+              <td>Thiele modulus</td>
+              <td>Limitação por difusão.</td>
+            </tr>
+            <tr>
+              <td>Damköhler</td>
+              <td>Reação vs transporte.</td>
+            </tr>
+          </table>
+        `
+      },
+      {
+        id: "ensemble",
+        title: "Ensemble de modelos",
+        notes: "Ensemble pode melhorar robustez, suavidade e incerteza.",
+        content: `
+          <h2>Ensemble de modelos</h2>
+
+          <p>
+            O Random Forest foi o campeão de robustez. O XGBoost teve excelente desempenho em alguns ensaios.
+            O MLP e o SVR podem contribuir com suavidade.
+          </p>
+
+          <div class="timeline">
+            <div class="timeline-item">
+              <strong>Arquitetura proposta</strong>
+              <p>
+                Predição física baseline → Predição ML → Correção residual → Ensemble final.
+              </p>
+            </div>
+
+            <div class="timeline-item">
+              <strong>Exemplo</strong>
+              <p>
+                v_pred = v_RF + alpha * residual_MLP + physics_constraints
+              </p>
+            </div>
+          </div>
+
+          <p>
+            Possível ensemble:
+            <strong>Random Forest + XGBoost + MLP + SVR + Physics residual correction.</strong>
+          </p>
+        `
+      },
+      {
+        id: "transfer-learning",
+        title: "Transfer learning",
+        notes: "Transfer learning formal pode validar melhor o modelo em Balarini e planta piloto.",
+        content: `
+          <h2>Transfer learning</h2>
+
+          <table>
+            <tr>
+              <th>Componente</th>
+              <th>Melhoria possível</th>
+            </tr>
+            <tr>
+              <td>Arrhenius</td>
+              <td>Estimar E_a com intervalo de confiança.</td>
+            </tr>
+            <tr>
+              <td>Granulometria</td>
+              <td>Validar convolução monodispersa sem ajuste.</td>
+            </tr>
+            <tr>
+              <td>Hidrodinâmica</td>
+              <td>Comparar regime difusivo vs químico.</td>
+            </tr>
+            <tr>
+              <td>Domain scaling</td>
+              <td>Otimizar s_opt com validação.</td>
+            </tr>
+            <tr>
+              <td>Fine-tuning</td>
+              <td>Atualizar modelo com poucos pontos de Balarini.</td>
+            </tr>
+            <tr>
+              <td>Domain adaptation</td>
+              <td>Adaptar modelo entre bancada concentrada e diluída.</td>
+            </tr>
+          </table>
+        `
+      },
+      {
+        id: "pbm-continuo",
+        title: "PBM contínuo e planta piloto",
+        notes: "Essa é a evolução natural para Fase 6.",
+        content: `
+          <h2>PBM contínuo e planta piloto</h2>
+
+          <div class="timeline">
+            <div class="timeline-item">
+              <strong>1. PBM batelada</strong>
+              <p>Já implementado e validado.</p>
+            </div>
+
+            <div class="timeline-item">
+              <strong>2. PBM contínuo</strong>
+              <p>Adicionar residence time e distribuição de partículas em regime contínuo.</p>
+            </div>
+
+            <div class="timeline-item">
+              <strong>3. CSTR</strong>
+              <p>Balanço de massa, energia e partículas.</p>
+            </div>
+
+            <div class="timeline-item">
+              <strong>4. Cascata de CSTRs</strong>
+              <p>Simulação dinâmica de planta piloto.</p>
+            </div>
+
+            <div class="timeline-item">
+              <strong>5. Incerteza propagada</strong>
+              <p>Propagar incerteza do ML para X_Zn contínuo.</p>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "software",
+        title: "Engenharia de software",
+        notes: "Melhorar governança de software torna o projeto mais profissional e reproduzível.",
+        content: `
+          <h2>Engenharia de software</h2>
+
+          <ul>
+            <li>Pacote instalável.</li>
+            <li>CLI.</li>
+            <li>Config centralizada.</li>
+            <li>Logging.</li>
+            <li>Type hints.</li>
+            <li>Docstrings.</li>
+            <li>CI.</li>
+            <li>pytest --cov.</li>
+            <li>Ruff.</li>
+            <li>Black.</li>
+            <li>MyPy.</li>
+            <li>Versionamento de dados.</li>
+            <li>Model card.</li>
+            <li>Decision log.</li>
+            <li>Reproducibility log.</li>
+          </ul>
+        `
+      },
+      {
+        id: "figuras",
+        title: "Figuras e documentação",
+        notes: "Figuras com incerteza e padrões de publicação são essenciais para artigo.",
+        content: `
+          <h2>Figuras e documentação</h2>
+
+          <table>
+            <tr>
+              <th>Figura</th>
+              <th>Melhoria</th>
+            </tr>
+            <tr>
+              <td>Paridade</td>
+              <td>Adicionar banda de confiança.</td>
+            </tr>
+            <tr>
+              <td>Residuos</td>
+              <td>Adicionar intervalo de confiança.</td>
+            </tr>
+            <tr>
+              <td>Curvas cinéticas</td>
+              <td>Adicionar intervalos de previsão.</td>
+            </tr>
+            <tr>
+              <td>Heatmap</td>
+              <td>Adicionar métricas de robustez.</td>
+            </tr>
+            <tr>
+              <td>Arrhenius</td>
+              <td>Adicionar intervalo de confiança para E_a.</td>
+            </tr>
+            <tr>
+              <td>Radar MCDA</td>
+              <td>Adicionar incerteza por critério.</td>
+            </tr>
+          </table>
+
+          <p>
+            Adotar paleta consistente, legendas ABNT, fontes com unidades, colorblind-friendly palette e PDF/A.
+          </p>
+        `
+      },
+      {
+        id: "roadmap",
+        title: "Roadmap priorizado",
+        notes: "Mostrar sequência prática de execução.",
+        content: `
+          <h2>Roadmap priorizado</h2>
+
+          <table>
+            <tr>
+              <th>Fase</th>
+              <th>Objetivo</th>
+            </tr>
+            <tr>
+              <td>Prioridade 1</td>
+              <td>Incerteza, bootstrap, CI, coverage, model cards e figuras com confiança.</td>
+            </tr>
+            <tr>
+              <td>Prioridade 2</td>
+              <td>Nested CV, feature engineering, ensemble, restrições físicas e sensibilidade.</td>
+            </tr>
+            <tr>
+              <td>Prioridade 3</td>
+              <td>Pacote, CLI, config, logging, versionamento de dados e Docker.</td>
+            </tr>
+            <tr>
+              <td>Prioridade 4</td>
+              <td>PBM contínuo, CSTR, cascata de CSTRs e planta piloto.</td>
+            </tr>
+          </table>
+        `
+      },
+      {
+        id: "top10",
+        title: "Top 10 melhorias",
+        notes: "Essas são as melhorias de maior impacto imediato.",
+        content: `
+          <h2>Top 10 melhorias recomendadas</h2>
+
+          <div class="top10">
+            <div class="bar-row">
+              <span>1. Incerteza de previsão</span>
+              <div class="bar"><div class="bar-fill" style="width:100%"></div></div>
+            </div>
+
+            <div class="bar-row">
+              <span>2. Intervalos de confiança para métricas</span>
+              <div class="bar"><div class="bar-fill" style="width:95%"></div></div>
+            </div>
+
+            <div class="bar-row">
+              <span>3. Feature engineering físico</span>
+              <div class="bar"><div class="bar-fill" style="width:90%"></div></div>
+            </div>
+
+            <div class="bar-row">
+              <span>4. Restrições de monotonicidade no ML</span>
+              <div class="bar"><div class="bar-fill" style="width:88%"></div></div>
+            </div>
+
+            <div class="bar-row">
+              <span>5. Ensemble de modelos</span>
+              <div class="bar"><div class="bar-fill" style="width:85%"></div></div>
+            </div>
+
+            <div class="bar-row">
+              <span>6. Nested cross-validation</span>
+              <div class="bar"><div class="bar-fill" style="width:82%"></div></div>
+            </div>
+
+            <div class="bar-row">
+              <span>7. Model card</span>
+              <div class="bar"><div class="bar-fill" style="width:80%"></div></div>
+            </div>
+
+            <div class="bar-row">
+              <span>8. CI, coverage e linting</span>
+              <div class="bar"><div class="bar-fill" style="width:78%"></div></div>
+            </div>
+
+            <div class="bar-row">
+              <span>9. Gráficos de resíduos por regime</span>
+              <div class="bar"><div class="bar-fill" style="width:75%"></div></div>
+            </div>
+
+            <div class="bar-row">
+              <span>10. PBM contínuo, CSTR e planta piloto</span>
+              <div class="bar"><div class="bar-fill" style="width:72%"></div></div>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "devlog",
+        title: "Como registrar no DEVLOG",
+        notes: "Como o DEVLOG é cumulativo, criar nova entrada sem apagar histórico.",
+        content: `
+          <h2>Como registrar no DEVLOG</h2>
+
+          <pre><code>## [2026-10-02] - Plano de Melhorias e Roadmap de Evolução
+
+### 1. Objetivo da Atividade
+- Registrar melhorias científicas, de engenharia de software, de validação e de apresentação.
+
+### 2. Hipótese / Decisão de Design
+- Adicionar incerteza, feature engineering, ensemble, CI, model card e validação de planta piloto.
+
+### 3. Ações Executadas
+- Adição de bootstrap, conformal prediction, nested CV, feature engineering, CI e model cards.
+
+### 4. O que Funcionou
+- ...
+
+### 5. O que Falhou
+- ...
+
+### 6. Ações Corretivas e Próximos Passos
+- ...
+</code></pre>
+        `
+      },
+      {
+        id: "conclusao",
+        title: "Conclusão",
+        notes: "Fechar com mensagem de que o projeto está forte e pronto para artigo/defesa.",
+        content: `
+          <h2>Conclusão</h2>
+
+          <p>
+            O projeto LOP já está maduro. As melhorias mais valiosas são:
+          </p>
+
+          <ul>
+            <li>incerteza de previsão;</li>
+            <li>validação estatística mais robusta;</li>
+            <li>feature engineering físico;</li>
+            <li>restrições de monotonicidade e conservação de massa;</li>
+            <li>ensemble de modelos;</li>
+            <li>model card e governança de software;</li>
+            <li>CI, testes, coverage, linting e type hints;</li>
+            <li>figuras com intervalos de confiança;</li>
+            <li>transfer learning formal;</li>
+            <li>PBM contínuo, CSTR e validação de planta piloto.</li>
+          </ul>
+
+          <p>
+            Com essas melhorias, o projeto ganha força para artigo, defesa de banca, TCC, dissertação e eventual validação industrial.
+          </p>
+        `
+      }
+    ];
+
+    let current = 0;
+
+    const slidesContainer = document.getElementById("slides");
+    const gridCards = document.getElementById("gridCards");
+    const notesText = document.getElementById("notesText");
+    const slideTitle = document.getElementById("slideTitle");
+    const counter = document.getElementById("counter");
+    const progressBar = document.getElementById("progressBar");
+    const searchInput = document.getElementById("searchInput");
+
+    function render() {
+      slidesContainer.innerHTML = slides
+        .map((s, i) => `
+          <article class="slide ${i === current ? "active" : ""}" id="${s.id}">
+            ${s.content}
+          </article>
+        `)
+        .join("");
+
+      counter.textContent = `${current + 1}/${slides.length}`;
+      progressBar.style.width = `${((current + 1) / slides.length) * 100}%`;
+      slideTitle.textContent = slides[current].title;
+      notesText.textContent = slides[current].notes;
+    }
+
+    function showSlide(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      render();
+
+      if (current === slides.length - 1) {
+        confetti();
+      }
+    }
+
+    function renderGrid() {
+      const q = searchInput.value.toLowerCase();
+
+      gridCards.innerHTML = slides
+        .map((s, i) => {
+          const text = `${s.title} ${s.notes}`.toLowerCase();
+          if (q && !text.includes(q)) return "";
+
+          return `
+            <button class="grid-card" data-index="${i}">
+              ${i + 1}. ${s.title}
+            </button>
+          `;
+        })
+        .join("");
+
+      gridCards.querySelectorAll(".grid-card").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          showSlide(Number(btn.dataset.index));
+          closeModal("gridModal");
+        });
+      });
+    }
+
+    function confetti() {
+      const confettiBox = document.getElementById("confetti");
+      confettiBox.innerHTML = "";
+
+      const colors = ["#2e7d32", "#1565c0", "#e65100", "#c62828", "#ffd54f"];
+
+      for (let i = 0; i < 80; i++) {
+        const span = document.createElement("span");
+        span.style.left = `${Math.random() * 100}vw`;
+        span.style.background = colors[i % colors.length];
+        span.style.animationDuration = `${0.8 + Math.random() * 0.6}s`;
+        confettiBox.appendChild(span);
+      }
+    }
+
+    function toggleModal(id) {
+      document.getElementById(id).classList.toggle("open");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("open");
+    }
+
+    function closeAllModals() {
+      document.getElementById("gridModal").classList.remove("open");
+      document.getElementById("helpModal").classList.remove("open");
+    }
+
+    function toggleNotes() {
+      document.getElementById("notes").classList.toggle("open");
+    }
+
+    document.querySelectorAll("[data-action]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const action = btn.dataset.action;
+
+        if (action === "next") showSlide(current + 1);
+        if (action === "prev") showSlide(current - 1);
+        if (action === "grid") toggleModal("gridModal");
+        if (action === "notes") toggleNotes();
+        if (action === "help") toggleModal("helpModal");
+      });
+    });
+
+    document.querySelectorAll("[data-close]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        closeModal(btn.dataset.close);
+      });
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT") return;
+
+      if (e.key === "ArrowRight") showSlide(current + 1);
+      if (e.key === "ArrowLeft") showSlide(current - 1);
+
+      if (e.key === " ") {
+        e.preventDefault();
+        showSlide(current + 1);
+      }
+
+      if (e.key === "Home") showSlide(0);
+      if (e.key === "End") showSlide(slides.length - 1);
+
+      if (e.key === "g" || e.key === "o") toggleModal("gridModal");
+      if (e.key === "n") toggleNotes();
+      if (e.key === "?") toggleModal("helpModal");
+
+      if (e.key === "/") {
+        e.preventDefault();
+        searchInput.focus();
+      }
+
+      if (e.key === "Escape") closeAllModals();
+    });
+
+    searchInput.addEventListener("input", renderGrid);
+
+    render();
+    renderGrid();
+  </script>
+</body>
+</html>

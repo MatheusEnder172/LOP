@@ -85,7 +85,7 @@ def gerar_figura_malha_fina(
     """Gera painel 4x4 com malha fina (500 pontos/ensaio) em escala linear e logarítmica."""
     print("  -> Gerando Figura 08e: Interpolação em malha ultra-fina (Linear e Log)...")
     test_ensaios = [7, 8, 14]
-    t_fino = np.linspace(0.0, 15.0, 500)  # dt = 0,03 min (1,8 segundos)
+    t_fino = np.linspace(0.25, 15.0, 500)  # Domínio ativo t > 0
 
     for modo in ["linear", "log"]:
         fig, axes = plt.subplots(4, 4, figsize=(16, 12), sharex=True, sharey=False, constrained_layout=True)
@@ -100,9 +100,8 @@ def gerar_figura_malha_fina(
             ca0 = float(sub["CA0_mol_L"].iloc[0])
             eta = float(sub["razao_molar_eta"].iloc[0])
 
-            # Malha fina predita
+            # Malha fina predita (3 inputs: CA0, eta, t)
             X_fino = np.column_stack([
-                np.full_like(t_fino, 40.0),
                 np.full_like(t_fino, ca0),
                 np.full_like(t_fino, eta),
                 t_fino,
@@ -173,7 +172,7 @@ def gerar_figura_extrapolacao_temporal(
     etas = [0.5, 1.0, 1.5, 3.1]
     color_map = {0.10: "#1f77b4", 0.50: "#2ca02c", 1.00: "#ff7f0e", 1.50: "#d62728"}
 
-    t_ext = np.linspace(0.0, 30.0, 600)  # Dobro do tempo experimental
+    t_ext = np.linspace(0.25, 30.0, 600)  # Dobro do tempo experimental (t > 0)
 
     for modo in ["linear", "log"]:
         fig, axes = plt.subplots(2, 2, figsize=(14, 11), sharex=True, sharey=False)
@@ -189,7 +188,6 @@ def gerar_figura_extrapolacao_temporal(
             for ca0 in [0.10, 0.50, 1.00, 1.50]:
                 cor = color_map[ca0]
                 X_pred = np.column_stack([
-                    np.full_like(t_ext, 40.0),
                     np.full_like(t_ext, ca0),
                     np.full_like(t_ext, eta),
                     t_ext,
@@ -270,7 +268,6 @@ def gerar_figura_extrapolacao_operacional(
 
     for t_val, cor in zip(tempos_teste, cores_t):
         X_ca0 = np.column_stack([
-            np.full_like(ca0_grid, 40.0),
             ca0_grid,
             np.full_like(ca0_grid, 1.5),  # eta = 1.5 fixo
             np.full_like(ca0_grid, t_val),
@@ -297,7 +294,6 @@ def gerar_figura_extrapolacao_operacional(
 
     for t_val, cor in zip(tempos_teste, cores_t):
         X_eta = np.column_stack([
-            np.full_like(eta_grid, 40.0),
             np.full_like(eta_grid, 1.00),  # CA0 = 1.0 M fixo
             eta_grid,
             np.full_like(eta_grid, t_val),
@@ -336,12 +332,11 @@ def gerar_figura_superficie_resposta(
     """Gera mapa de contorno 2D e superfície 3D da taxa para visualização de monotonicidade."""
     print("  -> Gerando Figura 08h: Superfície de resposta 2D e 3D contínua...")
     # Malha 2D fina de 80x80 = 6.400 pontos de inferência
-    t_vals = np.linspace(0.05, 15.0, 80)
+    t_vals = np.linspace(0.25, 15.0, 80)
     ca0_vals = np.linspace(0.10, 1.50, 80)
     T_mesh, CA0_mesh = np.meshgrid(t_vals, ca0_vals)
 
     X_mesh = np.column_stack([
-        np.full(T_mesh.size, 40.0),
         CA0_mesh.ravel(),
         np.full(T_mesh.size, 1.5),  # eta = 1.5
         T_mesh.ravel(),

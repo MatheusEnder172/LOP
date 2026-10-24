@@ -3,7 +3,8 @@ Módulo de Caracterização Granulométrica de Sistemas Particulados.
 Implementa a função de distribuição e densidade de Rosin-Rammler-Bennet (RRB).
 
 Referências:
-- Bortot Coelho, F. E. (2017). Dissertação de Mestrado, PPGEM/UFMG, Seções 3.5.1 e 5.1.2.
+- Bortot Coelho, F. E. (2017). Dissertação de Mestrado, PPGEM/UFMG, Seções 3.5.1, 3.6 e 5.1.2.
+- Herbst, J. A. (1979). Rate Processes of Extractive Metallurgy. Plenum Press, Equação (3.48).
 - LeBlanc, S. E.; Fogler, H. S. (1987). AIChE Journal, 33(1), 54-63.
 - Randolph, A. D.; Larson, M. A. (1988). Theory of Particulate Processes.
 """
@@ -11,6 +12,11 @@ Referências:
 from typing import Dict, Tuple, Union
 import numpy as np
 from scipy.special import gamma
+
+try:
+    from scipy.integrate import trapezoid
+except ImportError:
+    from numpy import trapz as trapezoid
 
 
 class RosinRammlerBennet:
@@ -22,14 +28,24 @@ class RosinRammlerBennet:
     Atributos:
         d63_2 (float): Diâmetro característico no qual 63,2% da massa passa (µm).
         m (float): Módulo de dispersão ou uniformidade (adimensional).
+        use_number_density_d3 (bool): Se True (padrão oficial), gera a malha discreta
+            com densidade em número f_n(D) ∝ f_m(D)/D³ (Herbst, 1979), garantindo que
+            o termo volumétrico D³ no integrando do PBM recupere a distribuição mássica real.
+            Se False, entrega a densidade mássica original f_m(D) (abordagem antiga).
     """
 
-    def __init__(self, d63_2: float = 41.65, m: float = 1.022) -> None:
+    def __init__(
+        self,
+        d63_2: float = 41.65,
+        m: float = 1.022,
+        use_number_density_d3: bool = True,
+    ) -> None:
         """Inicializa a distribuição RRB com os parâmetros calibrados.
 
         Args:
             d63_2: Diâmetro característico D_63,2 em micrometros (µm). Padrão: 41,65 µm.
             m: Parâmetro adimensional de dispersão/uniformidade. Padrão: 1,022.
+            use_number_density_d3: Se True, aplica a conversão de massa para número f_n(D) ∝ f_m(D)/D³.
         """
         if d63_2 <= 0.0:
             raise ValueError(f"d63_2 deve ser positivo, recebido: {d63_2}")
@@ -38,11 +54,12 @@ class RosinRammlerBennet:
 
         self.d63_2 = float(d63_2)
         self.m = float(m)
+        self.use_number_density_d3 = bool(use_number_density_d3)
 
     def cumulative_passing(self, d: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
-        """Calcula a fração mássica acumulada passante F(D).
+        """Calcula a fração mássica acumulada passante F_m(D).
 
-        F(D) = 1 - exp(-(D / D_63,2)^m)
+        F_m(D) = 1 - exp(-(D / D_63,2)^m)
 
         Args:
             d: Diâmetro de partícula ou vetor de diâmetros (µm).
@@ -60,9 +77,9 @@ class RosinRammlerBennet:
         return f_val
 
     def probability_density(self, d: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
-        """Calcula a função densidade de probabilidade mássica f0(D) = dF/dD.
+        """Calcula a função densidade de probabilidade mássica f_m(D) = dF_m/dD.
 
-        f0(D) = (m / D_63,2) * (D / D_63,2)^(m - 1) * exp(-(D / D_63,2)^m)
+        f_m(D) = (m / D_63,2) * (D / D_63,2)^(m - 1) * exp(-(D / D_63,2)^m)
 
         Args:
             d: Diâmetro de partícula ou vetor de diâmetros (µm).
@@ -84,10 +101,45 @@ class RosinRammlerBennet:
             return f0_val
         return float(f0_val) if d_arr > 0.0 else 0.0
 
-    def analytical_moment(self, k: int) -> float:
-        """Calcula analiticamente o k-ésimo momento da distribuição RRB.
+    def number_probability_density(
+        self,
+        d: Union[float, np.ndarray],
+        d_min: float = 0.01,
+        d_max: float = 297.0,
+        n_points: int = 5000,
+    ) -> Union[float, np.ndarray]:
+        """Calcula a função densidade populacional em base numérica f_n(D) normalizada.
 
-        M_k = E[D^k] = integral_0^inf D^k * f0(D) dD = (D_63,2)^k * Gamma(1 + k/m)
+        f_n(D) = [ D⁻³ · f_m(D) ] / ∫_{D_min}^{D_max} u⁻³ · f_m(u) du
+
+        Args:
+            d: Diâmetro de partícula ou vetor de diâmetros (µm).
+            d_min: Diâmetro mínimo do domínio de normalização (µm). Padrão: 0,01 µm.
+            d_max: Diâmetro máximo do domínio de normalização (µm). Padrão: 297,0 µm.
+            n_points: Resolução da malha para cálculo da constante de normalização.
+
+        Returns:
+            Densidade de probabilidade em base numérica normalizada (µm^-1).
+        """
+        grid = np.linspace(d_min, d_max, n_points)
+        fm_grid = self.probability_density(grid)
+        fn_raw_grid = fm_grid / (grid ** 3)
+        c_norm = float(trapezoid(fn_raw_grid, grid))
+
+        d_arr = np.asarray(d, dtype=np.float64)
+        fm_d = self.probability_density(d_arr)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            fn_raw_d = np.where(d_arr > 0.0, fm_d / (np.maximum(d_arr, 1e-12) ** 3), 0.0)
+
+        fn_norm = fn_raw_d / c_norm
+        if np.isscalar(d):
+            return float(fn_norm)
+        return fn_norm
+
+    def analytical_moment(self, k: int) -> float:
+        """Calcula analiticamente o k-ésimo momento da distribuição RRB mássica.
+
+        M_k = E[D^k] = integral_0^inf D^k * f_m(D) dD = (D_63,2)^k * Gamma(1 + k/m)
 
         Args:
             k: Ordem do momento desejado (ex: 1 para média, 3 para volume).
@@ -100,14 +152,14 @@ class RosinRammlerBennet:
         return float((self.d63_2 ** k) * gamma(1.0 + (k / self.m)))
 
     def mean_diameter(self) -> float:
-        """Calcula o diâmetro médio da distribuição (momento de 1ª ordem).
+        """Calcula o diâmetro médio mássico da distribuição (momento de 1ª ordem de f_m).
 
         mu = D_63,2 * Gamma(1 + 1/m)
         """
         return self.analytical_moment(1)
 
     def variance(self) -> float:
-        """Calcula a variância sigma² da distribuição.
+        """Calcula a variância sigma² da distribuição mássica.
 
         sigma² = M_2 - (M_1)²
         """
@@ -116,7 +168,7 @@ class RosinRammlerBennet:
         return float(m2 - (m1 ** 2))
 
     def coefficient_of_variation(self) -> float:
-        """Calcula o coeficiente de variação CV = sigma / mu."""
+        """Calcula o coeficiente de variação mássico CV = sigma / mu."""
         var = self.variance()
         mu = self.mean_diameter()
         return float(np.sqrt(var) / mu)
@@ -125,32 +177,45 @@ class RosinRammlerBennet:
         self,
         d_min: float = 0.01,
         d_max: float = 297.0,
-        n_points: int = 1500
+        n_points: int = 5000,
     ) -> Tuple[np.ndarray, np.ndarray, float]:
-        """Gera a malha de diâmetros discretizados e avalia a densidade e o momento M3(0).
+        """Gera a malha de diâmetros discretizados e avalia a densidade de entrada f0(D) e M3(0).
+
+        - Quando use_number_density_d3=True (Nova Abordagem):
+          Gera f0_mesh = f_n(D) normalizada (f_m(D)/D³). Ao ser inserida na equação de
+          conversão do PBM, o termo D³ do integrando recompõe exatamente a massa experimental.
+        - Quando use_number_density_d3=False (Abordagem Antiga):
+          Gera f0_mesh = f_m(D) diretamente.
 
         Args:
-            d_min: Diâmetro mínimo da malha (µm). Padrão: 0.01 µm.
-            d_max: Diâmetro máximo da malha (µm). Padrão: 297.0 µm.
-            n_points: Número de nós na discretização linear. Padrão: 1500.
+            d_min: Diâmetro mínimo da malha (µm). Padrão: 0,01 µm.
+            d_max: Diâmetro máximo da malha (µm). Padrão: 297,0 µm.
+            n_points: Número de nós na discretização linear. Padrão: 5000 nós.
 
         Returns:
             Tupla (d_mesh, f0_mesh, m3_numerical):
                 - d_mesh: Vetor linear de diâmetros (µm).
-                - f0_mesh: Vetor de densidades f0(D) (µm^-1).
-                - m3_numerical: Terceiro momento volumétrico integrado numericamente pela regra dos trapézios.
+                - f0_mesh: Vetor de densidades f0(D) de entrada do PBM (µm^-1).
+                - m3_numerical: Terceiro momento volumétrico inicial total M3(0) = ∫ D³ f0(D) dD.
         """
         d_mesh = np.linspace(d_min, d_max, n_points)
-        f0_mesh = self.probability_density(d_mesh)
-        # Integração numérica de M3 = integral(D^3 * f0(D) dD)
-        m3_numerical = float(np.trapezoid(f0_mesh * (d_mesh ** 3), d_mesh))
+
+        if self.use_number_density_d3:
+            fm_mesh = self.probability_density(d_mesh)
+            fn_unnorm = fm_mesh / (d_mesh ** 3)
+            norm_factor = float(trapezoid(fn_unnorm, d_mesh))
+            f0_mesh = fn_unnorm / norm_factor
+            m3_numerical = float(trapezoid(f0_mesh * (d_mesh ** 3), d_mesh))
+        else:
+            f0_mesh = self.probability_density(d_mesh)
+            m3_numerical = float(trapezoid(f0_mesh * (d_mesh ** 3), d_mesh))
 
         return d_mesh, f0_mesh, m3_numerical
 
     def evaluate_fit(
         self, diametros: np.ndarray, fracao_exp: np.ndarray
     ) -> Dict[str, float]:
-        """Avalia a concordância estatística entre os dados experimentais e o modelo.
+        """Avalia a concordância estatística entre os dados experimentais e a curva cumulativa F_m(D).
 
         Args:
             diametros: Vetor de diâmetros medidos experimentalmente (µm).
@@ -166,7 +231,7 @@ class RosinRammlerBennet:
         residuos = y_real - y_pred
         ss_res = np.sum(residuos ** 2)
         ss_tot = np.sum((y_real - np.mean(y_real)) ** 2)
-        r2 = 1.0 - (ss_res / ss_tot)
+        r2 = 1.0 - (ss_res / ss_tot) if ss_tot > 1e-12 else 0.0
         rmse = np.sqrt(np.mean(residuos ** 2))
         mae = np.mean(np.abs(residuos))
 
@@ -176,3 +241,20 @@ class RosinRammlerBennet:
             "MAE": float(mae),
             "SS_res": float(ss_res),
         }
+
+
+class RosinRammlerNumeroD3(RosinRammlerBennet):
+    """Subclasse explícita de RosinRammlerBennet configurada com use_number_density_d3=True.
+
+    Mantém total interoperabilidade com o BatchPBMSolver da Nova Abordagem.
+    """
+
+    def __init__(self, d63_2: float = 41.65, m: float = 1.022) -> None:
+        super().__init__(d63_2=d63_2, m=m, use_number_density_d3=True)
+
+
+class RosinRammlerMassaAntiga(RosinRammlerBennet):
+    """Subclasse de compatibilidade estrita com a Abordagem Antiga (sem divisão por D³)."""
+
+    def __init__(self, d63_2: float = 41.65, m: float = 1.022) -> None:
+        super().__init__(d63_2=d63_2, m=m, use_number_density_d3=False)

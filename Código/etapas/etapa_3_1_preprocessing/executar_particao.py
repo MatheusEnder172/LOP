@@ -128,11 +128,10 @@ def main() -> None:
             {
                 "ensaio": ens,
                 "particao": part,
-                "temperatura_C": row["temperatura_C"],
                 "CA0_mol_L": row["CA0_mol_L"],
                 "razao_molar_eta": row["razao_molar_eta"],
-                "amostras_densas": 61,
-                "amostras_pontuais": 8,
+                "amostras_densas": 60,
+                "amostras_pontuais": 7,
                 "R2_otim_inversa": row["R2"],
                 "RMSE_otim_inversa": row["RMSE"],
                 "v0_um_min": row["v0_um_min"],
@@ -290,12 +289,12 @@ def gerar_figura_particao(
             zorder=5,
         )
 
-    ax_b.set_xlabel(r"$t\ (\mathrm{min})$ — Tempo de Reação")
-    ax_b.set_ylabel(r"$|v(t)|\ (\mu\mathrm{m}\cdot\mathrm{min}^{-1})$ — Taxa de Encolhimento")
-    ax_b.set_title("(b) Perfis Temporais da Variável Alvo |v(t)|")
+    ax_b.set_xlabel("t (min) — Tempo de Reação [Domínio Ativo t > 0]")
+    ax_b.set_ylabel("|v(t)| (μm·min⁻¹) — Taxa de Encolhimento")
+    ax_b.set_title("(b) Perfis Temporais da Variável Alvo |v(t)| em t > 0")
     ax_b.grid(True, linestyle="--", alpha=0.5)
-    ax_b.set_xlim(-0.5, 16.0)
-    ax_b.set_ylim(-15, 1300)
+    ax_b.set_xlim(0.0, 15.6)
+    ax_b.set_ylim(-3, max(80.0, float(df_dense["abs_v_alvo_um_min"].max()) * 1.12))
     ax_b.legend(loc="upper right", framealpha=0.92, fontsize=8.5)
 
     # --- PAINEL (c): Curvas Reconstruídas de Conversão X_Zn(t) ---

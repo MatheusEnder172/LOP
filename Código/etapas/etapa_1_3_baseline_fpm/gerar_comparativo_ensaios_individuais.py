@@ -1,16 +1,18 @@
-"""Geração individual dos 16 gráficos comparativos detalhados (Ensaio por Ensaio)
-entre:
-1. Dados Experimentais (Bortot Coelho, 2017)
-2. Modelo Cinético Puro (alpha = 0, sem amortecimento empírico / Balarini, 2009)
-3. Modelo Fenomenológico Nominal de Fabrício (alpha = 5500 µm/min)
-4. Nova Abordagem Híbrida/Adaptativa (LOP)
-
-Layout 100% despoluído (300 DPI e PDF vetorial):
-- As legendas e os cartões de metadados são posicionados EXTERNAMENTE à direita do gráfico.
-- Nenhuma curva cinética ou ponto experimental sofre sobreposição por textos ou caixas de legenda.
-- Painel Superior: Cinética de Conversão X_Zn(t) (Experimental vs. alpha=0 vs. alpha=5500 vs. LOP).
-- Painel Inferior: Resíduos Pontuais (X_pred - X_exp) para os 3 modelos ao longo do tempo com faixa de tolerância de ±2%.
 """
+Geração do Painel 4x4 dos 16 Ensaios e Gráficos Individuais — Etapa 1.3.
+========================================================================
+
+Compara diretamente para cada um dos 16 ensaios de bancada:
+1. Dados Experimentais (Bortot Coelho, 2017)
+2. Baseline Antigo Histórico (RRB em massa sem ÷ D³, com α = 5500 µm/min)
+3. Novo Baseline White-Box Puro Oficial (RRB ÷ D³, sem parâmetro α, α = 0 µm/min)
+
+Gera:
+- Painel consolidado 4x4: outputs/etapa_1_3/fig_03_ensaios_individuais_4x4.png e .pdf
+- Gráficos individuais detalhados em: outputs/etapa_1_3/ensaios_individuais/
+"""
+
+from __future__ import annotations
 
 import sys
 from pathlib import Path
@@ -19,274 +21,210 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_squared_error, r2_score
 
 # Adicionar raiz do código ao path
 project_root = Path(__file__).resolve().parents[2]
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
+from src.physics.granulometry import RosinRammlerBennet, RosinRammlerMassaAntiga
+from src.physics.kinetics import LeachingKinetics
 from src.physics.pbm_batch import BatchPBMSolver
 
 
+def configurar_estilo() -> None:
+    plt.rcParams.update({
+        "font.family": "DejaVu Sans",
+        "font.size": 10.0,
+        "axes.titlesize": 11.0,
+        "axes.labelsize": 10.5,
+        "xtick.labelsize": 9.5,
+        "ytick.labelsize": 9.5,
+        "legend.fontsize": 8.8,
+        "axes.grid": True,
+        "grid.alpha": 0.40,
+        "grid.linestyle": "--",
+        "savefig.dpi": 300,
+        "savefig.bbox": "tight",
+    })
+
+
 def main() -> None:
+    configurar_estilo()
     base_dir = project_root.parent
     raw_data_path = base_dir / "Base de dados" / "raw" / "cinetica_batelada_A1_4.csv"
     metadata_path = base_dir / "Base de dados" / "raw" / "bancada_batelada_A1_1.csv"
-    params_data_path = base_dir / "Base de dados" / "processed" / "parametros_otimizacao_inversa.csv"
-
-    output_dir = base_dir / "Código" / "outputs" / "etapa_1_3" / "comparacao_fabricio_x_LOP" / "ensaios_individuais"
+    output_dir = base_dir / "Código" / "outputs" / "etapa_1_3"
+    indiv_dir = output_dir / "ensaios_individuais"
     output_dir.mkdir(parents=True, exist_ok=True)
+    indiv_dir.mkdir(parents=True, exist_ok=True)
 
-    print("Carregando bases de dados para os 16 ensaios individuais...")
     df_exp = pd.read_csv(raw_data_path)
     df_meta = pd.read_csv(metadata_path).set_index("ensaio")
-    df_params = pd.read_csv(params_data_path).set_index("ensaio")
 
-    solver = BatchPBMSolver()
+    solver_novo = BatchPBMSolver(
+        granulometry=RosinRammlerBennet(use_number_density_d3=True),
+        kinetics=LeachingKinetics(alpha_nominal=0.0),
+        n_mesh_points=5000,
+    )
+    solver_antigo = BatchPBMSolver(
+        granulometry=RosinRammlerMassaAntiga(),
+        kinetics=LeachingKinetics(alpha_nominal=5500.0),
+        n_mesh_points=5000,
+    )
+
     ensaios_unicos = sorted(df_exp["ensaio"].unique())
     t_fine = np.linspace(0.0, 15.0, 300)
 
-    regime_labels = {
-        0.5: "Regime com Limitação Estequiométrica de Ácido (η = 0,5)",
-        1.0: "Regime com Proporção Estequiométrica Nominal (η = 1,0)",
-        1.5: "Regime com Leve Excesso de Ácido (η = 1,5)",
-        3.1: "Regime com Amplo Excesso de Ácido (η = 3,1)",
-    }
+    # =========================================================================
+    # 1. PAINEL CONSOLIDADO 4x4 DOS 16 ENSAIOS
+    # =========================================================================
+    fig_grid, axes_grid = plt.subplots(4, 4, figsize=(18, 15), sharex=True, sharey=True)
+    axes_grid = axes_grid.flatten()
 
-    print(f"Iniciando plotagem dos 16 gráficos (com curva alpha=0) em: {output_dir}")
-
-    for ens in ensaios_unicos:
+    for idx, ens in enumerate(ensaios_unicos):
+        ax = axes_grid[idx]
         df_ens = df_exp[df_exp["ensaio"] == ens].sort_values("t_min")
         ca0 = float(df_ens["CA0_mol_L"].iloc[0])
         eta = float(df_ens["razao_molar_eta"].iloc[0])
-        t_exp = df_ens["t_min"].values
-        x_exp = df_ens["XZn"].values
+        df_ens_pos = df_ens[df_ens["t_min"] > 0.0]
+        t_exp = df_ens_pos["t_min"].values
+        x_exp = df_ens_pos["XZn"].values
 
-        # Metadados de bancada
-        meta_row = df_meta.loc[ens]
-        sl = float(meta_row["razao_solido_liquido_g_L"])
-        mb0 = float(meta_row["mB0_g"])
+        # Simulações (avaliadas em t > 0 para métricas e resíduos; t_fine parte de t=0 com XZn(0)=0 hardcoded)
+        res_novo_exp = solver_novo.simulate(ca0=ca0, eta=eta, t_eval=t_exp)
+        res_novo_fine = solver_novo.simulate(ca0=ca0, eta=eta, t_eval=t_fine)
 
-        # 1. Simulação Modelo Cinético Puro (alpha = 0, sem amortecimento)
-        res_a0_exp = solver.simulate(ca0, eta, t_exp, alpha=0.0)
-        res_a0_fine = solver.simulate(ca0, eta, t_fine, alpha=0.0)
-        x_a0_exp = res_a0_exp["XZn"]
-        x_a0_fine = res_a0_fine["XZn"]
+        res_ant_exp = solver_antigo.simulate(ca0=ca0, eta=eta, t_eval=t_exp)
+        res_ant_fine = solver_antigo.simulate(ca0=ca0, eta=eta, t_eval=t_fine)
 
-        r2_a0 = float(r2_score(x_exp, x_a0_exp))
-        rmse_a0 = float(np.sqrt(mean_squared_error(x_exp, x_a0_exp)))
-        mae_a0 = float(mean_absolute_error(x_exp, x_a0_exp))
-        err_final_a0 = abs(x_exp[-1] - x_a0_exp[-1])
+        r2_novo = float(r2_score(x_exp, res_novo_exp["XZn"]))
+        rmse_novo = float(np.sqrt(mean_squared_error(x_exp, res_novo_exp["XZn"])))
 
-        # 2. Simulação Modelo Nominal de Bortot Coelho (alpha = 5500)
-        res_fab_exp = solver.simulate(ca0, eta, t_exp, alpha=5500.0)
-        res_fab_fine = solver.simulate(ca0, eta, t_fine, alpha=5500.0)
-        x_fab_exp = res_fab_exp["XZn"]
-        x_fab_fine = res_fab_fine["XZn"]
+        r2_ant = float(r2_score(x_exp, res_ant_exp["XZn"]))
+        rmse_ant = float(np.sqrt(mean_squared_error(x_exp, res_ant_exp["XZn"])))
 
-        r2_fab = float(r2_score(x_exp, x_fab_exp))
-        rmse_fab = float(np.sqrt(mean_squared_error(x_exp, x_fab_exp)))
-        mae_fab = float(mean_absolute_error(x_exp, x_fab_exp))
-        err_final_fab = abs(x_exp[-1] - x_fab_exp[-1])
-
-        # 3. Simulação Nova Abordagem Adaptativa (LOP)
-        p_row = df_params.loc[ens]
-        a1, b1, a2, b2, c = p_row["a1"], p_row["b1"], p_row["a2"], p_row["b2"], p_row["c"]
-        delta_exp = (a1 / b1) * (1.0 - np.exp(-b1 * t_exp)) + (a2 / b2) * (1.0 - np.exp(-b2 * t_exp)) + c * t_exp
-        delta_fine = (a1 / b1) * (1.0 - np.exp(-b1 * t_fine)) + (a2 / b2) * (1.0 - np.exp(-b2 * t_fine)) + c * t_fine
-
-        x_novo_exp = solver.compute_conversion_from_delta(delta_exp)
-        x_novo_fine = solver.compute_conversion_from_delta(delta_fine)
-
-        r2_novo = float(r2_score(x_exp, x_novo_exp))
-        rmse_novo = float(np.sqrt(mean_squared_error(x_exp, x_novo_exp)))
-        mae_novo = float(mean_absolute_error(x_exp, x_novo_exp))
-        err_final_novo = abs(x_exp[-1] - x_novo_exp[-1])
-
-        # Resíduos dos 3 modelos
-        res_a0_pts = x_a0_exp - x_exp
-        res_fab_pts = x_fab_exp - x_exp
-        res_novo_pts = x_novo_exp - x_exp
-
-        # Layout com área de gráfico limpa e margem lateral direita para legendas e card
-        fig, (ax_main, ax_res) = plt.subplots(
-            2, 1, figsize=(11.6, 7.4), sharex=True, gridspec_kw={"height_ratios": [3.3, 1.2]}
-        )
-
-        # --- PAINEL PRINCIPAL: CURVAS CINÉTICAS ---
-        # 1. Pontos Experimentais
-        ax_main.plot(
+        # Plot no grid
+        ax.plot(
             t_exp,
             x_exp,
-            color="#1565c0",
+            color="black",
             marker="o",
-            markersize=7.5,
+            markersize=5.8,
             linestyle="none",
-            markeredgecolor="black",
-            markeredgewidth=1.2,
-            zorder=7,
-            label="Dados Experimentais ($X_{\\text{Zn, exp}}$)",
+            zorder=6,
+            label="Dados Experimentais" if idx == 0 else "",
         )
-
-        # 2. Modelo Cinético Puro (alpha = 0)
-        ax_main.plot(
+        ax.plot(
             t_fine,
-            x_a0_fine,
-            color="#e65100",
-            linestyle="-.",
-            linewidth=2.0,
-            alpha=0.9,
-            zorder=4,
-            label="Modelo Cinético Puro (α = 0)",
-        )
-
-        # 3. Modelo Nominal Fabrício (alpha = 5500)
-        ax_main.plot(
-            t_fine,
-            x_fab_fine,
-            color="#c62828",
+            res_ant_fine["XZn"],
+            color="#1f77b4",
             linestyle="--",
-            linewidth=2.0,
-            alpha=0.9,
-            zorder=5,
-            label="Modelo Nominal Fabrício (α = 5500)",
-        )
-
-        # 4. Nova Abordagem Adaptativa (LOP)
-        ax_main.plot(
-            t_fine,
-            x_novo_fine,
-            color="#2e7d32",
-            linestyle="-",
-            linewidth=2.4,
-            alpha=0.95,
-            zorder=6,
-            label="Nova Abordagem Adaptativa (LOP)",
-        )
-
-        # Título
-        regime_desc = regime_labels.get(round(eta, 1), f"Razão Molar η = {eta:.2f}")
-        ax_main.set_title(
-            f"Ensaio {ens:02d} — $C_{{A0}} = {ca0:.2f}\\ \\text{{mol/L}}$  |  $\\eta = {eta:.1f}$  |  $S/L = {sl:.1f}\\ \\text{{g/L}}$\n"
-            f"{regime_desc}",
-            fontsize=12,
-            fontweight="bold",
-            pad=10,
-        )
-
-        ax_main.set_ylabel("Conversão de Zinco, $X_{\\text{Zn}}$ (-)", fontsize=11, fontweight="bold")
-        ax_main.set_ylim(-0.03, 1.05)
-        ax_main.set_xlim(-0.4, 15.4)
-        ax_main.grid(True, linestyle="--", alpha=0.5)
-        ax_main.tick_params(axis="both", which="major", labelsize=10)
-
-        # LEGENDA EXTERNA: posicionada fora do gráfico, à direita (bbox_to_anchor)
-        ax_main.legend(
-            loc="upper left",
-            bbox_to_anchor=(1.02, 1.0),
-            fontsize=8.8,
-            frameon=True,
-            framealpha=0.95,
-            edgecolor="#b0bec5",
-        )
-
-        # CARD EXTERNO DE METADADOS E DESEMPENHO: posicionado à direita abaixo da legenda
-        info_card = (
-            "Condições Operacionais:\n"
-            f" • $m_{{B0}} = {mb0:.1f}\\ \\text{{g}}$ minério | $V = 0,40\\ \\text{{L}}$\n"
-            f" • $T = 40^\\circ\\text{{C}}$ | Rotação: $1000\\ \\text{{rpm}}$\n\n"
-            "Desempenho dos Modelos:\n"
-            " • Cinético Puro (α = 0):\n"
-            f"    $R^2 = {r2_a0:.4f}$ | RMSE = {rmse_a0*100:.2f}%\n"
-            f"    $X_{{final}} = {x_a0_exp[-1]*100:.1f}\\%$ (Desvio: {err_final_a0*100:.1f}%)\n\n"
-            " • Modelo Nominal (α = 5500):\n"
-            f"    $R^2 = {r2_fab:.4f}$ | RMSE = {rmse_fab*100:.2f}%\n"
-            f"    $X_{{final}} = {x_fab_exp[-1]*100:.1f}\\%$ (Desvio: {err_final_fab*100:.1f}%)\n\n"
-            " • Nova Abordagem (LOP):\n"
-            f"    $R^2 = {r2_novo:.4f}$ | RMSE = {rmse_novo*100:.2f}%\n"
-            f"    $X_{{final}} = {x_novo_exp[-1]*100:.1f}\\%$ (Desvio: {err_final_novo*100:.2f}%)"
-        )
-        ax_main.text(
-            1.02,
-            0.64,
-            info_card,
-            transform=ax_main.transAxes,
-            fontsize=8.0,
-            verticalalignment="top",
-            bbox=dict(boxstyle="round,pad=0.5", facecolor="#f8f9fa", edgecolor="#cfd8dc", linewidth=1.2),
-        )
-
-        # --- PAINEL INFERIOR: RESÍDUOS TEMPORAIS ---
-        ax_res.axhline(0, color="black", linestyle="-", linewidth=1.1, zorder=2)
-        ax_res.axhspan(-0.02, 0.02, color="#e8f5e9", alpha=0.7, label="Tolerância $\\pm 2\\%$", zorder=1)
-
-        ax_res.plot(
-            t_exp,
-            res_a0_pts,
-            color="#e65100",
-            marker="^",
-            markersize=5.5,
-            linestyle="-.",
-            linewidth=1.2,
+            linewidth=1.8,
             zorder=4,
-            label=f"Resíduo α=0 (MAE = {mae_a0*100:.2f}%)",
+            label="Baseline Antigo (Massa, α=5500)" if idx == 0 else "",
         )
-        ax_res.plot(
-            t_exp,
-            res_fab_pts,
-            color="#c62828",
-            marker="s",
-            markersize=5.5,
-            linestyle=":",
-            linewidth=1.2,
-            zorder=5,
-            label=f"Resíduo α=5500 (MAE = {mae_fab*100:.2f}%)",
-        )
-        ax_res.plot(
-            t_exp,
-            res_novo_pts,
-            color="#2e7d32",
-            marker="o",
-            markersize=5.5,
+        ax.plot(
+            t_fine,
+            res_novo_fine["XZn"],
+            color="#d62728",
             linestyle="-",
-            linewidth=1.4,
-            zorder=6,
-            label=f"Resíduo LOP (MAE = {mae_novo*100:.2f}%)",
+            linewidth=2.3,
+            zorder=5,
+            label="Novo Baseline Oficial (RRB ÷ D³, Sem α)" if idx == 0 else "",
         )
 
-        ax_res.set_xlabel("Tempo de Reação, $t$ (min)", fontsize=11, fontweight="bold")
-        ax_res.set_ylabel("Resíduo ($X_{\\text{pred}} - X_{\\text{exp}}$)", fontsize=9.5, fontweight="bold")
-        ax_res.set_xlim(-0.4, 15.4)
-        all_res = np.concatenate([res_a0_pts, res_fab_pts, res_novo_pts])
-        max_res = max(0.06, float(np.max(np.abs(all_res))) * 1.25)
-        ax_res.set_ylim(-max_res, max_res)
-        ax_res.grid(True, linestyle="--", alpha=0.5)
-        ax_res.tick_params(axis="both", which="major", labelsize=9.5)
+        ax.set_title(
+            f"Ensaio {ens:02d} (C_A0={ca0:.2f} M, η={eta:.1f})\n"
+            f"R²: {r2_ant:.3f} → {r2_novo:.3f} | RMSE: {rmse_ant*100:.1f}% → {rmse_novo*100:.1f}%",
+            fontsize=9.2,
+            fontweight="bold",
+        )
+        ax.set_xlim(-0.4, 15.5)
+        ax.set_ylim(-0.03, 1.06)
 
-        # Legenda dos resíduos também externa à direita
-        ax_res.legend(
-            loc="upper left",
-            bbox_to_anchor=(1.02, 1.0),
-            fontsize=8.0,
-            frameon=True,
-            framealpha=0.95,
-            edgecolor="#b0bec5",
+        # =====================================================================
+        # 2. GRÁFICO INDIVIDUAL DETALHADO POR ENSAIO (COM PAINEL DE RESÍDUOS)
+        # =====================================================================
+        meta_row = df_meta.loc[ens]
+        sl = float(meta_row["razao_solido_liquido_g_L"])
+
+        fig_ind, (ax_main, ax_res) = plt.subplots(
+            2, 1, figsize=(9.5, 7.0), sharex=True, gridspec_kw={"height_ratios": [3.2, 1.2]}
         )
 
-        # Salvar com bbox_inches='tight' para garantir que os elementos externos fiquem perfeitamente enquadrados
-        eta_str = f"{eta:.1f}".replace(".", "_")
-        ca0_str = f"{ca0:.2f}".replace(".", "_")
-        base_name = f"fig_comp_ensaio_{ens:02d}_eta_{eta_str}_ca0_{ca0_str}"
+        ax_main.plot(t_exp, x_exp, color="black", marker="o", markersize=7.0, linestyle="none", zorder=6, label="Dados Experimentais")
+        ax_main.plot(t_fine, res_ant_fine["XZn"], color="#1f77b4", linestyle="--", linewidth=2.0, label=f"Baseline Antigo (α=5500) — R² = {r2_ant:.4f}")
+        ax_main.plot(t_fine, res_novo_fine["XZn"], color="#d62728", linestyle="-", linewidth=2.4, label=f"Novo Baseline (RRB ÷ D³, Sem α) — R² = {r2_novo:.4f}")
+        ax_main.set_title(
+            f"Ensaio {ens:02d} — C_A0 = {ca0:.2f} mol/L | η = {eta:.1f} | S/L = {sl:.1f} g/L\n"
+            f"Evolução do R²: {r2_ant:.4f} → {r2_novo:.4f} (RMSE: {rmse_ant*100:.2f}% → {rmse_novo*100:.2f}%)",
+            fontweight="bold",
+        )
+        ax_main.set_ylabel("Conversão de Zinco, X_Zn (-)", fontweight="bold")
+        ax_main.set_ylim(-0.02, 1.05)
+        ax_main.legend(loc="lower right", frameon=True, facecolor="white")
 
-        png_path = output_dir / f"{base_name}.png"
-        pdf_path = output_dir / f"{base_name}.pdf"
+        # Painel inferior de resíduos
+        res_ant_pts = (res_ant_exp["XZn"] - x_exp) * 100.0
+        res_novo_pts = (res_novo_exp["XZn"] - x_exp) * 100.0
+        ax_res.plot(t_exp, res_ant_pts, color="#1f77b4", marker="s", linestyle="--", label="Resíduo Antigo (%)")
+        ax_res.plot(t_exp, res_novo_pts, color="#d62728", marker="o", linestyle="-", label="Resíduo Novo (%)")
+        ax_res.axhline(0.0, color="black", linestyle="--", linewidth=1.0)
+        ax_res.axhline(5.0, color="gray", linestyle=":", linewidth=0.8)
+        ax_res.axhline(-5.0, color="gray", linestyle=":", linewidth=0.8)
+        ax_res.set_ylabel("Resíduo (p.p.)", fontweight="bold")
+        ax_res.set_xlabel("Tempo de Reação, t (min)", fontweight="bold")
+        ax_res.set_xlim(-0.3, 15.3)
+        ax_res.legend(loc="upper right", frameon=True, facecolor="white", fontsize=8.0)
 
-        fig.savefig(png_path, dpi=300, bbox_inches="tight")
-        fig.savefig(pdf_path, format="pdf", bbox_inches="tight")
-        plt.close(fig)
+        plt.tight_layout()
+        indiv_png = indiv_dir / f"ensaio_{ens:02d}_comparativo_baseline.png"
+        indiv_pdf = indiv_dir / f"ensaio_{ens:02d}_comparativo_baseline.pdf"
+        fig_ind.savefig(indiv_png, dpi=300)
+        fig_ind.savefig(indiv_pdf)
+        plt.close(fig_ind)
 
-    print(f"Sucesso! Todos os 16 gráficos (com curva alpha=0) foram regerados em:\n{output_dir}")
+    # Legenda comum do painel 4x4
+    handles, labels = axes_grid[0].get_legend_handles_labels()
+    fig_grid.legend(
+        handles,
+        labels,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.945),
+        ncol=3,
+        fontsize=11.5,
+        frameon=True,
+        facecolor="white",
+        edgecolor="#cccccc",
+    )
+    fig_grid.text(0.5, 0.02, "Tempo de Reação, t (min)", ha="center", fontsize=13, fontweight="bold")
+    fig_grid.text(
+        0.02,
+        0.5,
+        "Conversão Mássica de Zinco, X_Zn (-)",
+        va="center",
+        rotation="vertical",
+        fontsize=13,
+        fontweight="bold",
+    )
+    fig_grid.suptitle(
+        "Etapa 1.3 — Painel Ensaio a Ensaio (16 Ensaios de Bancada): Baseline Antigo vs. Novo Baseline White-Box Puro",
+        fontsize=14.5,
+        fontweight="bold",
+        y=0.98,
+    )
+    plt.subplots_adjust(top=0.89, bottom=0.06, left=0.06, right=0.98, hspace=0.35, wspace=0.14)
+
+    grid_png = output_dir / "fig_03_ensaios_individuais_4x4.png"
+    grid_pdf = output_dir / "fig_03_ensaios_individuais_4x4.pdf"
+    fig_grid.savefig(grid_png, dpi=300)
+    fig_grid.savefig(grid_pdf)
+    plt.close(fig_grid)
+
+    print(f"[OK] Painel 4x4 consolidado salvo em: {grid_png}")
+    print(f"[OK] 16 Gráficos individuais salvos em: {indiv_dir}")
 
 
 if __name__ == "__main__":

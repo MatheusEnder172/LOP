@@ -74,7 +74,6 @@ class KineticsSVR:
         self.target_transform = target_transform
         self.scaler_X = scaler_X
         self.feature_names = feature_names or [
-            "temperatura_C",
             "CA0_mol_L",
             "razao_molar_eta",
             "t_min",

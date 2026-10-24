@@ -21,17 +21,15 @@ from modelo_svr import KineticsSVR
 
 @pytest.fixture
 def synthetic_data():
-    """Gera dados sintéticos com 100 amostras e 4 features físicas."""
+    """Gera dados sintéticos com 100 amostras e 3 features físicas em t > 0."""
     rng = np.random.default_rng(42)
-    # Features: [temperatura_C, CA0_mol_L, razao_molar_eta, t_min]
+    # Features: [CA0_mol_L, razao_molar_eta, t_min]
     X = np.column_stack([
-        np.full(100, 40.0),                         # T constante
         rng.uniform(0.1, 1.5, size=100),             # CA0
-        rng.choice([0.5, 1.0, 1.5, 3.1], size=100),     # eta
-        rng.uniform(0.0, 15.0, size=100),            # t
+        rng.choice([0.5, 1.0, 1.5, 3.1], size=100),  # eta
+        rng.uniform(0.25, 15.0, size=100),           # t > 0
     ])
-    # Alvo com decaimento exponencial acentuado
-    y = 400.0 * np.exp(-1.2 * X[:, 3]) + 40.0 * np.exp(-0.15 * X[:, 3]) + rng.uniform(0.01, 0.5, size=100)
+    y = 60.0 * np.exp(-1.2 * X[:, 2]) + 10.0 * np.exp(-0.15 * X[:, 2]) + rng.uniform(0.01, 0.5, size=100)
     return X, y
 
 
@@ -68,10 +66,10 @@ def test_svr_physical_non_negativity_constraint(synthetic_data):
 
     # Teste sob entradas extremas e extrapoladas
     X_extreme = np.array([
-        [-100.0, -10.0, -5.0, -50.0],
-        [100.0, 50.0, 20.0, 200.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [-5.0, 1.0, 1.0, 1.0],
+        [-10.0, -5.0, -50.0],
+        [50.0, 20.0, 200.0],
+        [0.0, 0.0, 0.25],
+        [1.0, 1.0, 1.0],
     ])
     pred_extreme = svr.predict(X_extreme)
     assert np.all(pred_extreme >= 0.0), "Predições sob condições extremas violaram a não-negatividade!"

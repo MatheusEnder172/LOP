@@ -24,9 +24,9 @@ Ambos os autores estudaram rigorosamente o **mesmo minério de zinco** (concentr
 
 | Modelo Avaliado | Paradigma de Modelagem | R² Global Total | RMSE Global | MAE Global | Taxa de Respeito Termodinâmico |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **FPM Puro Baseline** | Mecanicista Clássico (Herbst) | **-1.4514** | **0.4313** | **0.1363** | 100,0% |
-| **DDM Puro** | Black-Box (Random Forest Malha Aberta) | **-0.6969** | **0.3588** | 0,2841 | 100,0% (mas erra escala de dp) |
-| **Híbrido Serial Campeão (LOP)** | **Grey-Box Serial (RF → PBM com Arrhenius)** | **0.6220** | **0.1694** | **0.1302** | **100,0%** |
+| **FPM Puro Baseline** | Mecanicista Clássico (Herbst) | **-2.1566** | **0.4515** | **0.0938** | 100,0% |
+| **DDM Puro** | Black-Box (Random Forest Malha Aberta) | **-0.3110** | **0.2909** | 0,2841 | 100,0% (mas erra escala de dp) |
+| **Híbrido Serial Campeão (LOP)** | **Grey-Box Serial (RF → PBM com Arrhenius)** | **0.7704** | **0.1218** | **0.0939** | **100,0%** |
 
 ---
 
@@ -38,16 +38,16 @@ Ambos os autores estudaram rigorosamente o **mesmo minério de zinco** (concentr
   - **Energia de Ativação Estimada**: **E_a = 22.69 kJ/mol**
   - **Coeficiente de Correlação de Arrhenius**: **R² = 0.9993**
 * **Conclusão Físico-Química**: O valor de E_a = 22.69 kJ/mol confirma que, para a fração de 180 µm de calcina de zinco, o mecanismo determinante de resistência ao ataque de ácido sulfúrico dilute reside no transporte difusivo de reagente e produtos através da camada porosa de sílica residual e ferrita de zinco.
-* **Acurácia Preditiva do Híbrido**: R² médio de **0.5845** e RMSE de **0.1662** nas 5 temperaturas.
+* **Acurácia Preditiva do Híbrido**: R² médio de **0.7455** e RMSE de **0.1127** nas 5 temperaturas.
 
 ### 3.2 Efeito Granulométrico Monodisperso (40 a 180 µm)
 * O Balanço Populacional Monodisperso reproduziu com precisão o aumento acentuado da velocidade de dissolução nas frações finas (dp = 40 µm atinge 98,0% de conversão, contra 68,5% da fração de 180 µm).
-* **Acurácia Preditiva do Híbrido**: R² médio de **0.5053** e RMSE de **0.1940** nas 6 frações granulométricas.
+* **Acurácia Preditiva do Híbrido**: R² médio de **0.6469** e RMSE de **0.1385** nas 6 frações granulométricas.
 
 ### 3.3 Efeito Hidrodinâmico (270 a 1080 rpm)
 * Acima de **840 rpm**, o processo atinge estabilidade cinética (conversão máxima idêntica de 68,5%), confirmando que a resistência da camada limite líquida foi eliminada.
 * Abaixo de **500 rpm**, o modelo híbrido acoplado ao fator de filme reproduz a queda na taxa de extração sem quebra de conservação.
-* **Acurácia Preditiva do Híbrido**: R² médio de **0.5089** e RMSE de **0.1247**.
+* **Acurácia Preditiva do Híbrido**: R² médio de **0.6581** e RMSE de **0.0951**.
 
 ---
 

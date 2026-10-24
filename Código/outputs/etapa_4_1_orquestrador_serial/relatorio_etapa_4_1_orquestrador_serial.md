@@ -14,12 +14,12 @@ Os três ensaios mantidos estritamente intocados durante toda a calibração da 
 
 | Ensaio | Regime Físico-Químico | C_A0 (mol/L) | η (-) | R² (X_Zn) | RMSE (X_Zn) | MAE (X_Zn) | X_Zn Final (Pred) | X_Zn Final (Exp) |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **8** | Estequiométrico Neutro (CA0=0.5, eta=1.0) | 0.50 | 1.0 | **0.9628** | 0.0544 | 0.0493 | 0.913 | 0.870 |
-| **14** | Leve Excesso Ácido (CA0=1.0, eta=1.5) | 1.00 | 1.5 | **0.9975** | 0.0157 | 0.0113 | 0.976 | 0.970 |
-| **7** | Forte Excesso Ácido (CA0=0.5, eta=3.1) | 0.50 | 3.1 | **0.9972** | 0.0170 | 0.0123 | 0.990 | 1.010 |
+| **8** | Estequiométrico Neutro (CA0=0.5, eta=1.0) | 0.50 | 1.0 | **-8.7578** | 0.0564 | 0.0538 | 0.809 | 0.870 |
+| **14** | Leve Excesso Ácido (CA0=1.0, eta=1.5) | 1.00 | 1.5 | **0.3125** | 0.0176 | 0.0147 | 0.976 | 0.970 |
+| **7** | Forte Excesso Ácido (CA0=0.5, eta=3.1) | 0.50 | 3.1 | **0.8702** | 0.0156 | 0.0121 | 0.998 | 1.010 |
 
-* **R² Médio no Teste Cego**: **0.9859**
-* **RMSE Médio no Teste Cego**: **0.0290** (desvio absoluto de apenas ~2.9 pontos percentuais de conversão)
+* **R² Médio no Teste Cego**: **-2.5250**
+* **RMSE Médio no Teste Cego**: **0.0299** (desvio absoluto de apenas ~3.0 pontos percentuais de conversão)
 * **Violação Física (X_Zn < 0 ou X_Zn > 1)**: **0,00%**
 * **Violação Ácida (C_Af < 0)**: **0,00%**
 

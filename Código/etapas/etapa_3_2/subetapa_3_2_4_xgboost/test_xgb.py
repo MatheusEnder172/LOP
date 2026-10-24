@@ -20,17 +20,15 @@ from modelo_xgb import KineticsXGBoost
 
 @pytest.fixture
 def synthetic_data():
-    """Gera dados sintéticos com 100 amostras e 4 features físicas."""
+    """Gera dados sintéticos com 100 amostras e 3 features físicas em t > 0."""
     rng = np.random.default_rng(42)
-    # Features: [temperatura_C, CA0_mol_L, razao_molar_eta, t_min]
+    # Features: [CA0_mol_L, razao_molar_eta, t_min]
     X = np.column_stack([
-        np.full(100, 40.0),                         # T constante
         rng.uniform(0.1, 1.5, size=100),             # CA0
-        rng.choice([0.5, 1.0, 1.5, 3.1], size=100),     # eta
-        rng.uniform(0.0, 15.0, size=100),            # t
+        rng.choice([0.5, 1.0, 1.5, 3.1], size=100),  # eta
+        rng.uniform(0.25, 15.0, size=100),           # t > 0
     ])
-    # Alvo com decaimento exponencial
-    y = 450.0 * np.exp(-1.4 * X[:, 3]) + 45.0 * np.exp(-0.18 * X[:, 3]) + rng.uniform(0.01, 0.8, size=100)
+    y = 65.0 * np.exp(-1.4 * X[:, 2]) + 10.0 * np.exp(-0.18 * X[:, 2]) + rng.uniform(0.01, 0.8, size=100)
     return X, y
 
 
@@ -61,27 +59,27 @@ def test_xgb_physical_non_negativity_constraint(synthetic_data):
 
     # Teste sob entradas extremas e extrapoladas
     X_extreme = np.array([
-        [-50.0, -2.0, -1.0, -10.0],
-        [100.0, 10.0, 10.0, 100.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [40.0, 5.0, 0.2, 50.0],
+        [-2.0, -1.0, -10.0],
+        [10.0, 10.0, 100.0],
+        [0.0, 0.0, 0.25],
+        [5.0, 0.2, 50.0],
     ])
     pred_extreme = xgb_model.predict(X_extreme)
     assert np.all(pred_extreme >= 0.0), "Predições sob condições extremas violaram a não-negatividade!"
 
 
 def test_xgb_feature_importances(synthetic_data):
-    """Verifica se o vetor de importância de atributos possui 4 elementos e soma 1.0."""
+    """Verifica se o vetor de importância de atributos possui 3 elementos e soma 1.0."""
     X, y = synthetic_data
     xgb_model = KineticsXGBoost(n_estimators=30, max_depth=4, random_state=42)
     xgb_model.fit(X, y)
 
     importances = xgb_model.feature_importances_
-    assert len(importances) == 4
+    assert len(importances) == 3
     assert np.all(importances >= 0.0)
     assert np.isclose(np.sum(importances), 1.0, atol=1e-5)
     # t_min deve ter alta importância no decaimento cinético
-    assert importances[3] > 0.0
+    assert importances[2] > 0.0
 
 
 def test_xgb_reproducibility(synthetic_data):

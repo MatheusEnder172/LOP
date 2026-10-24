@@ -1,0 +1,22 @@
+{
+  "model_type": "KineticsRandomForest",
+  "target_transform": "log1p",
+  "feature_names": [
+    "temperatura_C",
+    "CA0_mol_L",
+    "razao_molar_eta",
+    "t_min"
+  ],
+  "hyperparameters": {
+    "n_estimators": 100,
+    "max_depth": 6,
+    "min_samples_split": 5,
+    "min_samples_leaf": 2,
+    "max_features": 1.0,
+    "bootstrap": true,
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "n_estimators": 100,
+  "is_fitted": true
+}

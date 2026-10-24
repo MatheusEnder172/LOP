@@ -12,7 +12,7 @@ Para quantificar com rigor e imparcialidade os ganhos preditivos e as garantias 
 flowchart TD
     subgraph BENCHMARK["Matriz de Benchmark Triplo (16 Ensaios de Bancada / 128 Observações)"]
         direction TB
-        M1["1. FPM Puro Baseline<br/>(Mecanicista Clássico)<br/>SCM + Amortecimento Constante (α = 3,43 µm/min)<br/>+ Balanço Populacional MOC"]
+        M1["1. FPM Puro Baseline<br/>(Mecanicista Clássico)<br/>SCM + Amortecimento Constante (α = 5500 µm/min)<br/>+ Balanço Populacional MOC"]
         M2["2. DDM Puro (Malha Aberta)<br/>(Black-Box Não-Restrito)<br/>Random Forest integrando |v(t)|<br/>SEM conexão com Herbst (C_Af) e SEM teto estequiométrico"]
         M3["3. Híbrido Serial Campeão<br/>(White-Box + Black-Box)<br/>Random Forest → PBM em Batelada<br/>COM malha sub-segundo, teto X_Zn ≤ η e Herbst C_Af(t)"]
     end
@@ -28,7 +28,7 @@ Fonte: Elaborada pelos autores (2026).
 Os três modelos avaliados no benchmark compartilham exatamente as mesmas condições de contorno operacionais ($T = 40\ ^\circ\text{C}$, $C_{A0} \in [0,10; 1,50]\ \text{mol/L}$, $\eta \in [0,5; 3,1]$ e a mesma distribuição granulométrica de Rosin-Rammler-Bennet com $D_{63,2} = 46,27\ \mu\text{m}$), diferenciando-se exclusivamente pelo mecanismo constitutivo que governa a velocidade de dissolução:
 
 1. **Modelo Fenomenológico Puro Baseline (*First-Principles Model* — FPM Puro)**:
-   Representa o estado da arte mecanicista tradicional (Bortot Coelho, 2017). A taxa de retração interfacial $|v(t)|$ é calculada pela lei analítica do Modelo do Núcleo em Diminuição (SCM) com o parâmetro empírico de amortecimento cinético constante fixado em $\alpha = 3{,}43\ \mu\text{m}\cdot\text{min}^{-1}$ (Subseção 4.4). A evolução de $X_{\text{Zn}}(t)$ decorre da integração acoplada via Método das Características (`BatchPBMSolver`);
+   Representa o estado da arte mecanicista tradicional (Bortot Coelho, 2017). A taxa de retração interfacial $|v(t)|$ é calculada pela lei analítica do Modelo do Núcleo em Diminuição (SCM) com o parâmetro empírico de amortecimento cinético constante fixado em $\alpha = 5{,}5 \times 10^3\ \mu\text{m}\cdot\text{min}^{-1}$ (Subseção 4.4). A evolução de $X_{\text{Zn}}(t)$ decorre da integração acoplada via Método das Características (`BatchPBMSolver`);
 2. **Modelo Orientado por Dados em Malha Aberta (*Data-Driven Model* — DDM Puro)**:
    Representa a aplicação ingênua de inteligência artificial caixa-preta desprovida de barreira física. O algoritmo Random Forest infere $|v(t)|$ unicamente a partir de $[T, C_{A0}, \eta, t]$, e o deslocamento acumulado $\delta(t) = \int_0^t |v(\tau)|\, d\tau$ é integrado e convoluído com a curva RRB sem qualquer conexão com o balanço de solvente residual de Herbst ($C_{Af}(t)$) e sem a imposição do teto estequiométrico imposto pelo reagente limitante ($X_{\text{Zn}} \le \eta$). Esse modelo serve como controle negativo para evidenciar as violações termodinâmicas do aprendizado de máquinas puro em meios de esgotamento ácido;
 3. **Modelo Híbrido Serial Campeão (Random Forest $\to$ PBM)**:

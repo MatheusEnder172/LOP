@@ -6,7 +6,7 @@
 - Dissertação de Mestrado: Fabrício Eduardo Bortot Coelho (PPGEM/UFMG, 2017) — *Desenvolvimento e Validação de um Modelo de Balanço Populacional para a Lixiviação de um Concentrado Ustulado de Zinco em Bancada e em Escala Piloto*, Capítulos 3, 4 e 5 (Equações 4.1, 4.2, 4.3, 3.51 e 5.3).
 - Modelagem de consumo de reagente em lixiviação: Herbst, J. A. (1979) — *Rate Processes of Extractive Metallurgy*, Plenum Press.
 - Reações heterogêneas fluido-sólido: Levenspiel, O. (2000) — *Engenharia das Reações Químicas*, 3ª ed., Blucher; Szekely, J. et al. (1976) — *Gas-Solid Reactions*, Academic Press.
-- Relatório de testes da etapa: [`Código/outputs/etapa_1_2/relatorio_validacao_etapa_1_2.md`](file:///c:/us%20trem/Doc/UFMG/9/Lop/Codigo_v3/Código/outputs/etapa_1_2/relatorio_validacao_etapa_1_2.md).
+- Relatório de testes da etapa: [`Código/outputs/etapa_1_2/relatorio_validacao_etapa_1_2.md`](file:///c:/u\s%20trem/Doc/UFMG/9/Lop/Codigo_v3/Código/outputs/etapa_1_2/relatorio_validacao_etapa_1_2.md).
 
 ---
 

@@ -104,7 +104,7 @@ def main() -> None:
     with open(cv_info_path, "r", encoding="utf-8") as f:
         cv_folds_info = json.load(f)
 
-    feature_cols = ["temperatura_C", "CA0_mol_L", "razao_molar_eta", "t_min"]
+    feature_cols = ["CA0_mol_L", "razao_molar_eta", "t_min"]
     target_col = "abs_v_alvo_um_min"
 
     X_train = train_df[feature_cols].values

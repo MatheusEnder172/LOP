@@ -108,7 +108,7 @@ def main() -> None:
     scalers = joblib.load(scalers_path)
     scaler_X = scalers["scaler_X"]
 
-    feature_cols = ["temperatura_C", "CA0_mol_L", "razao_molar_eta", "t_min"]
+    feature_cols = ["CA0_mol_L", "razao_molar_eta", "t_min"]
     target_col = "abs_v_alvo_um_min"
 
     X_train_raw = train_df[feature_cols].values

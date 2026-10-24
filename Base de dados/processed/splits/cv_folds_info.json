@@ -1,8 +1,8 @@
 [
   {
     "fold": 1,
-    "n_train_samples": 549,
-    "n_val_samples": 244,
+    "n_train_samples": 540,
+    "n_val_samples": 240,
     "train_ensaios": [
       2,
       3,
@@ -23,8 +23,8 @@
   },
   {
     "fold": 2,
-    "n_train_samples": 610,
-    "n_val_samples": 183,
+    "n_train_samples": 600,
+    "n_val_samples": 180,
     "train_ensaios": [
       1,
       2,
@@ -45,8 +45,8 @@
   },
   {
     "fold": 3,
-    "n_train_samples": 610,
-    "n_val_samples": 183,
+    "n_train_samples": 600,
+    "n_val_samples": 180,
     "train_ensaios": [
       1,
       2,
@@ -67,8 +67,8 @@
   },
   {
     "fold": 4,
-    "n_train_samples": 610,
-    "n_val_samples": 183,
+    "n_train_samples": 600,
+    "n_val_samples": 180,
     "train_ensaios": [
       1,
       3,
