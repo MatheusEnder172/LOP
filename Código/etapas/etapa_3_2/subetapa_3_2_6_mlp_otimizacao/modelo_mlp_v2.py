@@ -161,6 +161,54 @@ class MLPTrainerV2(MLPTrainer):
         model.eval()
         return model, hist
 
+    def fit_epocas_fixas(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        w_train: Optional[np.ndarray] = None,
+        seed_offset: int = 0,
+    ) -> Tuple[KineticsMLP, Dict[str, List[float]]]:
+        """Treina por exatamente `max_epochs` épocas usando todos os ensaios recebidos.
+
+        Alternativa à parada interna: nenhum ensaio é reservado para parar o treino, e o número
+        de épocas passa a ser um hiperparâmetro escolhido pela validação cruzada (Goodfellow et al.,
+        2016, seção 7.8). Os lotes são montados por indexação direta (mais rápido que o DataLoader).
+        """
+        set_seed(self.seed + seed_offset)
+        model = self.build_model(seed_offset=seed_offset)
+        gen = torch.Generator().manual_seed(self.seed + seed_offset)
+
+        x = torch.tensor(X_train, dtype=torch.float32)
+        y_log = torch.tensor(np.log1p(y_train), dtype=torch.float32).view(-1, 1)
+        w = torch.ones_like(y_log) if w_train is None else torch.tensor(w_train, dtype=torch.float32).view(-1, 1)
+        n = len(x)
+
+        opt = torch.optim.AdamW(model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=self.max_epochs, eta_min=self.eta_min)
+        hist: Dict[str, List[float]] = {"train_loss": [], "mono_loss": [], "best_epoch": [self.max_epochs]}
+
+        model.train()
+        for _ in range(self.max_epochs):
+            perm = torch.randperm(n, generator=gen)
+            soma, soma_mono = 0.0, 0.0
+            for i in range(0, n, self.batch_size):
+                idx = perm[i:i + self.batch_size]
+                opt.zero_grad()
+                loss = self._perda_dados(model, x[idx], y_log[idx], w[idx])
+                if self.mono_lambda > 0.0:
+                    pen = self.penalidade_monotonia(model, self._pontos_colocacao(gen))
+                    loss = loss + self.mono_lambda * pen
+                    soma_mono += float(pen.item()) * len(idx)
+                loss.backward()
+                opt.step()
+                soma += float(loss.item()) * len(idx)
+            hist["train_loss"].append(soma / n)
+            hist["mono_loss"].append(soma_mono / n)
+            sched.step()
+
+        model.eval()
+        return model, hist
+
 
 class KineticsMLPEnsemble(nn.Module):
     """Média de vários `KineticsMLP` (Deep Ensemble; Lakshminarayanan et al., 2017).

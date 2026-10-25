@@ -194,12 +194,19 @@ def rodar_cv(
         val = list(fold["val_ensaios"])
         treino_dobra = sorted(set(dados.train_df["ensaio"]) - set(val))
         for s in sementes:
-            es = ensaios_parada_interna(treino_dobra, fold["fold"], s)
+            fixas = config.get("modo_parada", "interna") == "epocas_fixas"
+            es = [] if fixas else ensaios_parada_interna(treino_dobra, fold["fold"], s)
             tr = [e for e in treino_dobra if e not in es]
             m_tr, m_es, m_va = dados.mascara(tr), dados.mascara(es), dados.mascara(val)
             assert not (m_tr & m_va).any() and not (m_es & m_va).any() and not (m_tr & m_es).any()
 
-            if treinar is None:
+            if treinar is None and fixas:
+                trainer = criar_trainer(config, dados, s)
+                model, hist = trainer.fit_epocas_fixas(
+                    dados.X_train_s[m_tr], dados.y_train[m_tr], w_train=w_all[m_tr],
+                    seed_offset=7 * fold["fold"],
+                )
+            elif treinar is None:
                 trainer = criar_trainer(config, dados, s)
                 model, hist = trainer.fit_parada_interna(
                     dados.X_train_s[m_tr], dados.y_train[m_tr],

@@ -17,7 +17,8 @@ subetapa_3_2_6_mlp_otimizacao/
 ├── protocolo_cv.py            # protocolo comum de validação (todas as fases)
 ├── modelo_mlp_v2.py           # MLPTrainerV2 (parada interna, pesos, monotonia) e KineticsMLPEnsemble
 ├── fase_a_linha_de_base.py    # Fase A: linha de base honesta da v1
-├── fase_b_optuna_hpo.py       # Fase B: busca de hiperparâmetros com Optuna        (a fazer)
+├── fase_b_optuna_hpo.py       # Fase B: busca de hiperparâmetros com Optuna
+├── figuras_fase_b.py          # Fase B: figuras, tabelas e relatório
 ├── fase_c_perdas_fisicas.py   # Fase C: perda ponderada (D1) e monotonia (D2)      (a fazer)
 ├── fase_d_ponta_a_ponta.py    # Fase D: treino através do PBM (D4)                 (a fazer)
 ├── fase_e_ensemble_final.py   # Fase E: ensemble final e comparação v1 × v2        (a fazer)
@@ -38,15 +39,20 @@ Saídas: `Código/outputs/etapa_3_2/subetapa_3_2_6_mlp_otimizacao/fase_<a..e>/`.
 
 ```bash
 python fase_a_linha_de_base.py
+python fase_b_optuna_hpo.py buscar --tentativas 400 --trabalhadores 24   # cerca de 42 min
+python fase_b_optuna_hpo.py finalistas --trabalhadores 24                # cerca de 3 min
+python fase_b_optuna_hpo.py figuras
 python -m pytest -q test_mlp_otimizacao.py
 ```
+
+Na Fase B, o modo de parada também pode ser "épocas fixas": nenhum ensaio é reservado e o número de épocas vira hiperparâmetro escolhido pela validação cruzada.
 
 ## Situação das fases
 
 | Fase | Situação | Resultado principal |
 | :--- | :--- | :--- |
 | A. Linha de base honesta | concluída (25/10/2026) | A v1 reproduz R² médio de ν de 0,8210 no protocolo antigo, mas tem RMSE de X_Zn fora da dobra de 0,130 (protocolo antigo) e 0,177 ± 0,046 (protocolo novo), contra 0,014 do teto e 0,023 no próprio treino |
-| B. Optuna | a fazer | – |
+| B. Optuna | concluída (25/10/2026) | 423 tentativas; escolhida a tentativa 211 ([21, 21, 21, 21], Tanh, sem LayerNorm, dropout 0,15, lr 5,9e-3, 1714 épocas fixas, lote 64): RMSE de X_Zn de 0,0363 ± 0,0053 em 10 sementes, contra 0,1828 ± 0,039 da v1 |
 | C. D1 + D2 | a fazer | – |
 | D. Ponta a ponta | a fazer | – |
 | E. Ensemble final | a fazer | – |

@@ -66,6 +66,28 @@ def test_penalidade_nula_sem_tempo(dados) -> None:
     assert float(MLPTrainerV2.penalidade_monotonia(model, x)) == pytest.approx(0.0, abs=1e-12)
 
 
+def test_espaco_de_busca_reconstrucao() -> None:
+    """A configuração reconstruída dos parâmetros gravados é igual à sugerida na tentativa."""
+    import optuna
+
+    from fase_b_optuna_hpo import PARAMS_V1, config_de_params, sugerir_config
+
+    for params in (PARAMS_V1, {**PARAMS_V1, "n_camadas": 3, "forma": "constante", "modo_parada": "epocas_fixas",
+                               "max_epochs_fixas": 120}):
+        p = {k: v for k, v in params.items() if not (params["modo_parada"] == "epocas_fixas"
+                                                     and k in ("patience", "max_epochs_interna"))}
+        cfg = sugerir_config(optuna.trial.FixedTrial(p))
+        assert cfg == config_de_params(p)
+    assert config_de_params(PARAMS_V1)["hidden_dims"] == [64, 32]
+
+
+def test_epocas_fixas_curto(dados) -> None:
+    tr = MLPTrainerV2(hidden_dims=[16], max_epochs=3, batch_size=128, seed=0)
+    m = dados.mascara([1, 2, 3])
+    model, hist = tr.fit_epocas_fixas(dados.X_train_s[m], dados.y_train[m])
+    assert len(hist["train_loss"]) == 3 and np.isfinite(hist["train_loss"]).all()
+
+
 def test_treino_curto_v2(dados) -> None:
     tr = MLPTrainerV2(hidden_dims=[16, 8], mono_lambda=1.0, scaler_X=dados.scaler_X,
                       max_epochs=5, patience=3, batch_size=64, seed=0)
