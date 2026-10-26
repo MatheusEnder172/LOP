@@ -6,6 +6,7 @@ Verifica:
 3. Não-negatividade e formato da taxa do `KineticsMLPEnsemble`.
 4. Penalidade de monotonia nula para uma rede que não depende do tempo.
 5. Treino curto do `MLPTrainerV2` (com penalidade) sem erro e com pesos restaurados da melhor época.
+6. Ensemble final da Fase E: membros salvos carregáveis, ν ≥ 0 e média correta.
 """
 
 import sys
@@ -109,6 +110,23 @@ def test_inicializacao_xavier(dados) -> None:
     m = tr.build_model()
     lin = [mod for mod in m.modules() if isinstance(mod, torch.nn.Linear)]
     assert all(torch.all(mod.bias == 0) for mod in lin)
+
+
+def test_ensemble_final_salvo(dados) -> None:
+    """Fase E: os 10 membros salvos carregam, dão ν ≥ 0 e o ensemble é a média dos membros."""
+    from fase_e_ensemble_final import MODELOS_DIR, carregar_membros
+
+    if not (MODELOS_DIR / "mlp_v2_config.json").exists():
+        pytest.skip("Membros da Fase E ainda não treinados.")
+    membros = carregar_membros(dados)
+    assert len(membros) == 10
+    ens = KineticsMLPEnsemble(membros).eval()
+    x = torch.tensor(dados.X_train_s[:200], dtype=torch.float32)
+    with torch.no_grad():
+        out = ens(x)
+        media = torch.stack([m(x) for m in membros]).mean(dim=0)
+    assert (out >= 0).all()
+    assert torch.allclose(out, media, atol=1e-6)
 
 
 def test_treino_curto_v2(dados) -> None:

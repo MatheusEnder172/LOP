@@ -79,6 +79,8 @@ Paro para revisão e faço o commit depois do OK.
 
 ## Fase E: modelo final em *ensemble* e comparação v1 × v2
 
+> **Atualização (25/10/2026, noite):** a pedido do usuário, rodou-se uma **Fase E mínima** sobre a B2, sem C e D, para a metodologia do relatório descrever o pipeline completo. Feitos: itens 2 (ensemble de 10 membros, `outputs/models_saved/mlp_v2/`) e 4 (teste cego avaliado uma vez: RMSE de X_Zn 0,0202 contra 0,0353 da v1), mais figuras e relatório em `fase_e/`. Pendentes: itens 3 e 5 (integração no `SerialHybridModel` e na Etapa 4.2). **Atenção:** como o teste cego já foi visto, se as Fases C e D forem retomadas, a escolha entre B2, C e D deve ser feita só pela validação cruzada, e o resultado no teste da nova configuração deve ser relatado junto com este, sem substituí-lo em silêncio.
+
 1. **Escolha** entre B, B2, C e D pelo RMSE com 10 sementes e regra de um erro-padrão (Hastie et al., 2009).
 2. **Ensemble:** 10 membros da configuração escolhida, cada um com uma semente, treinados nos **13 ensaios de treino com épocas fixas**, sem reserva de ensaios. A predição é a média de ν, que depois passa pelo PBM. A faixa de incerteza de X_Zn vem de integrar cada membro separadamente (Lakshminarayanan et al., 2017).
    - Arquivos em `outputs/models_saved/mlp_v2/` (membros `.pt` e `mlp_v2_config.json`); `mlp_kinetics_v1.pt` fica intacto.

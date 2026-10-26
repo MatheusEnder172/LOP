@@ -6,6 +6,49 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-10-25 21:25] - Subetapa 3.2.6, Fase E Mínima: Ensemble Final da MLP v2 (Configuração da B2) e Avaliação Única no Teste Cego
+
+### 1. Objetivo da Atividade
+- Atender ao pedido do usuário de rodar uma versão mínima da Fase E antes de escrever a subseção da MLP no relatório, para que a metodologia descreva o pipeline completo: modelo final treinado e teste cego avaliado.
+- As Fases C e D continuam pausadas; esta Fase E parte diretamente da configuração escolhida na B2.
+
+### 2. Hipótese / Decisão de Design
+- Configuração: tentativa 511 da B2 ([90, 45, 22] com conexões residuais, GELU, entrada em ln t, dropout 0,125, AdamW com lr 4,08e-3 e weight decay 1,02e-3, lote 16, 928 épocas fixas).
+- Ensemble de 10 membros (sementes 42 a 51), cada um treinado nos 13 ensaios de treino (780 registros) com épocas fixas e sem reserva de ensaios, como a Fase B mostrou ser melhor. A predição é a média de ν entre os membros, passada pelo PBM; a faixa de incerteza vem de integrar cada membro separadamente (Lakshminarayanan et al., 2017).
+- Teste cego (ensaios 7, 8 e 14, 21 pontos t > 0) avaliado uma única vez, com o modelo congelado (Kapoor; Narayanan, 2023). O script recusa retreinar se já houver membros salvos.
+- Referências na mesma avaliação: v1 (`mlp_kinetics_v1.pt`) e modelo fenomenológico puro (predições da Etapa 4.2).
+- Fora do escopo mínimo: integração no `SerialHybridModel` e na Etapa 4.2; o campeão e a MCDA ficam como estão.
+
+### 3. Ações Executadas
+- Criados `fase_e_ensemble_final.py` (subcomandos `treinar`, `avaliar` e `figuras`) e `figuras_fase_e.py`.
+- `test_mlp_otimizacao.py`: novo teste do ensemble salvo (10 membros carregáveis, ν ≥ 0, ensemble igual à média dos membros); 10 testes aprovados.
+- README da subetapa e `PLANO_PENDENTE_FASES_C_D_E.md` atualizados.
+- Modelos em `Código/outputs/models_saved/mlp_v2/` (10 arquivos `membro_semente_XX.pt` e `mlp_v2_config.json`); `mlp_kinetics_v1.pt` intacto.
+- Saídas em `Código/outputs/etapa_3_2/subetapa_3_2_6_mlp_otimizacao/fase_e/`: tabelas de métricas (X_Zn e ν), RMSE por ensaio, membros isolados, predições, curvas, `relatorio_fase_e.md` e figuras `fig_fe_01` a `fig_fe_05` (300 DPI, PNG + PDF).
+
+### 4. O que Funcionou e Métricas Obtidas
+- Treino dos 10 membros: 1,4 min em paralelo.
+- Conferência: v1 e fenomenológico reproduziram exatamente a Etapa 4.2 (v1: 0,0229 no treino e 0,0353 no teste; fenomenológico: 0,0682 e 0,0780).
+- RMSE de X_Zn (t > 0):
+  - teste cego (21 pontos): v2 **0,0202** (R² 0,888); v1 0,0353 (R² 0,657); fenomenológico 0,0780;
+  - treino (91 pontos, dentro da amostra): v2 0,0145; v1 0,0229;
+  - global (112 pontos): v2 0,0157; v1 0,0257.
+- Por ensaio de teste: ensaio 8 de 0,056 (v1) para 0,025 (v2); ensaio 14 de 0,018 para 0,011.
+- Membros isolados no teste: 0,0203 ± 0,0015 (de 0,0183 a 0,0229), contra 0,0202 do ensemble.
+- O teste cego (0,020) ficou abaixo da validação cruzada da configuração (0,0326), coerente com a 1ª dobra conter vértices do planejamento.
+
+### 5. O que Falhou / Problemas Encontrados
+- No ensaio 7 (η = 3,1) a v2 ficou um pouco pior que a v1 (0,022 contra 0,016).
+- Em ν, a v2 não superou a v1 no teste (R²_log 0,904 contra 0,945). A diferença está sobretudo depois de cerca de 4 min nos ensaios 8 e 14, onde os alvos do problema inverso ficam parados em 0,03 µm/min, o limite superior do parâmetro c; ali ν pesa pouco em X_Zn.
+- Ressalva da comparação: o teste da v1 já tinha sido calculado na Etapa 4.2 e usado na MCDA; para a v2 é a primeira avaliação. Com 3 ensaios, diferenças pequenas no teste não são conclusivas.
+
+### 6. Ações Corretivas e Próximos Passos
+- Aguardar a revisão do usuário e fazer o commit da Fase E mínima no branch `feat/mlp-otimizacao`.
+- Escrever no relatório a subseção da MLP com o pipeline v2 (arquitetura, treino, protocolo de validação, busca de hiperparâmetros e ensemble final).
+- Pendentes: integração da v2 no `SerialHybridModel` e na Etapa 4.2; Fases C e D, se o grupo decidir retomar. Se forem retomadas, a escolha deve usar só a validação cruzada, e o novo resultado no teste deve ser relatado junto com este.
+
+---
+
 ## [2026-10-25 20:30] - Subetapa 3.2.6, Fase B2: Busca Ampliada de Hiperparâmetros (Até 8 Camadas, Entrada em ln t, Conexões Residuais e Inicialização de Glorot)
 
 ### 1. Objetivo da Atividade

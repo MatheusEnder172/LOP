@@ -21,6 +21,8 @@ subetapa_3_2_6_mlp_otimizacao/
 ├── figuras_fase_b.py          # Fase B: figuras, tabelas e relatório
 ├── fase_b2_busca_ampliada.py  # Fase B2: busca ampliada (até 8 camadas, ln t, residual, Glorot)
 ├── figuras_fase_b2.py         # Fase B2: figuras, tabelas e relatório
+├── fase_e_ensemble_final.py   # Fase E mínima: ensemble de 10 membros da B2 e teste cego (uma vez)
+├── figuras_fase_e.py          # Fase E: figuras, tabelas e relatório
 ├── test_mlp_otimizacao.py     # testes (pytest)
 └── PLANO_PENDENTE_FASES_C_D_E.md  # o que falta (Fases C, D e E), pausado em 25/10/2026
 ```
@@ -45,6 +47,9 @@ python fase_b_optuna_hpo.py figuras
 python fase_b2_busca_ampliada.py buscar --tentativas 500 --trabalhadores 24   # cerca de 2h20
 python fase_b2_busca_ampliada.py finalistas --trabalhadores 24
 python fase_b2_busca_ampliada.py figuras
+python fase_e_ensemble_final.py treinar --trabalhadores 10   # cerca de 1,5 min; recusa sobrescrever membros
+python fase_e_ensemble_final.py avaliar                      # treino, teste cego (uma vez), v1 e fenomenológico
+python fase_e_ensemble_final.py figuras
 python -m pytest -q test_mlp_otimizacao.py
 ```
 
@@ -59,7 +64,7 @@ Na Fase B, o modo de parada também pode ser "épocas fixas": nenhum ensaio é r
 | B2. Busca ampliada | concluída (25/10/2026) | 523 tentativas; escolhida a tentativa 511 ([90, 45, 22] com conexões residuais, GELU, entrada em ln t, dropout 0,13, lr 4,1e-3, lote 16, 928 épocas): RMSE de X_Zn de 0,0326 ± 0,0050 em 10 sementes, contra 0,0363 ± 0,0053 da Fase B (melhor em 7 de 10 sementes; t pareado p = 0,028). Redes com 5 a 8 camadas não ajudaram |
 | C. D1 + D2 | pausada | ver `PLANO_PENDENTE_FASES_C_D_E.md` |
 | D. Ponta a ponta | pausada | ver `PLANO_PENDENTE_FASES_C_D_E.md` |
-| E. Ensemble final | pausada | ver `PLANO_PENDENTE_FASES_C_D_E.md` |
+| E. Ensemble final (versão mínima) | concluída (25/10/2026), sem C e D | 10 membros da B2 (sementes 42–51) treinados nos 13 ensaios, média de ν. Teste cego avaliado uma vez: RMSE de X_Zn de 0,0202 (R² 0,888), contra 0,0353 da v1 e 0,0780 do fenomenológico puro; treino 0,0145. Modelos em `outputs/models_saved/mlp_v2/`. Integração no `SerialHybridModel` e na Etapa 4.2 ainda pendente |
 
 ## Mapa de referências
 
