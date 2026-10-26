@@ -153,7 +153,9 @@ def criar_trainer(config: Dict[str, Any], dados: Dados, seed: int) -> MLPTrainer
         mono_lambda=float(config.get("mono_lambda", 0.0)),
         scaler_X=dados.scaler_X,
         input_dim=3,
-        use_residual=False,
+        use_residual=bool(config.get("use_residual", False)),
+        inicializacao=config.get("inicializacao", "padrao"),
+        entrada_log_t=bool(config.get("entrada_log_t", False)),
         seed=seed,
     )
 

@@ -19,10 +19,10 @@ subetapa_3_2_6_mlp_otimizacao/
 ├── fase_a_linha_de_base.py    # Fase A: linha de base honesta da v1
 ├── fase_b_optuna_hpo.py       # Fase B: busca de hiperparâmetros com Optuna
 ├── figuras_fase_b.py          # Fase B: figuras, tabelas e relatório
-├── fase_c_perdas_fisicas.py   # Fase C: perda ponderada (D1) e monotonia (D2)      (a fazer)
-├── fase_d_ponta_a_ponta.py    # Fase D: treino através do PBM (D4)                 (a fazer)
-├── fase_e_ensemble_final.py   # Fase E: ensemble final e comparação v1 × v2        (a fazer)
-└── test_mlp_otimizacao.py     # testes (pytest)
+├── fase_b2_busca_ampliada.py  # Fase B2: busca ampliada (até 8 camadas, ln t, residual, Glorot)
+├── figuras_fase_b2.py         # Fase B2: figuras, tabelas e relatório
+├── test_mlp_otimizacao.py     # testes (pytest)
+└── PLANO_PENDENTE_FASES_C_D_E.md  # o que falta (Fases C, D e E), pausado em 25/10/2026
 ```
 
 Saídas: `Código/outputs/etapa_3_2/subetapa_3_2_6_mlp_otimizacao/fase_<a..e>/`.
@@ -42,6 +42,9 @@ python fase_a_linha_de_base.py
 python fase_b_optuna_hpo.py buscar --tentativas 400 --trabalhadores 24   # cerca de 42 min
 python fase_b_optuna_hpo.py finalistas --trabalhadores 24                # cerca de 3 min
 python fase_b_optuna_hpo.py figuras
+python fase_b2_busca_ampliada.py buscar --tentativas 500 --trabalhadores 24   # cerca de 2h20
+python fase_b2_busca_ampliada.py finalistas --trabalhadores 24
+python fase_b2_busca_ampliada.py figuras
 python -m pytest -q test_mlp_otimizacao.py
 ```
 
@@ -53,9 +56,10 @@ Na Fase B, o modo de parada também pode ser "épocas fixas": nenhum ensaio é r
 | :--- | :--- | :--- |
 | A. Linha de base honesta | concluída (25/10/2026) | A v1 reproduz R² médio de ν de 0,8210 no protocolo antigo, mas tem RMSE de X_Zn fora da dobra de 0,130 (protocolo antigo) e 0,177 ± 0,046 (protocolo novo), contra 0,014 do teto e 0,023 no próprio treino |
 | B. Optuna | concluída (25/10/2026) | 423 tentativas; escolhida a tentativa 211 ([21, 21, 21, 21], Tanh, sem LayerNorm, dropout 0,15, lr 5,9e-3, 1714 épocas fixas, lote 64): RMSE de X_Zn de 0,0363 ± 0,0053 em 10 sementes, contra 0,1828 ± 0,039 da v1 |
-| C. D1 + D2 | a fazer | – |
-| D. Ponta a ponta | a fazer | – |
-| E. Ensemble final | a fazer | – |
+| B2. Busca ampliada | concluída (25/10/2026) | 523 tentativas; escolhida a tentativa 511 ([90, 45, 22] com conexões residuais, GELU, entrada em ln t, dropout 0,13, lr 4,1e-3, lote 16, 928 épocas): RMSE de X_Zn de 0,0326 ± 0,0050 em 10 sementes, contra 0,0363 ± 0,0053 da Fase B (melhor em 7 de 10 sementes; t pareado p = 0,028). Redes com 5 a 8 camadas não ajudaram |
+| C. D1 + D2 | pausada | ver `PLANO_PENDENTE_FASES_C_D_E.md` |
+| D. Ponta a ponta | pausada | ver `PLANO_PENDENTE_FASES_C_D_E.md` |
+| E. Ensemble final | pausada | ver `PLANO_PENDENTE_FASES_C_D_E.md` |
 
 ## Mapa de referências
 
@@ -69,4 +73,5 @@ Na Fase B, o modo de parada também pode ser "épocas fixas": nenhum ensaio é r
 | Monotonia por autograd (D2) | Raissi et al. (2019); von Stosch et al. (2014); Schweidtmann et al. (2024) | – |
 | Treino através do modelo fenomenológico (D4) | Psichogios e Ungar (1992); Thompson e Kramer (1994); Oliveira (2004); Shah et al. | – |
 | Escolha pela regra de um erro-padrão | Hastie et al. (2009) | – |
+| Inicialização e conexões residuais (B2) | Goodfellow et al. (2016) | Glorot e Bengio (2010); He et al. (2016) |
 | *Ensemble* final | Goodfellow et al. (2016, seção 7.11) | Lakshminarayanan et al. (2017) |

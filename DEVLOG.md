@@ -6,6 +6,65 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-10-25 20:30] - Subetapa 3.2.6, Fase B2: Busca Ampliada de Hiperparâmetros (Até 8 Camadas, Entrada em ln t, Conexões Residuais e Inicialização de Glorot)
+
+### 1. Objetivo da Atividade
+- Atender ao pedido do usuário de explorar redes mais profundas, já que na Fase B as melhores redes ficaram no limite do espaço (4 camadas), e outras escolhas de projeto, antes de passar à Fase C.
+
+### 2. Hipótese / Decisão de Design
+- Novo estudo Optuna, com o mesmo protocolo, a mesma poda e a mesma regra de escolha da Fase B.
+- Espaço:
+  - 2 a 8 camadas ocultas, largura de 8 a 96, constante ou afunilada;
+  - somente épocas fixas, de 200 a 4000 (a parada interna teve mediana cerca de 6 vezes pior na Fase B);
+  - dropout de 0 a 0,3; demais hiperparâmetros como na Fase B.
+- Três opções novas no `MLPTrainerV2`:
+  - entrada temporal em ln t (`KineticsMLPLogT`): a interface com o `SerialHybridModel` continua a mesma, ln t é calculado dentro da rede e a operação é diferenciável. Hipótese: ν cai várias ordens de grandeza nos primeiros minutos, e ln t espalha melhor esses instantes;
+  - conexões residuais (blocos `ResidualLinearBlock` da v1);
+  - inicialização de Glorot (Glorot; Bengio, 2010), com o ganho de Tanh.
+- As tentativas 211 e 354 da Fase B foram enfileiradas como tentativas 0 e 1, para conferir a reprodução e servir de ponto de partida.
+
+### 3. Ações Executadas
+- Criados `fase_b2_busca_ampliada.py` e `figuras_fase_b2.py`.
+- Alterados:
+  - `modelo_mlp_v2.py`: `KineticsMLPLogT` e `build_model` com as opções de inicialização e de ln t;
+  - `protocolo_cv.py`: novas chaves `use_residual`, `inicializacao` e `entrada_log_t`; os padrões mantêm as Fases A e B idênticas;
+  - `test_mlp_otimizacao.py`: mais 2 testes, total de 9, todos aprovados;
+  - `README.md` da subetapa.
+- Saídas em `Código/outputs/etapa_3_2/subetapa_3_2_6_mlp_otimizacao/fase_b2/`:
+  - estudo Optuna e tabela de tentativas;
+  - finalistas com 10 sementes;
+  - `melhor_config_fase_b2.json`;
+  - `relatorio_fase_b2.md`, com comparação pareada contra a Fase B;
+  - figuras `fig_fb2_01` a `fig_fb2_07` (300 DPI, PNG + PDF).
+
+### 4. O que Funcionou e Métricas Obtidas
+- Execução: 523 tentativas (479 completas, 44 podadas), 138 min de relógio e 52,1 h de CPU somadas.
+- Reprodução: a tentativa 0 (configuração 211 da Fase B) deu 0,0331 com 3 sementes, o mesmo valor da Fase B.
+- Configuração escolhida (tentativa 511): [90, 45, 22] com conexões residuais, GELU, sem LayerNorm, entrada em ln t, dropout 0,125, lr 4,08e-3, weight decay 1,02e-3, lote 16, 928 épocas fixas, 5.490 parâmetros.
+  - RMSE de X_Zn fora da dobra: **0,0326 ± 0,0050** (10 sementes), R² 0,974.
+  - Fase B: 0,0363 ± 0,0053, R² 0,968.
+  - Comparação pareada nas mesmas 10 sementes: a B2 foi melhor em 7 de 10; diferença média de −0,0037; t pareado p = 0,028; Wilcoxon p = 0,049.
+  - A tentativa 478 ([91, 45, 22]) empatou (0,0326 ± 0,0027) e ficou de fora pela regra de um erro-padrão (5.539 parâmetros).
+- Medianas das tentativas completas:
+  - ln t 0,037 (n = 431) contra t 0,047 (n = 48);
+  - inicialização padrão 0,037 contra Glorot 0,078;
+  - 3 camadas 0,037 e 4 camadas 0,039, contra 0,052 a 0,076 com 5 a 8 camadas e 0,059 com 2.
+- Por ensaio, a B2 melhorou os ensaios 2, 4, 5, 9, 11, 12, 13 e 16 (ensaio 9: de 0,045 para 0,016; ensaio 11: de 0,057 para 0,034).
+
+### 5. O que Falhou / Problemas Encontrados
+- Redes mais profundas (5 a 8 camadas) não ajudaram: com 13 ensaios, o melhor ficou em 3 a 4 camadas. O ganho veio da entrada em ln t e das conexões residuais, não da profundidade.
+- A inicialização de Glorot piorou o resultado (mediana cerca de 2 vezes maior).
+- O ganho sobre a Fase B é moderado (cerca de 10 %) e não é uniforme: os ensaios 6, 10 e 15 pioraram (0,044, 0,054 e 0,058).
+- A rede escolhida tem 3,7 vezes mais parâmetros que a da Fase B.
+- Instabilidade pontual: na finalista 449, uma das 10 sementes divergiu (RMSE 0,444). Isso reforça o uso de várias sementes e do ensemble na Fase E.
+- Ressalva: as sementes 42–44 foram usadas na busca das duas fases, o que favorece igualmente B e B2 na reavaliação.
+
+### 6. Ações Corretivas e Próximos Passos
+- Aguardar a revisão do usuário. Se aprovado, fazer o commit da Fase B2.
+- Fase C (D1 e D2) sobre a configuração escolhida da B2 (tentativa 511). A configuração da Fase B fica como alternativa mais simples, para a comparação final.
+
+---
+
 ## [2026-10-25 17:52] - Subetapa 3.2.6, Fase B: Busca de Hiperparâmetros da MLP com Optuna (Objetivo RMSE de X_Zn Fora da Dobra)
 
 ### 1. Objetivo da Atividade

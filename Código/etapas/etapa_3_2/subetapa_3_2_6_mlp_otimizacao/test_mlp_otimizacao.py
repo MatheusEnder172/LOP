@@ -88,6 +88,29 @@ def test_epocas_fixas_curto(dados) -> None:
     assert len(hist["train_loss"]) == 3 and np.isfinite(hist["train_loss"]).all()
 
 
+def test_entrada_log_t(dados) -> None:
+    """KineticsMLPLogT aplica ln t corretamente, preserva ν ≥ 0 e é reconhecida como MLP."""
+    from modelo_mlp_v2 import MALHA_T, KineticsMLPLogT
+
+    base = KineticsMLP(input_dim=3, hidden_dims=[8])
+    sc = dados.scaler_X
+    m = KineticsMLPLogT(base, float(sc.mean_[2]), float(sc.scale_[2]))
+    x_fis = np.array([[0.5, 1.0, 0.25], [0.5, 1.0, 15.0]])
+    x = torch.tensor(sc.transform(x_fis), dtype=torch.float32)
+    u = m._transformar(x)[:, 2].detach().numpy()
+    esperado = (np.log(x_fis[:, 2]) - np.log(MALHA_T).mean()) / np.log(MALHA_T).std()
+    assert np.allclose(u, esperado, atol=1e-5)
+    assert (m(x) >= 0).all()
+    assert "MLP" in type(m).__name__
+
+
+def test_inicializacao_xavier(dados) -> None:
+    tr = MLPTrainerV2(hidden_dims=[16, 16], activation="Tanh", inicializacao="xavier", seed=0)
+    m = tr.build_model()
+    lin = [mod for mod in m.modules() if isinstance(mod, torch.nn.Linear)]
+    assert all(torch.all(mod.bias == 0) for mod in lin)
+
+
 def test_treino_curto_v2(dados) -> None:
     tr = MLPTrainerV2(hidden_dims=[16, 8], mono_lambda=1.0, scaler_X=dados.scaler_X,
                       max_epochs=5, patience=3, batch_size=64, seed=0)

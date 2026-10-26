@@ -30,6 +30,36 @@ from modelo_mlp import KineticsMLP, MLPTrainer, set_seed  # noqa: E402
 
 # Domínio operacional dos 16 ensaios de bancada (C_A0 em mol/L, η adimensional, t em min)
 DOMINIO_FISICO = np.array([[0.10, 1.50], [0.50, 3.10], [0.25, 15.0]])
+# Malha temporal densa dos alvos (Etapa 2.1), usada para padronizar ln t
+MALHA_T = np.arange(0.25, 15.0 + 1e-9, 0.25)
+
+
+class KineticsMLPLogT(nn.Module):
+    """KineticsMLP que recebe ln t no lugar de t (Fase B2).
+
+    A entrada continua sendo o vetor padronizado [C_A0, η, t] do `scaler_X` (mesma interface do
+    `SerialHybridModel`); internamente t é desfeito da padronização, levado a ln t e padronizado
+    de novo com a média e o desvio de ln t na malha densa. Como ν cai várias ordens de grandeza
+    nos primeiros minutos, ln t espalha melhor os instantes iniciais, onde ν é grande e define δ.
+    A transformação é diferenciável, então a penalidade de monotonia em t continua válida.
+    """
+
+    def __init__(self, base: KineticsMLP, mu_t: float, sigma_t: float) -> None:
+        super().__init__()
+        self.base = base
+        ln_t = np.log(MALHA_T)
+        self.register_buffer("afim", torch.tensor([mu_t, sigma_t, ln_t.mean(), ln_t.std()], dtype=torch.float32))
+
+    def _transformar(self, x: torch.Tensor) -> torch.Tensor:
+        mu, sig, m, s = self.afim
+        t = torch.clamp(x[:, 2:3] * sig + mu, min=1e-3)
+        return torch.cat([x[:, :2], (torch.log(t) - m) / s], dim=1)
+
+    def forward_log(self, x: torch.Tensor) -> torch.Tensor:
+        return self.base.forward_log(self._transformar(x))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.expm1(self.forward_log(x))
 
 
 class MLPTrainerV2(MLPTrainer):
@@ -52,6 +82,8 @@ class MLPTrainerV2(MLPTrainer):
         scaler_X: Optional[object] = None,
         max_epochs: int = 350,
         eta_min: float = 1e-5,
+        inicializacao: str = "padrao",
+        entrada_log_t: bool = False,
         **kwargs,
     ) -> None:
         super().__init__(hidden_dims=hidden_dims, **kwargs)
@@ -60,8 +92,27 @@ class MLPTrainerV2(MLPTrainer):
         self.scaler_X = scaler_X
         self.max_epochs = int(max_epochs)
         self.eta_min = float(eta_min)
-        if self.mono_lambda > 0.0 and scaler_X is None:
-            raise ValueError("scaler_X é obrigatório quando mono_lambda > 0.")
+        self.inicializacao = inicializacao
+        self.entrada_log_t = bool(entrada_log_t)
+        if (self.mono_lambda > 0.0 or self.entrada_log_t) and scaler_X is None:
+            raise ValueError("scaler_X é obrigatório com mono_lambda > 0 ou entrada_log_t.")
+
+    def build_model(self, seed_offset: int = 0) -> nn.Module:
+        """Rede da v1, com inicialização de Glorot opcional e entrada em ln t opcional.
+
+        "xavier": pesos das camadas lineares com a inicialização de Glorot e Bengio (2010), com o
+        ganho recomendado para Tanh, e vieses nulos; "padrao": inicialização padrão do PyTorch.
+        """
+        model = super().build_model(seed_offset=seed_offset)
+        if self.inicializacao == "xavier":
+            ganho = nn.init.calculate_gain("tanh") if self.activation.upper() == "TANH" else 1.0
+            for mod in model.modules():
+                if isinstance(mod, nn.Linear):
+                    nn.init.xavier_uniform_(mod.weight, gain=ganho)
+                    nn.init.zeros_(mod.bias) if mod.bias is not None else None
+        if self.entrada_log_t:
+            model = KineticsMLPLogT(model, float(self.scaler_X.mean_[2]), float(self.scaler_X.scale_[2]))
+        return model
 
     def _pontos_colocacao(self, gen: torch.Generator) -> torch.Tensor:
         """Sorteia pontos uniformes no domínio físico e os leva para a escala Z-score."""
