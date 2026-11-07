@@ -21,7 +21,7 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 ### 3. Ações Executadas
 - Criado `Documento/ferramentas/adicionar_resultados_apendices_v8.py` e gerado `Documento/RELATÓRIO FINAL LOP_v8.docx`.
 - Removido da Metodologia o parágrafo "Conforme discutido na revisão bibliográfica, na arquitetura híbrida serial…" (68 palavras).
-- Acrescentadas 5 seções, 8 tabelas (B.4, B.5, D.1, E.3 a E.7) e 11 figuras (B.3, B.4, E.4 a E.11 e as de apoio), reaproveitando as figuras já geradas nas Fases A, B, B2 e E.
+- Acrescentadas 5 seções, 8 tabelas (B.4, B.5, D.1, E.3 a E.7) e 10 figuras (B.3, B.4 e E.4 a E.11), reaproveitando as figuras já geradas nas Fases A, B, B2 e E.
 - Atualizados `PLANO_RETOMADA_PROXIMO_CHAT.md`, `PROMPT_NOVO_CHAT.md` e `Documento/ferramentas/README.md`.
 - Push do branch `feat/mlp-otimizacao` para `origin` (autorizado pelo usuário). O pull request não foi aberto: não há `gh` instalado e o conector do GitHub não está autorizado. Link para abrir: https://github.com/MatheusEnder172/LOP/pull/new/feat/mlp-otimizacao.
 
