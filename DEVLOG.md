@@ -6,6 +6,38 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-07 20:23] - Etapa 1: Integração do Comitê da MLP v2 ao SerialHybridModel e à Etapa 4.2 (sem mudar números)
+
+### 1. Objetivo da Atividade
+- Integrar o comitê de 10 redes da MLP v2 (`Código/outputs/models_saved/mlp_v2`) ao `SerialHybridModel` e à Etapa 4.2, sem alterar nenhum número já publicado. Aceitação: linha da v1 com RMSE global de 0,0257; linha da v2 reproduzindo a Fase E (treino 0,0145; teste cego 0,0202; global 0,0157).
+
+### 2. Hipótese / Decisão de Design
+- `model_type="mlp_v2"` carrega o comitê e o expõe como tipo interno "mlp" (o nome `KineticsMLPEnsemble` já era reconhecido), de modo que `predict_rate` e `simulate` não mudaram.
+- Novo método `simulate_members` devolve o X_Zn de cada membro (faixa mínimo–máximo, média e desvio com ddof = 1), para as figuras de incerteza. A faixa é só variabilidade de treino, não intervalo de confiança.
+- O montador do treinador foi extraído para `criar_trainer_da_config` (em `modelo_mlp_v2.py`), usado por `carregar_ensemble_v2` e por `protocolo_cv.criar_trainer`, evitando duplicar código e importação circular.
+- `modelo_campeao_info.json` e a MCDA não foram alterados (discussão pendente). A v1 segue como "MLP Campeão".
+
+### 3. Ações Executadas
+- `modelo_mlp_v2.py`: `criar_trainer_da_config` e `carregar_ensemble_v2`. `protocolo_cv.py`: `criar_trainer` delega ao novo montador.
+- `Código/src/hybrid/serial_hybrid.py`: pasta da subetapa 3.2.6 no `sys.path`, opção `mlp_v2` e método `simulate_members`.
+- Etapa 4.2: saídas antigas movidas para `outputs/etapa_4_2_avaliacao_indomain/old_mlp_v1_20261107/` (com README; 17 arquivos). `avaliar_hibrido_indomain.py` acrescenta a linha "Híbrido Serial (MLP v2, comitê)" às tabelas, ao relatório e à Figura 12c, e as colunas `XZn_Hibrido_MLP_v2` (mais `_min`, `_max`, `_dp`) à tabela de predições. `fig_comparativo_escalas_cinetica_hibrido` não é gerada por esse script e ficou na pasta principal.
+- Testes novos em `test_mlp_v2_integracao.py` (13): instancia o comitê, reproduz a Fase E ponto a ponto, métricas da Fase E e da v1, limites físicos (X ≤ min(1, η), C_Af ≥ 0, inclusive η = 0,40), faixa dos membros e erro ao pedir `simulate_members` com a v1.
+
+### 4. O que Funcionou e Métricas Obtidas
+- v2: RMSE de X_Zn de 0,0145 no treino (91 pontos), 0,0202 no teste cego (21) e 0,0157 global (112); R² global 0,9935. Diferença máxima para as predições da Fase E: 1,1e-16; faixa dos membros e desvio idênticos à Fase E (1,2e-16).
+- v1: RMSE global 0,0257, teste cego 0,0353; todas as linhas e colunas antigas das tabelas coincidem com o instantâneo (diferença 0 nas métricas e no máximo 2,2e-16 nas predições).
+- Testes: 41 passaram (test_mlp 5, test_mlp_otimizacao 10, test_mlp_v2_integracao 13, test_serial_hybrid 7, test_avaliacao_indomain 6).
+
+### 5. O que Falhou / Problemas Encontrados
+- A Figura 12c quebrou na primeira execução (7 barras contra 6 rótulos fixos); corrigido. O título da figura ainda diz "4 Modelos Híbridos" (agora são 5 linhas de híbrido); não alterado.
+- A mudança de CRLF/LF: os arquivos .py estão em LF; o git avisa de conversão futura (sem efeito no conteúdo).
+- Pendência anterior: os dois .docx antigos (`RELATÓRIO FINAL LOP.docx` e `v4`) aparecem como excluídos no `git status`; não foram tocados nesta etapa.
+
+### 6. Ações Corretivas e Próximos Passos
+- Aguardando o OK do usuário para a Etapa 2 (Fases C e D) e 2b (pesos λ do problema inverso), com parada de segurança na terça 10/11 ao meio-dia.
+
+---
+
 ## [2026-11-07 20:10] - Relatório v8: Resultados das Análises nos Apêndices e Corte do Parágrafo Repetido; Push do Branch
 
 ### 1. Objetivo da Atividade

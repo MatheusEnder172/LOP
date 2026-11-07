@@ -15,7 +15,8 @@ Princípios Físico-Químicos e Garantias:
    garantindo que a conversão mássica de zinco X_Zn(t) pertença estritamente ao intervalo [0, 1]
    e que a concentração de ácido residual C_Af(t) seja estritamente não-negativa (C_Af >= 0).
 3. Interoperabilidade Modular:
-   Suporte transparente a qualquer modelo da Etapa 3.2 (MLP Campeão, Random Forest, XGBoost, SVR).
+   Suporte transparente a qualquer modelo da Etapa 3.2 (MLP Campeão, Random Forest, XGBoost, SVR)
+   e ao comitê da MLP v2 (Subetapa 3.2.6, `model_type="mlp_v2"`).
 """
 
 from __future__ import annotations
@@ -43,6 +44,7 @@ for sub in [
     "subetapa_3_2_3_svr",
     "subetapa_3_2_4_xgboost",
     "subetapa_3_2_5_comparacao_campeao",
+    "subetapa_3_2_6_mlp_otimizacao",
 ]:
     p = str(ETAPA_3_2_DIR / sub)
     if p not in sys.path:
@@ -142,6 +144,12 @@ class SerialHybridModel:
             ckpt_path = self.models_dir / "mlp" / "mlp_kinetics_v1.pt"
             return self._load_mlp(ckpt_path), "mlp", "KineticsMLP (PyTorch C∞)"
 
+        elif t_lower in ("mlp_v2", "mlp-v2"):
+            from modelo_mlp_v2 import carregar_ensemble_v2
+
+            ensemble = carregar_ensemble_v2(self.models_dir / "mlp_v2", scaler_X=self.scaler_X)
+            return ensemble, "mlp", f"MLP v2 (comitê de {len(ensemble.membros)} redes)"
+
         elif t_lower in ("xgboost", "xgb"):
             ckpt_path = self.models_dir / "xgboost" / "xgb_kinetics_v1.joblib"
             model = KineticsXGBoost.load(ckpt_path)
@@ -153,7 +161,7 @@ class SerialHybridModel:
             return model, "svr", "Support Vector Regression"
 
         else:
-            raise ValueError(f"Tipo de modelo inválido: {model_type}. Opções: champion, random_forest, mlp, xgboost, svr")
+            raise ValueError(f"Tipo de modelo inválido: {model_type}. Opções: champion, random_forest, mlp, mlp_v2, xgboost, svr")
 
     def _load_mlp(self, ckpt_path: Path) -> KineticsMLP:
         """Carrega e instancia a rede neural MLP em PyTorch com input_dim = 3."""
@@ -319,6 +327,51 @@ class SerialHybridModel:
             "eta": float(eta),
             "model_type": self.model_type,
             "model_name": self.model_name,
+        }
+
+    def simulate_members(
+        self,
+        T: float = 40.0,
+        ca0: float = 0.50,
+        eta: float = 1.0,
+        t_eval: Optional[Union[List[float], np.ndarray]] = None,
+    ) -> Dict[str, Any]:
+        """Simula cada membro do comitê (`model_type="mlp_v2"`) separadamente, sem alterar `simulate`.
+
+        O comitê usa a média de ν entre os membros antes do PBM (`simulate`); aqui cada membro
+        passa sozinho pelo PBM, e a faixa mínimo–máximo mede só a variabilidade de treino entre
+        as redes (não é intervalo de confiança). Como o PBM é não linear, a média das conversões
+        dos membros não coincide exatamente com a conversão do comitê.
+
+        Returns:
+            Dicionário com `t`, `XZn_membros` e `CAf_membros` (formato n_membros × n_tempos) e
+            as estatísticas por instante `XZn_min`, `XZn_max`, `XZn_media` e `XZn_dp` (ddof = 1).
+
+        Raises:
+            TypeError: Se o modelo carregado não for um comitê (sem atributo `membros`).
+        """
+        membros = getattr(self.model, "membros", None)
+        if membros is None:
+            raise TypeError("simulate_members exige um comitê de redes (model_type='mlp_v2').")
+
+        sims = [
+            SerialHybridModel(ddm_model=m, scaler_X=self.scaler_X, solver=self.solver).simulate(
+                T=T, ca0=ca0, eta=eta, t_eval=t_eval
+            )
+            for m in membros
+        ]
+        xzn = np.vstack([r["XZn"] for r in sims])
+        caf = np.vstack([r["CAf"] for r in sims])
+        return {
+            "t": sims[0]["t"],
+            "XZn_membros": xzn,
+            "CAf_membros": caf,
+            "XZn_min": xzn.min(axis=0),
+            "XZn_max": xzn.max(axis=0),
+            "XZn_media": xzn.mean(axis=0),
+            "XZn_dp": xzn.std(axis=0, ddof=1) if len(sims) > 1 else np.zeros(xzn.shape[1]),
+            "CA0": float(ca0),
+            "eta": float(eta),
         }
 
     def simulate_experiment(

@@ -34,7 +34,7 @@ for p in (SUBETAPA_DIR, CODIGO_DIR):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 
-from modelo_mlp_v2 import KineticsMLP, MLPTrainer, MLPTrainerV2  # noqa: E402
+from modelo_mlp_v2 import KineticsMLP, MLPTrainer, MLPTrainerV2, criar_trainer_da_config  # noqa: E402
 from src.hybrid.serial_hybrid import SerialHybridModel  # noqa: E402
 from src.physics.pbm_batch import BatchPBMSolver  # noqa: E402
 
@@ -140,24 +140,7 @@ def metricas_nu(model: KineticsMLP, X_s: np.ndarray, y: np.ndarray) -> Dict[str,
 
 
 def criar_trainer(config: Dict[str, Any], dados: Dados, seed: int) -> MLPTrainerV2:
-    return MLPTrainerV2(
-        hidden_dims=list(config["hidden_dims"]),
-        activation=config["activation"],
-        use_layer_norm=bool(config["use_layer_norm"]),
-        dropout_rate=float(config["dropout_rate"]),
-        lr=float(config["lr"]),
-        weight_decay=float(config["weight_decay"]),
-        batch_size=int(config["batch_size"]),
-        patience=int(config["patience"]),
-        max_epochs=int(config["max_epochs"]),
-        mono_lambda=float(config.get("mono_lambda", 0.0)),
-        scaler_X=dados.scaler_X,
-        input_dim=3,
-        use_residual=bool(config.get("use_residual", False)),
-        inicializacao=config.get("inicializacao", "padrao"),
-        entrada_log_t=bool(config.get("entrada_log_t", False)),
-        seed=seed,
-    )
+    return criar_trainer_da_config(config, dados.scaler_X, seed)
 
 
 @dataclass

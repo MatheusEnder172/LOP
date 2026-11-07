@@ -9,14 +9,18 @@ continuam intactos, preservando a reprodutibilidade da v1) e acrescenta:
 3. Penalidade de monotonia temporal da taxa, mean(ReLU(∂ŷ_log/∂t)²), avaliada por autograd em
    pontos de colocação sorteados no domínio operacional (D2, Fase C; Raissi et al., 2019).
 4. `KineticsMLPEnsemble`, que promedia a taxa de vários membros (Fase E).
+5. `carregar_ensemble_v2`, que remonta o comitê salvo em `outputs/models_saved/mlp_v2/` (usada
+   pelo `SerialHybridModel` com `model_type="mlp_v2"`).
 """
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
+import joblib
 import numpy as np
 import torch
 import torch.nn as nn
@@ -27,6 +31,10 @@ if str(MLP_V1_DIR) not in sys.path:
     sys.path.insert(0, str(MLP_V1_DIR))
 
 from modelo_mlp import KineticsMLP, MLPTrainer, set_seed  # noqa: E402
+
+CODIGO_DIR = SUBETAPA_DIR.parents[2]
+MODELOS_V2_DIR = CODIGO_DIR / "outputs" / "models_saved" / "mlp_v2"
+SCALERS_PATH = CODIGO_DIR.parent / "Base de dados" / "processed" / "splits" / "scalers.joblib"
 
 # Domínio operacional dos 16 ensaios de bancada (C_A0 em mol/L, η adimensional, t em min)
 DOMINIO_FISICO = np.array([[0.10, 1.50], [0.50, 3.10], [0.25, 15.0]])
@@ -281,3 +289,59 @@ class KineticsMLPEnsemble(nn.Module):
 
     def forward_log(self, x: torch.Tensor) -> torch.Tensor:
         return torch.log1p(self.forward(x))
+
+
+def criar_trainer_da_config(config: Dict[str, Any], scaler_X: object, seed: int) -> MLPTrainerV2:
+    """Monta o `MLPTrainerV2` a partir de um dicionário de hiperparâmetros (como o da Fase B2).
+
+    Args:
+        config: Hiperparâmetros (chaves de `mlp_v2_config.json`, campo "config").
+        scaler_X: StandardScaler das entradas [C_A0, η, t] (necessário para a entrada em ln t).
+        seed: Semente do treinador.
+    """
+    return MLPTrainerV2(
+        hidden_dims=list(config["hidden_dims"]),
+        activation=config["activation"],
+        use_layer_norm=bool(config["use_layer_norm"]),
+        dropout_rate=float(config["dropout_rate"]),
+        lr=float(config["lr"]),
+        weight_decay=float(config["weight_decay"]),
+        batch_size=int(config["batch_size"]),
+        patience=int(config["patience"]),
+        max_epochs=int(config["max_epochs"]),
+        mono_lambda=float(config.get("mono_lambda", 0.0)),
+        scaler_X=scaler_X,
+        input_dim=3,
+        use_residual=bool(config.get("use_residual", False)),
+        inicializacao=config.get("inicializacao", "padrao"),
+        entrada_log_t=bool(config.get("entrada_log_t", False)),
+        seed=seed,
+    )
+
+
+def carregar_ensemble_v2(
+    models_dir: Optional[Union[str, Path]] = None, scaler_X: Optional[object] = None
+) -> KineticsMLPEnsemble:
+    """Remonta o comitê da MLP v2 salvo pela Fase E (10 membros, média de ν).
+
+    Lê `mlp_v2_config.json`, constrói cada membro com `MLPTrainerV2(...).build_model()` e
+    carrega os pesos `.pt` (apenas tensores, `weights_only=True`).
+
+    Args:
+        models_dir: Pasta do comitê (padrão: `outputs/models_saved/mlp_v2`).
+        scaler_X: StandardScaler das entradas; se None, lê o `scalers.joblib` da Etapa 3.1.
+
+    Returns:
+        `KineticsMLPEnsemble` em modo de avaliação.
+    """
+    pasta = Path(models_dir) if models_dir else MODELOS_V2_DIR
+    info = json.loads((pasta / "mlp_v2_config.json").read_text(encoding="utf-8"))
+    if scaler_X is None:
+        scaler_X = joblib.load(SCALERS_PATH)["scaler_X"]
+    membros = []
+    for semente, arquivo in zip(info["sementes"], info["arquivos_membros"]):
+        membro = criar_trainer_da_config(info["config"], scaler_X, int(semente)).build_model()
+        membro.load_state_dict(torch.load(pasta / arquivo, weights_only=True))
+        membro.eval()
+        membros.append(membro)
+    return KineticsMLPEnsemble(membros).eval()
