@@ -1,10 +1,10 @@
-# Plano de retomada para o próximo chat (escrito em 07/11/2026)
+# Plano de retomada para o próximo chat (escrito em 07/11/2026; prazo atualizado no mesmo dia)
 
-Este arquivo reúne o estado do projeto, as decisões do usuário e o que fazer em seguida, para que um novo chat continue sem depender da conversa anterior. O prazo de entrega é **10/11/2026** (a confirmar se é a entrega final ou a parcial; ver "Perguntas em aberto").
+Este arquivo reúne o estado do projeto, as decisões do usuário e o que fazer em seguida, para que um novo chat continue sem depender da conversa anterior. **A entrega final é em 13/11/2026** (sexta-feira; antes era 10/11). O usuário disse que sobra tempo até para receber os resultados do laboratório e incluí-los.
 
-## 0. Texto sugerido para abrir o novo chat
+## 0. Prompt para abrir o novo chat
 
-> Leia primeiro `Codigo_v4/PLANO_RETOMADA_PROXIMO_CHAT.md` e a memória do projeto (pasta `memory` do projeto LOP). Estamos no TCC de lixiviação de ustulado de zinco (UFMG, prazo 10/11/2026). Siga as etapas da Seção 4 na ordem, parando ao fim de cada uma. Não escreva nem retire nada no Google Docs do grupo (só leitura) e não altere as partes dos outros membros.
+O prompt completo, pronto para colar, está em `Codigo_v4/PROMPT_NOVO_CHAT.md`.
 
 ## 1. Situação em uma página
 
@@ -29,8 +29,10 @@ Este arquivo reúne o estado do projeto, as decisões do usuário e o que fazer 
 5. (25/10) Pausa nas Fases C e D até alinhar o caixa-preta com o grupo; (07/11) retomar: integrar a v2 e depois as Fases C e D.
 6. (07/11) O **Google Docs oficial** (arquivo `1qBF5H-0xXd5G3Sm4L3So825MNsQi5WLM`, de Rodrigo, atualizado em 07/11) é **só para leitura**: não escrever, não retirar nada. As partes dos outros membros ficam como estão; o usuário vai avisá-los e o grupo adequa depois.
 7. (07/11) Metodologia enxuta e explicação completa em **apêndices separados** (B a E). Aprovado.
-8. (07/11) Ensaios novos: temperatura (40 °C) e agitação (1000 rpm) iguais; só o volume mudou, de 400 para 200 mL.
-9. Commits estão autorizados; arquivos Word (`.docx`) ficam fora dos commits. Push e pull request **não foram discutidos**: perguntar antes.
+8. (07/11) Ensaios novos: temperatura (40 °C) e agitação (1000 rpm) iguais; só o volume mudou, de 400 para 200 mL. **Instantes de amostragem iguais aos originais: 0,5; 1; 2; 3; 4; 5 e 15 min.** As medições ainda serão recebidas e entrarão no relatório.
+9. (07/11) **Prazo da entrega final: 13/11/2026.**
+10. (07/11) Pesos λ do problema inverso (λ1 = λ2 = 1e-4, λ3 = 1e-7, λ4 = 1e-6): foram escolhidos por **tentativa e erro** ("chutes"), sem critério sistemático. O usuário quer **testar valores melhores** (Etapa 2b). O texto da v7 já diz isso (no script `reorganizar_apendices_hibrido_serial.py`; a v7 em si ainda não foi regerada).
+11. Commits estão autorizados; arquivos Word (`.docx`) ficam fora dos commits. Push e pull request **não foram discutidos**: perguntar antes.
 
 ## 3. O que já está pronto
 
@@ -62,12 +64,34 @@ Este arquivo reúne o estado do projeto, as decisões do usuário e o que fazer 
 O detalhe está em `PLANO_PENDENTE_FASES_C_D_E.md`. Resumo:
 - **Fase C:** perda ponderada pela sensibilidade de X_Zn a ν (D1) e penalidade de monotonia ∂ν/∂t ≤ 0 (D2, já implementada no `MLPTrainerV2`), sobre a configuração da B2; estudo Optuna pequeno (cerca de 80 tentativas) para γ e λ; ablação com 10 sementes e comparação pareada contra a B2.
 - **Fase D:** treino ponta a ponta através do PBM (novo `Código/src/hybrid/pbm_torch.py`, que deve reproduzir o `SerialHybridModel` com diferença menor que 1e-6), partindo da rede da Fase C.
-- **Parada de segurança:** se até a **segunda-feira 09/11 ao meio-dia** C e D não tiverem ganho claro, **congelar a v2 (B2 + comitê) como modelo final**. Critério de ganho: RMSE fora da dobra menor, em mais de 1 erro-padrão, que o da B2 (0,0326), em 10 sementes.
+- **Parada de segurança:** se até a **terça-feira 10/11 ao meio-dia** C, D e a Etapa 2b não tiverem ganho claro, **congelar a v2 (B2 + comitê) como modelo final**. Critério de ganho: RMSE fora da dobra menor, em mais de 1 erro-padrão, que o da B2 (0,0326), em 10 sementes.
 - **Cuidado:** o teste cego já foi visto. Escolher só pela validação cruzada e, se adotar uma configuração nova, **relatar o teste cego novo ao lado do antigo**. Se for retreinar o comitê, mover `models_saved/mlp_v2/` para `old_mlp_v2_B2/` com README (o script recusa sobrescrever). Chamar o novo modelo de "v3" para não confundir.
 - **Se adotar algo novo,** atualizar a v7: números do Apêndice D (arquitetura/treino), do Apêndice E (busca, comitê), da Tabela 4.XX.8 e dos parágrafos T_TR2 e T_CR3 de `reorganizar_apendices_hibrido_serial.py`. Se não adotar, registrar C e D como resultado neutro, em poucas linhas no Apêndice E.
 
-### Etapa 3. Os 4 ensaios novos (por último, com o modelo final)
+### Etapa 2b. Escolha criteriosa dos pesos do problema inverso (opcional, mexe nos alvos)
+**Por quê.** Os pesos λ foram "chutes" (decisão 10). Além disso, em 12 dos 16 ensaios algum parâmetro do ajuste parou no limite (a2 = 80, b2 = 4 ou c = 0,03), e a verificação a posteriori (Apêndice B) mostra que a penalidade de a1 pesa em média 16% do termo de ajuste. Melhores alvos ν podem baixar o teto de 0,014 e o erro da rede.
+
+**Como (pasta nova `Código/etapas/etapa_2_2_sensibilidade_penalizacoes/`; não alterar a Etapa 2.1):**
+1. **Critério.** Não escolher λ pelo ajuste dentro da amostra aos 7 pontos de cada ensaio (as penalidades existem justamente para regularizar). Usar **validação cruzada deixando um instante de fora** em cada ensaio (16 ensaios × 7 instantes): resolver o problema inverso sem aquele ponto e medir o erro de X_Zn nele. Comparar uma grade (por exemplo, multiplicar todos os λ por 0, 0,1, 1, 10 e 100, e variar cada λ isoladamente) pela regra de um erro-padrão. Custo estimado: cerca de 20 min com 24 processos (a função objetivo está em `Código/etapas/etapa_2_1_otimizacao_alvos_v/otimizar_alvos_v.py`, linhas 59 a 110).
+2. **Limites.** Testar também limites mais largos para a2, b2 e c (e a forma da parametrização), já que muitos ensaios ficam presos neles.
+3. **Efeito a jusante.** Para os melhores candidatos, gerar os novos alvos ν, retreinar a configuração da B2 **no mesmo protocolo** (4 dobras, 10 sementes) e comparar o RMSE de X_Zn fora da dobra contra a **conversão medida** (nunca contra a reconstruída) com 0,0326.
+4. **Adoção.** Só se o ganho for maior que 1 erro-padrão. Adotar significa regerar as bases em `Base de dados/processed/` (mover as atuais para `old/` com README; as partições por ensaio e os escalonadores das entradas não mudam, só a coluna do alvo), refazer a Etapa 3.1 e a Fase E, e **atualizar os números dos Apêndices B, C, D e E, as Figuras de reconstrução e os Resultados**. Se não adotar, registrar o resultado (também é informação útil para o Apêndice B).
+5. Mesmo sem adotar, o resultado serve para responder ao orientador sobre a escolha "empírica" dos pesos.
+
+**Atenção:** o teste cego já foi visto; relatar o novo ao lado do antigo.
+
+### Etapa 3. Os 4 ensaios novos (modelo final congelado)
 Ver Seção 5.
+
+### Calendário (hoje é sábado 07/11; entrega na sexta 13/11)
+| Dia | O que |
+| :--- | :--- |
+| Sáb 07 e dom 08 | Etapa 1 (integração da v2) e início das Etapas 2 e 2b |
+| Seg 09 | Fases C e D; Etapa 2b |
+| **Ter 10, meio-dia** | **Decisão e congelamento do modelo final** (parada de segurança) |
+| Ter 10 e qua 11 | Gráficos e tabela dos 4 ensaios; atualizar a v7 com os números finais; Resultados |
+| Qui 12 | Medições do laboratório (se chegarem), comparação, checklist dos comentários, numeração com o grupo |
+| Sex 13 | Revisão final e entrega |
 
 ### Etapa 4. Escrever o restante da minha parte
 - **Resultados do híbrido serial**, curtos (o orientador pediu texto enxuto): reconstrução pelo problema inverso, escolha da configuração, teste cego (v1 × v2 × fenomenológico), e a subseção com os 4 ensaios novos. Partir de `escrever_resultados_hibrido.py` (texto de 25/10, longo, em vermelho) e **cortar**; usar as figuras da Fase E (`fase_e/fig_fe_*`) e `Documento/figuras_resultados/`.
@@ -103,15 +127,17 @@ Ver Seção 5.
   - Um modelo de arquivo `medicoes_template.csv` (ensaio, t_min, XZn_medido) e uma opção do script para **sobrepor as medições** e calcular o RMSE, para o usuário comparar quando tiver os dados.
   - Relatório curto `.md`, DEVLOG e commit.
 - **Leitura dos resultados:** a faixa entre membros **não é intervalo de confiança** (só variabilidade de treino). Como referência de erro típico, usar o RMSE fora da dobra (0,033) e o do teste cego (0,020). Uma diferença sistemática pode vir da mudança de volume, que o modelo não conhece; dizer isso nas conclusões.
-- **A confirmar com o usuário:** os instantes de amostragem dos novos ensaios (padrão: 0,5; 1; 2; 3; 4; 5 e 15 min) e se as medições serão fornecidas.
+- **Instantes (confirmado em 07/11):** 0,5; 1; 2; 3; 4; 5 e 15 min, iguais aos originais. As medições serão recebidas depois e entram no relatório.
+- **Integridade da previsão:** para que seja uma previsão de verdade, **gerar e guardar as previsões antes de ver as medições**, com o modelo congelado (registrar no DEVLOG a data e o hash SHA-256 dos arquivos `.pt` usados). Se o usuário receber as medições antes de o modelo final estar congelado, gerar antes uma previsão com a v2 atual e guardá-la como "previsão a priori". Não ajustar o modelo com os 4 ensaios para avaliar a previsão; usá-los depois, se o usuário quiser, como validação adicional (decisão à parte).
+- **Resultados no relatório:** se as medições chegarem, acrescentar nos Resultados (em vermelho) uma subseção curta com as 4 curvas previstas e medidas e o RMSE por ensaio.
 
 ## 6. Perguntas em aberto
-1. O dia 10/11 é a entrega **final** ou a **parcial**?
-2. Qual será o documento-base final: o do Google Docs (oficial) ou a v7?
-3. Instantes de amostragem e medições dos 4 ensaios novos.
-4. Como os pesos λ do problema inverso foram escolhidos (hoje só há a verificação a posteriori no Apêndice B).
-5. Push e pull request do branch `feat/mlp-otimizacao`: quando e como.
-6. A abertura da seção do híbrido serial tem um parágrafo de 68 palavras que repete a revisão: cortar?
+Respondidas em 07/11: a entrega final é 13/11; os instantes dos ensaios novos são os originais; os pesos λ foram por tentativa e erro. Seguem abertas:
+1. Qual será o documento-base final: o do Google Docs (oficial) ou a v7?
+2. Quando chegam as medições dos 4 ensaios novos?
+3. Push e pull request do branch `feat/mlp-otimizacao`: quando e como.
+4. A abertura da seção do híbrido serial tem um parágrafo de 68 palavras que repete a revisão: cortar?
+5. Se a Etapa 2b mudar os alvos ν, o grupo precisa ser avisado (a base e os Apêndices B, C, D e E mudam).
 
 ## 7. Armadilhas técnicas
 - **Word:** a exportação por COM já travou (processo `WINWORD.EXE` oculto); não há outro renderizador no computador. A conferência visual é do usuário.

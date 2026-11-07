@@ -6,6 +6,34 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-07 19:53] - Prazo Adiado para 13/11, Instantes dos Ensaios Novos e Pesos do Problema Inverso Escolhidos por Tentativa e Erro
+
+### 1. Objetivo da Atividade
+- Registrar três informações novas do usuário e preparar o prompt para continuar o trabalho em outro chat.
+
+### 2. Hipótese / Decisão de Design
+- A entrega final passou de 10/11 para 13/11/2026. A parada de segurança que congela o modelo final foi movida para terça-feira 10/11 ao meio-dia, e sobra tempo para receber e incluir as medições dos 4 ensaios de laboratório.
+- Os 4 ensaios novos foram amostrados nos mesmos instantes dos originais (0,5; 1; 2; 3; 4; 5 e 15 min).
+- Os pesos de penalização do problema inverso (λ1 = λ2 = 1e-4, λ3 = 1e-7, λ4 = 1e-6) foram escolhidos por tentativa e erro, sem critério sistemático. O usuário quer testar valores melhores. Foi acrescentada ao plano a Etapa 2b: validação cruzada deixando um instante de fora em cada ensaio, teste de limites mais largos (12 de 16 ensaios têm parâmetro preso no limite) e verificação do efeito a jusante no erro de X_Zn, adotando só com ganho maior que 1 erro-padrão (a adoção muda os alvos ν e os números dos Apêndices B a E).
+- Para a previsão dos 4 ensaios valer como previsão, ela deve ser gerada e guardada antes de ver as medições, com o modelo congelado.
+
+### 3. Ações Executadas
+- Atualizados  (prazo, decisões, Etapa 2b, calendário, perguntas em aberto) e  (data da parada de segurança).
+- Criado , com o prompt completo para o novo chat.
+- : o texto dos pesos passou a dizer que foram escolhidos por tentativa e erro e que a escolha criteriosa é uma possível melhoria (Metodologia e Apêndice B). A v7 **não** foi regerada, para não apagar eventuais edições do usuário; a geração em arquivo de teste funcionou.
+- Memória do projeto atualizada (prazo, ensaios novos, pesos).
+
+### 4. O que Funcionou e Métricas Obtidas
+- Geração de teste da v7 com o novo texto sem erros; a v7 existente permaneceu intacta (carimbo de 19:36).
+
+### 5. O que Falhou / Problemas Encontrados
+- A memória dos ensaios novos tinha, por engano, a massa do E2 com 6,7 g na primeira versão; corrigida para 12,1 g (valores: E1 6,7; E2 12,1; E3 6,7; E4 12,6).
+
+### 6. Ações Corretivas e Próximos Passos
+- Seguir as Etapas 1 a 6 do plano de retomada. Perguntas ainda abertas: documento-base final (Google Docs ou v7), data de chegada das medições, push e pull request, e corte do parágrafo de abertura repetido.
+
+---
+
 ## [2026-11-07 19:47] - Registro das Decisões de 07/11 e Plano de Retomada para um Novo Chat
 
 ### 1. Objetivo da Atividade

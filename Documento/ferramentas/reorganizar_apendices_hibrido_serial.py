@@ -126,9 +126,10 @@ T_INV7 = (
     r"calculada nos sete instantes do ensaio, e os termos de $J_{\mathrm{reg}}$ são penalizações que conduzem "
     r"o ajuste a soluções fisicamente plausíveis onde os dados não determinam a curva: taxa elevada ao final "
     r"do ensaio ($\lambda_1$), retração acumulada acima de $\delta_{\mathrm{lim}}=140$ µm ($\lambda_2$) e "
-    r"picos de $\nu$ antes da primeira medição ($\lambda_3$ e $\lambda_4$). Os pesos, definidos "
-    r"empiricamente, foram $\lambda_1=\lambda_2=10^{-4}$, $\lambda_3=10^{-7}$ e $\lambda_4=10^{-6}$, e a "
-    r"contribuição de cada termo ao resultado é discutida no Apêndice B."
+    r"picos de $\nu$ antes da primeira medição ($\lambda_3$ e $\lambda_4$). Os pesos foram escolhidos por "
+    r"tentativa e erro, adotando-se os valores que apresentaram os melhores resultados: "
+    r"$\lambda_1=\lambda_2=10^{-4}$, $\lambda_3=10^{-7}$ e $\lambda_4=10^{-6}$. A contribuição de cada termo "
+    r"ao resultado é discutida no Apêndice B."
 )
 T_INV8 = (
     r"A minimização foi feita com o algoritmo L-BFGS-B (Byrd et al., 1995), que admite limites para cada "
@@ -290,7 +291,9 @@ T_B_PESOS1 = (
 T_B_PESOS2 = (
     r"Assim, com os pesos adotados, as penalizações têm efeito secundário em relação ao ajuste aos dados e "
     r"atuam principalmente quando o termo de ajuste não é capaz de discriminar entre soluções, que é o "
-    r"comportamento pretendido."
+    r"comportamento pretendido. Vale registrar, porém, que os valores dos pesos foram definidos por "
+    r"tentativa e erro, e não por um procedimento sistemático de otimização, de modo que a sua escolha "
+    r"criteriosa é uma possível melhoria do método."
 )
 
 APENDICES = {
