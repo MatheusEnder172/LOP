@@ -33,7 +33,7 @@ O prompt completo, pronto para colar, está em `Codigo_v4/PROMPT_NOVO_CHAT.md`.
 9. (07/11) **Prazo da entrega final: 13/11/2026.**
 10. (07/11) Pesos λ do problema inverso (λ1 = λ2 = 1e-4, λ3 = 1e-7, λ4 = 1e-6): foram escolhidos por **tentativa e erro** ("chutes"), sem critério sistemático. O usuário quer **testar valores melhores** (Etapa 2b). O texto da v7 já diz isso (no script `reorganizar_apendices_hibrido_serial.py`; a v7 em si ainda não foi regerada).
 11. (07/11, depois) O documento final do grupo continua sendo o do Google Docs, mas **o nosso documento de trabalho é a v7, que passa a v8** (e v9 etc. nas próximas rodadas): ele é a base para editar. Cada versão nova nasce da anterior por um script incremental (que preserva edições manuais), e não por regeração a partir do `-fab`.
-12. (07/11, depois) Push do branch autorizado e **feito** (`origin/feat/mlp-otimizacao`). O pull request **ainda não foi aberto**: não há `gh` no computador e o conector do GitHub não está autorizado; abrir em https://github.com/MatheusEnder172/LOP/pull/new/feat/mlp-otimizacao.
+12. (07/11, depois) Push do branch autorizado e **feito** (`origin/feat/mlp-otimizacao`). O **pull request #1** (`feat/mlp-otimizacao` → `main`) foi aberto pelo usuário em 07/11, sem descrição; novos commits entram nele com push. Não há `gh` no computador e o conector do GitHub não está autorizado, então a descrição e o merge são feitos por ele (merge só com autorização).
 13. (07/11, depois) Cortar da Metodologia o parágrafo de abertura do híbrido serial que repete a revisão: **feito na v8**.
 14. (07/11, depois) Os **apêndices passam a conter também os resultados das análises** (para justificar as escolhas), e não só a explicação do método. Feito na v8 para as análises concluídas (B.5, D.3, E.5 a E.7). As análises ainda em andamento (Fases C e D, escolha dos pesos do problema inverso, ensaios novos) entram quando terminarem.
 15. Commits estão autorizados; arquivos Word (`.docx`) ficam fora dos commits. Push e pull request **não foram discutidos**: perguntar antes.
@@ -138,7 +138,7 @@ Ver Seção 5.
 
 ## 6. Perguntas em aberto
 Respondidas em 07/11: a entrega final é 13/11; os instantes dos ensaios novos são os originais; os pesos λ foram por tentativa e erro; o documento de trabalho é a v7/v8 (o do Google Docs segue como o oficial do grupo); as medições dos ensaios novos têm data desconhecida; o push foi autorizado e feito; o parágrafo repetido da abertura foi cortado. Seguem abertas:
-1. Abrir o pull request (manual, pelo link da decisão 12) ou autorizar o conector do GitHub.
+1. Escrever a descrição do pull request #1 (hoje vazia) e decidir o merge, depois da integração e do congelamento do modelo.
 2. Se a Etapa 2b mudar os alvos ν, o grupo precisa ser avisado (a base e os Apêndices B, C, D e E mudam).
 3. Quando as medições dos 4 ensaios chegarem, comparar com as previsões e acrescentar o resultado aos Apêndices e aos Resultados.
 
