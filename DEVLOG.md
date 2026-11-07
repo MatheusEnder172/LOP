@@ -18,9 +18,9 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 - Para a previsão dos 4 ensaios valer como previsão, ela deve ser gerada e guardada antes de ver as medições, com o modelo congelado.
 
 ### 3. Ações Executadas
-- Atualizados  (prazo, decisões, Etapa 2b, calendário, perguntas em aberto) e  (data da parada de segurança).
-- Criado , com o prompt completo para o novo chat.
-- : o texto dos pesos passou a dizer que foram escolhidos por tentativa e erro e que a escolha criteriosa é uma possível melhoria (Metodologia e Apêndice B). A v7 **não** foi regerada, para não apagar eventuais edições do usuário; a geração em arquivo de teste funcionou.
+- Atualizados `PLANO_RETOMADA_PROXIMO_CHAT.md` (prazo, decisões, Etapa 2b, calendário, perguntas em aberto) e `PLANO_PENDENTE_FASES_C_D_E.md` (data da parada de segurança).
+- Criado `PROMPT_NOVO_CHAT.md`, com o prompt completo para o novo chat.
+- `Documento/ferramentas/reorganizar_apendices_hibrido_serial.py`: o texto dos pesos passou a dizer que foram escolhidos por tentativa e erro e que a escolha criteriosa é uma possível melhoria (Metodologia e Apêndice B). A v7 **não** foi regerada, para não apagar eventuais edições do usuário; a geração em arquivo de teste funcionou.
 - Memória do projeto atualizada (prazo, ensaios novos, pesos).
 
 ### 4. O que Funcionou e Métricas Obtidas
