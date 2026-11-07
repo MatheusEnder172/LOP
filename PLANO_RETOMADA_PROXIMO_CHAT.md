@@ -32,7 +32,11 @@ O prompt completo, pronto para colar, está em `Codigo_v4/PROMPT_NOVO_CHAT.md`.
 8. (07/11) Ensaios novos: temperatura (40 °C) e agitação (1000 rpm) iguais; só o volume mudou, de 400 para 200 mL. **Instantes de amostragem iguais aos originais: 0,5; 1; 2; 3; 4; 5 e 15 min.** As medições ainda serão recebidas e entrarão no relatório.
 9. (07/11) **Prazo da entrega final: 13/11/2026.**
 10. (07/11) Pesos λ do problema inverso (λ1 = λ2 = 1e-4, λ3 = 1e-7, λ4 = 1e-6): foram escolhidos por **tentativa e erro** ("chutes"), sem critério sistemático. O usuário quer **testar valores melhores** (Etapa 2b). O texto da v7 já diz isso (no script `reorganizar_apendices_hibrido_serial.py`; a v7 em si ainda não foi regerada).
-11. Commits estão autorizados; arquivos Word (`.docx`) ficam fora dos commits. Push e pull request **não foram discutidos**: perguntar antes.
+11. (07/11, depois) O documento final do grupo continua sendo o do Google Docs, mas **o nosso documento de trabalho é a v7, que passa a v8** (e v9 etc. nas próximas rodadas): ele é a base para editar. Cada versão nova nasce da anterior por um script incremental (que preserva edições manuais), e não por regeração a partir do `-fab`.
+12. (07/11, depois) Push do branch autorizado e **feito** (`origin/feat/mlp-otimizacao`). O pull request **ainda não foi aberto**: não há `gh` no computador e o conector do GitHub não está autorizado; abrir em https://github.com/MatheusEnder172/LOP/pull/new/feat/mlp-otimizacao.
+13. (07/11, depois) Cortar da Metodologia o parágrafo de abertura do híbrido serial que repete a revisão: **feito na v8**.
+14. (07/11, depois) Os **apêndices passam a conter também os resultados das análises** (para justificar as escolhas), e não só a explicação do método. Feito na v8 para as análises concluídas (B.5, D.3, E.5 a E.7). As análises ainda em andamento (Fases C e D, escolha dos pesos do problema inverso, ensaios novos) entram quando terminarem.
+15. Commits estão autorizados; arquivos Word (`.docx`) ficam fora dos commits. Push e pull request **não foram discutidos**: perguntar antes.
 
 ## 3. O que já está pronto
 
@@ -44,6 +48,7 @@ O prompt completo, pronto para colar, está em `Codigo_v4/PROMPT_NOVO_CHAT.md`.
 | Plano das Fases C, D, E completas | `PLANO_PENDENTE_FASES_C_D_E.md` (na pasta da subetapa) | Detalha D1, D2 e D4 |
 | Contribuição dos termos de penalização do problema inverso | `Código/outputs/etapa_2_1/tabela_contribuicao_penalidades.csv` | Usada no Apêndice B |
 | Relatório v7 | `Documento/RELATÓRIO FINAL LOP_v7.docx` | Gerado por `Documento/ferramentas/reorganizar_apendices_hibrido_serial.py` a partir do `RELATÓRIO PARCIAL-fab.docx` (na pasta `Lop`), que não é alterado |
+| **Relatório v8 (documento de trabalho)** | `Documento/RELATÓRIO FINAL LOP_v8.docx` | Gerado a partir da v7 por `Documento/ferramentas/adicionar_resultados_apendices_v8.py` (a v7 não é alterada): remove o parágrafo repetido da abertura e acrescenta, em vermelho, B.5 (reconstrução do problema inverso), D.3 (treino do comitê) e E.5 a E.7 (linha de base, busca de hiperparâmetros, teste cego). Todos os números vêm dos CSVs de `Código/outputs/` |
 | Texto longo original (25/10) | `Documento/ferramentas/escrever_hibrido_serial.py` e `escrever_resultados_hibrido.py` | A primeira alimenta o Apêndice E (E.2 a E.4); a segunda tem os Resultados da 25/10 (em vermelho), ainda longos |
 | Figuras da Metodologia e dos Resultados | `Documento/figuras_metodologia/`, `Documento/figuras_resultados/` | Geradas por scripts `gerar_figuras_*.py` |
 
@@ -132,12 +137,10 @@ Ver Seção 5.
 - **Resultados no relatório:** se as medições chegarem, acrescentar nos Resultados (em vermelho) uma subseção curta com as 4 curvas previstas e medidas e o RMSE por ensaio.
 
 ## 6. Perguntas em aberto
-Respondidas em 07/11: a entrega final é 13/11; os instantes dos ensaios novos são os originais; os pesos λ foram por tentativa e erro. Seguem abertas:
-1. Qual será o documento-base final: o do Google Docs (oficial) ou a v7?
-2. Quando chegam as medições dos 4 ensaios novos?
-3. Push e pull request do branch `feat/mlp-otimizacao`: quando e como.
-4. A abertura da seção do híbrido serial tem um parágrafo de 68 palavras que repete a revisão: cortar?
-5. Se a Etapa 2b mudar os alvos ν, o grupo precisa ser avisado (a base e os Apêndices B, C, D e E mudam).
+Respondidas em 07/11: a entrega final é 13/11; os instantes dos ensaios novos são os originais; os pesos λ foram por tentativa e erro; o documento de trabalho é a v7/v8 (o do Google Docs segue como o oficial do grupo); as medições dos ensaios novos têm data desconhecida; o push foi autorizado e feito; o parágrafo repetido da abertura foi cortado. Seguem abertas:
+1. Abrir o pull request (manual, pelo link da decisão 12) ou autorizar o conector do GitHub.
+2. Se a Etapa 2b mudar os alvos ν, o grupo precisa ser avisado (a base e os Apêndices B, C, D e E mudam).
+3. Quando as medições dos 4 ensaios chegarem, comparar com as previsões e acrescentar o resultado aos Apêndices e aos Resultados.
 
 ## 7. Armadilhas técnicas
 - **Word:** a exportação por COM já travou (processo `WINWORD.EXE` oculto); não há outro renderizador no computador. A conferência visual é do usuário.

@@ -6,6 +6,46 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-07 20:10] - Relatório v8: Resultados das Análises nos Apêndices e Corte do Parágrafo Repetido; Push do Branch
+
+### 1. Objetivo da Atividade
+- Cumprir as respostas do usuário de 07/11: o documento de trabalho passa a ser a v7 (agora v8); cortar da Metodologia o parágrafo de abertura do híbrido serial que repete a revisão; fazer o push do branch; e incluir nos apêndices os resultados das análises concluídas, para justificar as escolhas de modelagem (e não só explicar o método).
+- As análises ainda em andamento (Fases C e D, pesos do problema inverso, ensaios novos) ficam para depois, quando terminarem.
+
+### 2. Hipótese / Decisão de Design
+- A v8 nasce da v7 por um script incremental (`adicionar_resultados_apendices_v8.py`), e não por regeração a partir do `-fab`, para preservar edições manuais que o usuário tenha feito na v7. A v7 não é alterada.
+- Todos os números do texto vêm dos CSVs de `Código/outputs/` (nada digitado à mão), e o número de parâmetros das redes é o real (modelo montado), não a contagem antiga de `n_parametros`, que subconta redes residuais.
+- Novas seções, em vermelho (fora de Métodos): B.5 (reconstrução das curvas pelo problema inverso), D.3 (treino do comitê), E.5 (linha de base com o protocolo corrigido, Fase A), E.6 (busca de hiperparâmetros, Fases B e B2) e E.7 (modelo final no teste cego, Fase E).
+- As figuras são reduzidas a no máximo 2.200 px de largura (cerca de 300 DPI em 16 cm) em cópias temporárias, para o arquivo não inchar; os originais não são alterados.
+
+### 3. Ações Executadas
+- Criado `Documento/ferramentas/adicionar_resultados_apendices_v8.py` e gerado `Documento/RELATÓRIO FINAL LOP_v8.docx`.
+- Removido da Metodologia o parágrafo "Conforme discutido na revisão bibliográfica, na arquitetura híbrida serial…" (68 palavras).
+- Acrescentadas 5 seções, 8 tabelas (B.4, B.5, D.1, E.3 a E.7) e 11 figuras (B.3, B.4, E.4 a E.11 e as de apoio), reaproveitando as figuras já geradas nas Fases A, B, B2 e E.
+- Atualizados `PLANO_RETOMADA_PROXIMO_CHAT.md`, `PROMPT_NOVO_CHAT.md` e `Documento/ferramentas/README.md`.
+- Push do branch `feat/mlp-otimizacao` para `origin` (autorizado pelo usuário). O pull request não foi aberto: não há `gh` instalado e o conector do GitHub não está autorizado. Link para abrir: https://github.com/MatheusEnder172/LOP/pull/new/feat/mlp-otimizacao.
+
+### 4. O que Funcionou e Métricas Obtidas
+- Seção do híbrido serial em Métodos: 3.249 palavras (eram 3.317 na v7 e 6.296 no `-fab`).
+- Arquivo da v8 com 15,8 MB; sem identificadores duplicados (marcadores, `docPr`); os 38 comentários do orientador e suas âncoras foram preservados; a v7 permaneceu intacta.
+- Resultados incluídos (todos lidos dos CSVs):
+  - reconstrução pelo problema inverso: RMSE entre 0,0047 e 0,0256 por ensaio e 0,0137 nos 112 pontos; em 12 dos 16 ensaios algum parâmetro ficou no limite superior (b2 em 7, a2 em 7, c em 5);
+  - Fase A: 0,177 ± 0,046 fora da dobra no protocolo novo, contra 0,023 no treino e 0,014 no teto;
+  - busca: 423 e 523 tentativas; escolhida do segundo estágio com 0,0326 ± 0,0050, melhor que a do primeiro (0,0363) em 7 de 10 sementes (t pareado p = 0,028; Wilcoxon p = 0,049), com 21.569 parâmetros reais;
+  - teste cego: 0,0202 (R² 0,888) para o comitê, 0,0353 para a v1 e 0,0780 para o fenomenológico puro.
+
+### 5. O que Falhou / Problemas Encontrados
+- A renderização no Word não foi conferida (não há outro renderizador; a exportação via Word já travou antes): fica para a revisão do usuário.
+- A tabela de parâmetros do problema inverso mostra, com os limites atingidos, o problema que motiva a escolha criteriosa dos pesos e dos limites (Etapa 2b do plano).
+- As tabelas de finalistas dos relatórios das Fases B e B2 ainda trazem a contagem antiga de parâmetros; o documento usa a contagem real.
+
+### 6. Ações Corretivas e Próximos Passos
+- Revisão da v8 pelo usuário no Word.
+- Seguir o plano: Etapa 1 (integrar o comitê v2 ao `SerialHybridModel` e à Etapa 4.2), depois Fases C e D e Etapa 2b, com congelamento do modelo final na terça 10/11 ao meio-dia; os resultados dessas etapas entram nos apêndices quando terminarem.
+- Abrir o pull request pelo link acima, se o usuário quiser.
+
+---
+
 ## [2026-11-07 19:53] - Prazo Adiado para 13/11, Instantes dos Ensaios Novos e Pesos do Problema Inverso Escolhidos por Tentativa e Erro
 
 ### 1. Objetivo da Atividade
