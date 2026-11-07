@@ -66,6 +66,21 @@ Na Fase B, o modo de parada também pode ser "épocas fixas": nenhum ensaio é r
 | D. Ponta a ponta | pausada | ver `PLANO_PENDENTE_FASES_C_D_E.md` |
 | E. Ensemble final (versão mínima) | concluída (25/10/2026), sem C e D | 10 membros da B2 (sementes 42–51) treinados nos 13 ensaios, média de ν. Teste cego avaliado uma vez: RMSE de X_Zn de 0,0202 (R² 0,888), contra 0,0353 da v1 e 0,0780 do fenomenológico puro; treino 0,0145. Modelos em `outputs/models_saved/mlp_v2/`. Integração no `SerialHybridModel` e na Etapa 4.2 ainda pendente |
 
+### Correção da contagem de parâmetros (25/10/2026)
+A coluna "Parâmetros" das tabelas de finalistas (Fases B e B2) e o desempate da regra de um erro-padrão usam `fase_b_optuna_hpo.n_parametros`, que conta uma MLP simples ([3] + camadas + [1]). Essa conta ignora a segunda camada linear e a projeção de atalho de cada bloco residual, além dos parâmetros da LayerNorm. Contagem real (modelo montado e `sum(p.numel())`):
+
+| Configuração | Contagem antiga | Contagem real |
+| :--- | :---: | :---: |
+| B2 – tentativa 511 (escolhida) | 5.490 | 21.569 |
+| B2 – tentativa 478 | 5.539 | 21.848 |
+| B2 – tentativa 499 | 5.281 | 20.706 |
+| B2 – tentativa 461 | 5.078 | 19.996 |
+| B2 – tentativa 449 | 4.592 | 17.971 |
+| Fase B – tentativa 211 | 1.492 | 1.492 |
+| v1 (MLP-B) | 2.369 | 2.561 |
+
+A escolha não muda: na B2, a 511 continua sendo a de menos parâmetros entre as finalistas dentro de 1 EP (21.569 contra 21.848 da 478); na Fase B, as finalistas não têm blocos residuais nem LayerNorm, e a conta antiga é exata. A frase "3,7 vezes mais parâmetros que a Fase B" (DEVLOG da B2) deve ser lida como cerca de 14,5 vezes.
+
 ## Mapa de referências
 
 | Decisão | Referências já na revisão | Referências novas |

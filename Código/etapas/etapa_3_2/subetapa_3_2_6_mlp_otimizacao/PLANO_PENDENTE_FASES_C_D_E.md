@@ -1,6 +1,6 @@
 # Plano: próximos passos da otimização da MLP (subetapa 3.2.6), a partir de 25/10/2026
 
-> **Situação:** pausado em 25/10/2026 a pedido do usuário. O grupo vai alinhar como seguirão os treinos do modelo caixa-preta antes de retomar. O pipeline principal (`main`) continua com a MLP v1; tudo o que está aqui vive no branch `feat/mlp-otimizacao`.
+> **Situação (atualizada em 07/11/2026):** pausado em 25/10/2026; em 07/11 o usuário pediu para retomar, na ordem: integrar a v2 (comitê da B2) ao `SerialHybridModel` e à Etapa 4.2, depois as Fases C e D, com parada de segurança na segunda-feira 09/11 ao meio-dia (ver `Codigo_v4/PLANO_RETOMADA_PROXIMO_CHAT.md`, que é o plano em vigor). A **Fase E mínima já foi feita** (comitê de 10 redes da B2; teste cego visto uma vez: RMSE de X_Zn 0,0202), então qualquer escolha nova deve ser feita só pela validação cruzada. O pipeline principal (`main`) continua com a MLP v1; tudo o que está aqui vive no branch `feat/mlp-otimizacao`.
 
 ## Contexto: onde estamos
 

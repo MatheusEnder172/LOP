@@ -1,5 +1,8 @@
 # Fase B2 — Busca ampliada de hiperparâmetros (Subetapa 3.2.6)
 
+
+> **Correção (25/10/2026):** a coluna "Parâmetros" abaixo conta uma MLP simples e ignora a segunda camada e o atalho de cada bloco residual. A contagem real da tentativa 511 é 21.569 (478: 21.848). A escolha não muda; ver README da subetapa.
+
 ## Objetivo
 A Fase B terminou com as melhores redes no limite do espaço de busca (4 camadas). A B2 verifica se redes
 mais profundas e outras escolhas de projeto reduzem ainda mais o erro de X_Zn fora da dobra.

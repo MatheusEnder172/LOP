@@ -6,6 +6,118 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-07 19:47] - Registro das Decisões de 07/11 e Plano de Retomada para um Novo Chat
+
+### 1. Objetivo da Atividade
+- Deixar anotados o estado do projeto, as decisões do usuário e o plano do que fazer em seguida, a pedido do usuário, para que o trabalho continue em outro chat sem perda de contexto.
+
+### 2. Hipótese / Decisão de Design
+- Um único arquivo de retomada na raiz (`PLANO_RETOMADA_PROXIMO_CHAT.md`), com texto sugerido para abrir o novo chat, estado, regras, decisões datadas, plano em etapas com critérios de aceitação e perguntas em aberto.
+- Decisões registradas (todas do usuário, 07/11):
+  - as partes dos outros membros ficam como estão (o usuário avisa o grupo);
+  - o Google Docs oficial é só para leitura;
+  - apêndices separados aprovados (B a E);
+  - ensaios novos de laboratório com a mesma temperatura e agitação, mudando só o volume (200 mL);
+  - ordem: integrar a v2 ao pipeline, depois Fases C e D, depois escrever o restante, e por último os gráficos e a tabela dos 4 ensaios novos.
+- Parada de segurança proposta (a confirmar na prática): se C e D não trouxerem ganho claro até a segunda-feira 09/11 ao meio-dia, congelar a v2 (B2 + comitê) como modelo final.
+
+### 3. Ações Executadas
+- Criado `Codigo_v4/PLANO_RETOMADA_PROXIMO_CHAT.md`.
+- Atualizado o cabeçalho de `Código/etapas/etapa_3_2/subetapa_3_2_6_mlp_otimizacao/PLANO_PENDENTE_FASES_C_D_E.md` com a situação de 07/11 e a Fase E mínima.
+- Atualizada a memória do projeto (ensaios novos, otimização da MLP e ponteiro para o plano de retomada).
+
+### 4. O que Funcionou e Métricas Obtidas
+- Estado numérico registrado para referência: v1 com RMSE de X_Zn de 0,183 fora da dobra no protocolo novo; Fase B com 0,0363; B2 com 0,0326 ± 0,0050; teste cego (visto uma vez) com 0,0202 para a v2 contra 0,0353 para a v1 e 0,0780 para o fenomenológico puro.
+
+### 5. O que Falhou / Problemas Encontrados
+- Nada novo nesta atividade. Seguem em aberto: a integração da v2 ao `SerialHybridModel` e à Etapa 4.2; a pergunta sobre ser a entrega de 10/11 final ou parcial; o checklist dos 115 comentários de 09/09; e a numeração definitiva dos marcadores "4.XX".
+
+### 6. Ações Corretivas e Próximos Passos
+- Seguir as Etapas 1 a 6 do arquivo de retomada, na ordem, parando ao fim de cada uma.
+
+---
+
+## [2026-11-07 19:37] - Relatório: Metodologia do Híbrido Serial Enxuta e Explicação Completa em Apêndices (v7); Verificação a Posteriori dos Pesos de Penalização do Problema Inverso
+
+### 1. Objetivo da Atividade
+- Responder ao recado do orientador de 07/11 (texto enorme, prolixo e repetitivo; levar tabelas e figuras de apoio para o anexo): reduzir a seção "Modelagem híbrida serial" dentro de Métodos e manter a explicação completa em apêndices separados, a pedido do usuário.
+- Partir do documento enviado ao orientador em 29/10 (`RELATÓRIO PARCIAL-fab.docx`, com as edições do usuário) e não do texto longo de 25/10.
+- Responder aos 3 comentários do orientador sobre esta seção: (a) "o passo 1 não teria que usar só os 13 ensaios?"; (b) "explicar melhor o processo empírico" dos pesos de penalização; (c) "talvez a tabela de composição dos conjuntos possa ser removida".
+
+### 2. Hipótese / Decisão de Design
+- Todo conteúdo é preservado: o que sai da Metodologia vai, sem alteração, para os Apêndices B (problema inverso), C (base de dados e partição), D (arquitetura e treinamento) e E (critério de avaliação, busca de hiperparâmetros, comitê e avaliação). Só os marcadores de numeração e as referências cruzadas mudam (Figura B.1, Tabela C.3, Equação D.7 etc.).
+- Cada elemento fica em um único lugar (figuras e tabelas são movidas, não copiadas). Só as equações da Metodologia também aparecem nos apêndices, para que cada apêndice seja legível sozinho.
+- Os apêndices são texto novo fora de Métodos, portanto em vermelho, conforme a regra do usuário. A Metodologia mantém a cor normal.
+- A abertura, os elementos do modelo fenomenológico e o acoplamento, que já eram curtos e foram editados pelo usuário, foram mantidos como estavam.
+- O Google Docs oficial foi só lido (metadados e texto), sem nenhuma escrita. A seção do híbrido serial dele coincide com a do `-fab`; o arquivo é um .docx do Drive, de propriedade de Rodrigo, modificado em 07/11 às 21:58 UTC.
+
+### 3. Ações Executadas
+- `Documento/ferramentas/reorganizar_apendices_hibrido_serial.py` (novo): gera `Documento/RELATÓRIO FINAL LOP_v7.docx` a partir do `-fab`, que não é alterado.
+  - Move os elementos de origem, renumera os marcadores e troca as referências a seções que deixaram de existir.
+  - Escreve os parágrafos condensados da Metodologia.
+  - Porta as subseções E.2 a E.4 de `escrever_hibrido_serial.py` (busca, comitê e avaliação), que o usuário havia retirado do documento enviado.
+- `Documento/ferramentas/analisar_contribuicao_penalidades.py` e `Código/outputs/etapa_2_1/tabela_contribuicao_penalidades.csv` (novos): contribuição de cada termo de penalização ao valor final de J, calculada com os parâmetros ótimos já salvos de cada ensaio.
+- Na Metodologia, novo parágrafo após a Figura 4.XX.2: o problema inverso é resolvido separadamente para cada ensaio, só com as medidas do próprio ensaio, e as taxas dos 3 ensaios de teste servem apenas para verificar a taxa prevista.
+
+### 4. O que Funcionou e Métricas Obtidas
+- Palavras na seção serial dentro de Métodos: 6.296 → 3.317 (−47%). Nos apêndices: B 1.517, C 1.928, D 1.574, E 2.416.
+- Figuras na Metodologia: 7 (1, 2, 4, 5, 9, 11 e 17); nos apêndices: 7 (B.1, B.2, C.1, C.2, D.1, D.2, E.1) mais as novas E.2 e E.3. Tabelas na Metodologia: 1 (4.XX.8).
+- Os 38 comentários do orientador e suas âncoras foram preservados (38 de 38). Sem identificadores duplicados (marcadores, `docPr`, `paraId`), e o arquivo .docx passa no teste de integridade do zip.
+- As 21 citações autor-data detectadas na seção e nos apêndices têm correspondente na lista de referências.
+- Verificação dos pesos de penalização (λ1 = λ2 = 1e-4, λ3 = 1e-7, λ4 = 1e-6), em % do termo de ajuste nos 16 ensaios:
+  - λ3 (amplitude a1): mediana 16%, máximo 38% (Ensaio 5);
+  - λ1 (taxa em 15 min): mediana 0,01%, relevante só nos Ensaios 2, 7 e 11 (taxa final 0,52, 0,60 e 0,76 µm/min), com máximo de 17,5%;
+  - λ4 (afastamento de b1): mediana 0,3%, máximo 9,3%;
+  - λ2 (retração acima de 140 µm): praticamente nula; só o Ensaio 12 chega a 140,0 µm.
+  - Conclusão registrada no Apêndice B: as penalizações têm efeito secundário e atuam principalmente onde o ajuste não distingue soluções.
+
+### 5. O que Falhou / Problemas Encontrados
+- A renderização no Word não foi conferida por mim (não há outro renderizador no computador e a exportação via Word já travou antes); fica para a revisão do usuário.
+- O código não documenta como os pesos λ foram escolhidos; o texto registra que foram definidos empiricamente e traz só a verificação a posteriori. Se o usuário lembrar do processo, vale acrescentá-lo.
+- O erro de EDP × EDO apontado pelo orientador está na seção do modelo fenomenológico (white box), de outra pessoa: o parágrafo diz que, com v independente de D, a EDP "se reduz a uma única EDO". Não foi alterado.
+- Mantidas as referências a "Equações (4.XX.1) a (4.XX.3)" no Apêndice B, que vêm da seção do white box e já estavam sem correspondência no documento do usuário. Os marcadores de numeração 4.XX seguem pendentes em todo o documento.
+- Comentários do orientador sobre a seção do híbrido serial atendidos no texto, mas não marcados como resolvidos no Word.
+
+### 6. Ações Corretivas e Próximos Passos
+- Revisão do usuário no Word e decisão sobre o corte da Metodologia, que ainda pode perder a abertura (68 palavras repetem a revisão) se o grupo quiser menos texto.
+- Em seguida, segundo a ordem pedida pelo usuário: retomar a implementação do que falta na modelagem (integração do comitê v2 no `SerialHybridModel` e na Etapa 4.2; Fases C, D e E do plano pendente), escrever o restante do relatório e, por último, gerar os gráficos e a tabela dos 4 novos ensaios de laboratório com o modelo final.
+- Novos ensaios de laboratório (volume de 200 mL, contra 400 mL na bancada original): (η, C_A0) = (0,75; 0,25), (1,25; 0,75), (2,25; 0,75) e (0,40; 0,25). O ensaio 4 tem η abaixo do mínimo do treino (0,5), ou seja, é uma pequena extrapolação.
+
+---
+
+## [2026-10-25 22:00] - Relatório: Metodologia Completa do Híbrido Serial (MLP v2) e Resultados em Vermelho; Correção da Contagem de Parâmetros da Fase B2
+
+### 1. Objetivo da Atividade
+- Atender ao pedido do usuário de terminar de escrever no Word tudo o que foi feito até agora no modelo híbrido serial, para revisão no dia seguinte.
+- Corrigir a contagem de parâmetros das finalistas da Fase B2, encontrada ao conferir os números para o texto.
+
+### 2. Hipótese / Decisão de Design
+- Materiais e Métodos descrevem o pipeline da MLP v2 (B2 + comitê de 10 redes); a v1 aparece só como "configuração de referência".
+- Resultados vão em uma seção própria, "Modelo Híbrido Serial", inserida antes de CONCLUSÕES e toda em vermelho (texto, tabelas e equações), por estar fora de Métodos.
+- Figuras de resultados: duas novas (reconstrução do problema inverso e taxas estimadas) e as figuras já geradas nas Fases A, B, B2 e E, citadas direto de `Código/outputs/`.
+
+### 3. Ações Executadas
+- `Documento/ferramentas/escrever_hibrido_serial.py`: novas subseções "Critério de avaliação das configurações da rede", "Busca de hiperparâmetros", "Modelo final: comitê de redes", "Acoplamento da rede ao modelo fenomenológico e simulação" e "Avaliação do modelo híbrido" (Eqs. 4.X.22 a 4.X.28, Tabelas 4.X.9 e 4.X.10, Figuras 4.X.14 a 4.X.17); 7 referências novas em vermelho (Cawley e Talbot, 2010; Bergstra et al., 2011; Akiba et al., 2019; Lakshminarayanan et al., 2017; Wilcoxon, 1945; Glorot e Bengio, 2010; Chicco et al., 2021).
+- `Documento/ferramentas/escrever_resultados_hibrido.py` (novo): seção de Resultados com 4 subseções, 11 figuras e 4 tabelas, pintada com `pintar()`.
+- `Documento/ferramentas/docx_utils.py`: `definir_cor` (w:color na posição do esquema), `pintar` (inclui runs de equações OMML) e ordenação ABNT de referências do mesmo autor por ano.
+- `Documento/figuras_metodologia/gerar_figuras_hibrido_serial.py`: figuras `fig_hs_14` a `fig_hs_17`; `Documento/figuras_resultados/gerar_figuras_resultados_hibrido.py` (novo): `fig_res_01` e `fig_res_02`.
+- Correção registrada no README da subetapa 3.2.6 e no topo de `relatorio_fase_b2.md`.
+- Backups do relatório em `Documento/old/` (20261025_215416 e 20261025_215417).
+
+### 4. O que Funcionou e Métricas Obtidas
+- Seção de Métodos reescrita com 221 elementos; Resultados com 71 elementos, todos os 524 runs em vermelho; nenhuma equação com argumento vazio.
+- Ensaio numa cópia antes de gravar no relatório real; a reescrita com `--substituir` é idempotente nas duas seções.
+
+### 5. O que Falhou / Problemas Encontrados
+- `fase_b_optuna_hpo.n_parametros` conta uma MLP simples e ignora a segunda camada e o atalho de cada bloco residual (e a LayerNorm). Contagem real: tentativa 511 = 21.569 (relatada 5.490); 478 = 21.848 (5.539); v1 = 2.561 (2.369). A escolha pela regra de um erro-padrão não muda (511 continua com menos parâmetros que a 478). A frase da entrada da B2 "3,7 vezes mais parâmetros que a Fase B" corresponde, na verdade, a cerca de 14,5 vezes.
+- A renderização no Word não foi conferida por automação (a exportação via Word já travou antes); fica para a revisão do usuário.
+
+### 6. Ações Corretivas e Próximos Passos
+- Revisão do usuário no Word.
+- Pendentes: comparação com o modelo puramente orientado por dados nos mesmos 21 pontos com t > 0; numeração definitiva de seções, figuras e equações; integração da v2 no `SerialHybridModel` e na Etapa 4.2; partes 4.1/4.2 do relatório.
+
+---
+
 ## [2026-10-25 21:25] - Subetapa 3.2.6, Fase E Mínima: Ensemble Final da MLP v2 (Configuração da B2) e Avaliação Única no Teste Cego
 
 ### 1. Objetivo da Atividade
