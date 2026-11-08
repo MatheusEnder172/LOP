@@ -6,6 +6,38 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-08 14:35] - Relatório v10: seção de Resultados do híbrido serial (sem depender de ensaios novos)
+
+### 1. Objetivo da Atividade
+- A pedido do usuário (08/11), escrever toda a parte de Resultados do híbrido serial com o que já existe, partindo do princípio de que não haverá experimentos novos. Modelo: a v2 (comitê de 10 redes), mantida como final.
+
+### 2. Hipótese / Decisão de Design
+- A v10 nasce da v9 por script incremental (`Documento/ferramentas/adicionar_resultados_v10.py`); a v9 não é alterada. Texto em vermelho (fora de Métodos), curto, uma mensagem por parágrafo, resultados principais no corpo e detalhes nos Apêndices B a E (sem repetir tabelas dos apêndices, só referências).
+- Posição: no fim de RESULTADOS E DISCUSSÃO, depois dos quatro marcadores "AA" do grupo e antes de CONCLUSÕES, sob o título "MODELAGEM HÍBRIDA SERIAL". Não toquei nos marcadores nem em partes de outros membros; se um "AA" for o lugar do híbrido serial, basta mover o bloco.
+- Marcadores de numeração provisória "5.XX" (Tabelas 5.XX.1 e 5.XX.2, Figuras 5.XX.1 a 5.XX.4), no padrão dos "4.XX" de Métodos; a numeração final é com o grupo.
+- Só o modelo híbrido com a MLP (v1 como referência e fenomenológico puro como linha de base); sem RF, SVR, XGBoost nem MCDA, conforme decisão de 24/10. Os 4 ensaios novos não entram nos Resultados (sem medições, não há o que comparar); a previsão a priori continua no Apêndice E.11.
+
+### 3. Ações Executadas
+- Subetapa 4.4 (`Código/etapas/etapa_4_4_resultados_hibrido_serial/analisar_resultados.py` e `test_resultados_hibrido.py`): confere os hashes do comitê e gera, em `Código/outputs/etapa_4_4_resultados_hibrido_serial/` (300 DPI, PNG e PDF), 4 figuras novas: conversão medida e prevista nos 16 ensaios (tempo em escala log, faixa do comitê, fenomenológico e limite estequiométrico), paridade (treino e teste cego), RMSE por ensaio com o erro fora da dobra, e mapa da conversão prevista em 0,5 e 15 min no plano (C_A0, η) com as medições. Também CSVs: erro por ensaio, tendências (medido × previsto em 0,5 e 15 min), consistência física e mapa.
+- Seção em seis subseções: taxas estimadas pelo problema inverso; desempenho em treino e teste cego (Tabela 5.XX.1, Figuras 5.XX.1 e 5.XX.2); erro em condições não vistas (Figura 5.XX.3); efeito das condições operacionais (Tabela 5.XX.2, Figura 5.XX.4); consistência física; discussão e limitações. 34 parágrafos, 2 tabelas e 4 figuras, todos em vermelho. `Documento/RELATÓRIO FINAL LOP_v10.docx` (não versionado).
+
+### 4. O que Funcionou e Métricas Obtidas
+- Números principais (todos lidos dos CSVs): RMSE de X_Zn global de 0,0157 (fenomenológico 0,0702; redução de 78%); teste cego 0,0202 (R² 0,888) contra 0,0353 da v1 e 0,0780 do fenomenológico (redução de 74%); erro fora da dobra 0,0326 ± 0,0050, cerca de 2,3 vezes o teto de 0,0142. O híbrido foi melhor que o fenomenológico em 15 dos 16 ensaios (exceção: Ensaio 4). No teste cego, a v2 foi pior que a v1 só no Ensaio 7 (0,0217 contra 0,0156).
+- Maiores erros fora da dobra: Ensaios 15, 10 e 6 (0,059; 0,057; 0,045), todos com C_A0 de 0,1 ou 1,5 mol/L (bordas do domínio; compatível com extrapolação). Faixa entre membros: média de 0,0040 (25% do RMSE global), máximo de 0,017.
+- Consistência física em 1.681 condições (41×41 em C_A0 e η, t de 0 a 15 min): conversão nunca acima de min(1, η), nunca decrescente, C_Af nunca negativa; ν da rede com mínimo de 3,3e-5 µm/min, nenhum ≤ 0.
+- Conferência estrutural da v10: 38 comentários preservados, sem NUL nem ids duplicados; único acréscimo em relação à v9 é o bloco novo, todo em vermelho (parágrafos e células de tabela).
+
+### 5. O que Falhou / Problemas Encontrados
+- Na revisão do próprio texto gerado, quatro frases foram corrigidas antes de entregar: a faixa entre membros foi descrita como "bem abaixo do erro", mas o máximo (0,017) é comparável ao RMSE (a média, 0,0040, é o número correto); números triviais ("diferença máxima de 0,0") foram trocados por afirmações verificadas por asserções no script; a explicação pelas bordas do domínio ficou como "compatível com extrapolação", sem afirmar causa; e o "teto" deixou de ser chamado de "o menor erro possível".
+- Primeira verificação da positividade falhou por medir o ν simulado (que é zerado depois do esgotamento do ácido, η < 1); passou a medir a taxa da rede (`predict_rate`), que é o que a softplus garante.
+- Não verificado: a renderização no Word; a conferência visual é do usuário. A causa do patamar de 0,85 a 0,87 com η = 1 não é identificada (o texto diz isso).
+- Como não haverá ensaios novos, a seção E.11 (previsão a priori dos 4 ensaios) fica sem comparação e talvez deva ser retirada ou deixada só como exemplo de uso do modelo; decisão do usuário.
+
+### 6. Ações Corretivas e Próximos Passos
+- O usuário lê a v10 e compara com os demais membros. Pendentes: checklist dos 115 comentários de 09/09, numeração com o grupo, Resumo e Conclusões (são do grupo), decisão sobre o E.11 e sobre a Etapa 2b (pesos λ do problema inverso, hoje apenas registrada como limitação).
+
+---
+
 ## [2026-11-08 13:29] - Relatório v9: testes feitos e achados (Fases C e D, decisão pela v2, previsão dos ensaios novos)
 
 ### 1. Objetivo da Atividade
