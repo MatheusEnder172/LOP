@@ -6,6 +6,37 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-08 13:29] - Relatório v9: testes feitos e achados (Fases C e D, decisão pela v2, previsão dos ensaios novos)
+
+### 1. Objetivo da Atividade
+- A pedido do usuário (08/11), criar a v9 a partir da v8 indicando os testes realizados e os achados, para ele ler e comparar depois com os demais membros do grupo. Nada foi colocado ainda no documento oficial do grupo (Google Docs, só leitura); nenhuma parte dos outros membros foi tocada.
+
+### 2. Hipótese / Decisão de Design
+- A v9 nasce da v8 por script incremental (`Documento/ferramentas/adicionar_testes_achados_v9.py`), sem regerar nada a partir do `-fab`; a v8 não é alterada. Números lidos dos CSVs de `Código/outputs/` (inclusive a positividade de ν, medida no comitê e nos alvos, dentro do script).
+- Texto novo em Métodos em cor normal (1 parágrafo); texto novo fora de Métodos em vermelho (4 seções no Apêndice E). Escrita curta, uma mensagem por parágrafo, como pediu o orientador.
+- A previsão dos ensaios novos entra no Apêndice E (E.11) e não em um apêndice novo, para não criar letra de apêndice que o grupo ainda não definiu.
+
+### 3. Ações Executadas
+- Métodos (após o parágrafo da saída softplus, cor normal): a positividade da taxa é a única restrição física imposta; a monotonia temporal não é imposta, por ser expectativa e não lei, e os dados têm erro (ideia do usuário).
+- Apêndice E (vermelho): E.8 Perdas com informação física (D1, D2, ablação de 10 sementes, D1 com γ menor, por que a monotonia foi descartada; Tabelas E.8 e E.9, Figuras E.12 e E.13); E.9 Ajuste fino ponta a ponta pelo PBM (Tabela E.10, Figuras E.14 e E.15); E.10 Síntese e decisão (Tabela E.11: v2 mantida); E.11 Previsão a priori de 4 ensaios novos (Tabelas E.12 e E.13, Figuras E.16 e E.17; data/hora da geração e referência aos hashes).
+- `Documento/RELATÓRIO FINAL LOP_v9.docx` (17,7 MB, não versionado). README das ferramentas atualizado.
+
+### 4. O que Funcionou e Métricas Obtidas
+- Conferência estrutural: 968 parágrafos (eram 921); só duas inserções em relação à v8 (1 parágrafo em Métodos, sem cor; 46 parágrafos em vermelho no Apêndice E); 38 comentários do orientador e 38 âncoras preservados; sem bytes NUL, sem ids duplicados; v8 intacta (mesmo hash de antes).
+- Positividade medida no comitê v2: menor ν em 20.000 pontos do domínio de 3,4e-5 µm/min (nenhum ≤ 0); 126 dos 960 alvos de ν valem exatamente 0, **nos ensaios 3, 5 e 9** (ácido esgotado, η ≤ 1).
+
+### 5. O que Falhou / Problemas Encontrados
+- **Correções a registros de hoje:** (a) a entrada do DEVLOG "Decisão: a v2 ... fica como modelo da Etapa 2" e a entrada da Fase D/D1 dizem que os 126 alvos nulos estão nos ensaios "1, 3, 5 e 9"; o correto é **3, 5 e 9** (o ensaio 1 tem alvos abaixo de 1e-3, mas não nulos). (b) O README da Fase C dizia que a D1 "funciona na maioria das sementes"; na verdade ela só foi melhor que a v2 em 5 de 10 sementes (corrigido no README). (c) Na revisão do texto da v9 foi retirada uma conclusão não sustentada ("o erro restante vem dos alvos"): o erro de 0,033 é cerca de 2,3 vezes o teto de 0,014, e os testes não esclarecem se o limite está nos ensaios ou nos alvos.
+- Não verificado: a renderização no Word (equações em OMML, tabelas e figuras); a conferência visual é do usuário. As referências Psichogios; Ungar (1992) e Thompson; Kramer (1994), citadas em E.9, já constam na revisão do documento segundo o plano, mas não foram conferidas na lista do documento.
+- Letras e números (Tabelas E.8 a E.13, Figuras E.12 a E.17, Seções E.8 a E.11) seguem a sequência da v8 e podem mudar na numeração final com o grupo.
+
+### 6. Ações Corretivas e Próximos Passos
+- O usuário lê a v9 e compara com o que os outros membros escreveram; o que mudar volta por novo script ou pelas edições dele (nova versão a partir da v9).
+- Quando as medições dos 4 ensaios chegarem: `prever_novos_ensaios.py comparar --medicoes <arquivo>` e acrescentar a comparação ao E.11 (em vermelho) e aos Resultados.
+- Pendentes: Etapa 2b (pausada), Resultados do híbrido serial na seção de Resultados, checklist dos 115 comentários e numeração com o grupo.
+
+---
+
 ## [2026-11-08 13:16] - Etapa 3: previsão a priori dos 4 ensaios novos de laboratório com a v2 (modelagem pausada)
 
 ### 1. Objetivo da Atividade
