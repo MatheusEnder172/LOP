@@ -29,3 +29,8 @@ Rede fixa da B2 (tentativa 511); só a perda muda. Protocolo comum: 4 dobras por
 
 ## Arquivos
 `tabela_fase_c_tentativas.csv`, `tabela_fase_c_ablacao.csv`, `ablacao_por_semente.csv`, `ablacao_por_dobra.csv`, `ablacao_oof.csv`, `ablacao_mono.csv`, `ablacao_curvas.csv`, `melhor_config_fase_c.json`, `estudo_optuna_fase_c.log` (journal do Optuna), `log_busca.txt`, `log_ablacao.txt`, `fig_fc_01` a `fig_fc_06` (PNG e PDF, 300 DPI).
+
+## Adendo de 08/11/2026: D1 com γ menor e decisão sobre D2
+- **D1 seguro** (taxa de aprendizado e épocas originais da B2, sem D2, 10 sementes, 120 treinos; `tabela_fase_c_d1_segura.csv`): γ = 0,5 → RMSE 0,0375 (pior que a B2, p = 0,055); γ = 1,0 → 0,0391 (pior, p = 0,014); γ = 1,5 → 0,0302 (ganho de 0,0025, EP 0,0021, p = 0,27, 5 de 10 sementes melhores). Nenhum colapso. O resultado não é monotônico em γ, o que indica ruído; **D1 não dá ganho confiável**.
+- **D2 descartada.** A lei física exige ν ≥ 0 (irreversibilidade da dissolução: o sólido só encolhe, então δ e X não diminuem). Isso já é imposto por construção (saída softplus em ν = expm1(softplus), cujo menor valor em 20.000 pontos do domínio foi 3,4e-5, e X acumulado e limitado). D2 exigia algo diferente, ∂ν/∂t ≤ 0 (taxa nunca cresce com o tempo), que é uma expectativa e não uma lei; os dados e os alvos do problema inverso têm erro experimental. Com λ = 0,1 a penalidade foi neutra no RMSE (0,0336 contra 0,0326) e não mudou a fração do domínio com ∂ν/∂t > 0.
+- A Fase D parte da B2 original (`../fase_d/base_fase_d.json`), não do `melhor_config_fase_c.json`.

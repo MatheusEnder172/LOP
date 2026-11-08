@@ -72,8 +72,10 @@ def fig_nu(dados, nu: pd.DataFrame, ensaios=(3, 6, 12, 15)) -> None:
 
 
 def fig_barras(abl: pd.DataFrame, d_ps: pd.DataFrame, rotulo_c: str, nome_c: str) -> None:
-    series = [("B2", abl[abl["config"] == "B2 (referência)"], GRAY), (rotulo_c, abl[abl["config"] == nome_c], ORANGE),
-              ("Fase D", d_ps, BLUE)]
+    series = [("B2", abl[abl["config"] == "B2 (referência)"], GRAY)]
+    if nome_c != "B2 (referência)":
+        series.append((rotulo_c, abl[abl["config"] == nome_c], ORANGE))
+    series.append(("Fase D", d_ps, BLUE))
     fig, ax = plt.subplots(figsize=(6.4, 4.4))
     for i, (nome, df, cor) in enumerate(series):
         v = df.sort_values("semente")["RMSE_X"].values
@@ -81,7 +83,7 @@ def fig_barras(abl: pd.DataFrame, d_ps: pd.DataFrame, rotulo_c: str, nome_c: str
         ax.scatter(np.full(len(v), i) + np.linspace(-0.18, 0.18, len(v)), v, s=14, color="k", zorder=5)
         ax.text(i, v.mean() + v.std(ddof=1) + 0.002, f"{v.mean():.4f}", ha="center", fontsize=9)
     ax.axhline(TETO_RMSE, color=RED, ls=":", lw=1.2, label="Teto")
-    ax.set_xticks(range(3))
+    ax.set_xticks(range(len(series)))
     ax.set_xticklabels([s[0] for s in series], fontsize=9)
     ax.set_ylabel("RMSE de $X_{Zn}$ fora da dobra (–)")
     ax.set_ylim(0, 0.06)
@@ -97,8 +99,10 @@ def fig_por_ensaio(abl: pd.DataFrame, c_oof: pd.DataFrame, d_oof: pd.DataFrame, 
     d = _rmse_ens(d_oof)
     ens = list(d.index)
     fig, ax = plt.subplots(figsize=(12, 4.2))
-    for j, (s, cor, rot) in enumerate(((b2, GRAY, "B2"), (c, ORANGE, rotulo_c), (d, BLUE, "Fase D"))):
-        ax.bar(np.arange(len(ens)) + (j - 1) * 0.27, s.reindex(ens).values, 0.27, color=cor, label=rot)
+    series = [(b2, GRAY, "B2")] + ([] if rotulo_c.startswith("B2") else [(c, ORANGE, rotulo_c)]) + [(d, BLUE, "Fase D")]
+    larg = 0.8 / len(series)
+    for j, (s, cor, rot) in enumerate(series):
+        ax.bar(np.arange(len(ens)) + (j - (len(series) - 1) / 2) * larg, s.reindex(ens).values, larg, color=cor, label=rot)
     ax.set_xticks(range(len(ens)))
     ax.set_xticklabels(ens)
     ax.set_xlabel("Ensaio (fora da dobra; 10 sementes juntas)")
@@ -127,7 +131,7 @@ def gerar_tudo() -> None:
     estilo()
     dados = carregar_dados()
     base = fd.base_da_fase_c()
-    rotulo_c = f"Fase C ({base['variante']})"
+    rotulo_c = "B2 (base)" if base["variante"] == "B2 (referência)" else f"Fase C ({base['variante']})"
     abl = pd.read_csv(fd.FASE_C / "ablacao_por_semente.csv")
     abl_oof = pd.read_csv(fd.FASE_C / "ablacao_oof.csv")
     c_oof = abl_oof[abl_oof["config"] == base["variante"]]

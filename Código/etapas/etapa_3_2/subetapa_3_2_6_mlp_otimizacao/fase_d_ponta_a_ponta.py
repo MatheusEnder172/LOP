@@ -10,7 +10,7 @@ com λ_D2 herdado da variante da Fase C. O termo de âncora λ_ν impede que ν 
 já que sobram cerca de 70 pontos de X por dobra. Ajuste em lote completo, número fixo de épocas,
 rede em modo de avaliação (sem dropout, para a perda ser determinística).
 
-Pré-treino: a variante da Fase C com menor RMSE em 10 sementes (`melhor_config_fase_c.json`); as redes
+Pré-treino: a rede-base definida em `fase_d/base_fase_d.json` (B2 original); as redes
 de cada (semente, dobra) são salvas em `fase_d/pretreino/` e reaproveitadas na busca e na comparação
 final, de modo que a comparação com a Fase C seja pareada e use exatamente as mesmas redes de partida.
 
@@ -49,8 +49,14 @@ SEMENTES_FINAIS = tuple(range(42, 52))
 
 
 def base_da_fase_c() -> Dict[str, Any]:
-    """Configuração e γ da variante da Fase C que serve de pré-treino."""
-    arq = Path(os.environ.get("FASE_D_BASE", FASE_C / "melhor_config_fase_c.json"))
+    """Configuração e γ da rede de partida (pré-treino) da Fase D.
+
+    Por decisão de 08/11/2026 a base é a B2 original, sem D1 (instável: colapso de ν em algumas
+    sementes) e sem D2 (a lei física exige ν > 0, já garantida por construção pela saída softplus;
+    a monotonia temporal de ν é só uma expectativa, e a ablação mostrou que não ajuda). A base fica
+    em `fase_d/base_fase_d.json`; `FASE_D_BASE` aponta outro arquivo, se necessário.
+    """
+    arq = Path(os.environ.get("FASE_D_BASE", OUT / "base_fase_d.json"))
     j = json.loads(arq.read_text(encoding="utf-8"))
     return {"config": j["config_base_fase_d"], "gamma": float(j["gamma_base_fase_d"]), "variante": j["variante_menor_RMSE"]}
 
@@ -87,7 +93,7 @@ def _pretreinar(semente: int) -> int:
 
 def pretreinar(n_trab: int, sementes=SEMENTES_FINAIS) -> None:
     PRE.mkdir(parents=True, exist_ok=True)
-    pend = [s for s in sementes if not all((PRE / f"s{s}_f{f}.pt").exists() for f in range(4))]
+    pend = [s for s in sementes if not all((PRE / f"s{s}_f{f}.pt").exists() for f in range(1, 5))]
     t0 = time.time()
     with ProcessPoolExecutor(max_workers=n_trab, mp_context=mp.get_context("spawn")) as ex:
         list(ex.map(_pretreinar, pend))
@@ -295,18 +301,25 @@ def finais(n_trab: int) -> None:
 
     abl = pd.read_csv(FASE_C / "ablacao_por_semente.csv")
     base = base_da_fase_c()
-    nomes = {"B2 (referência)": "B2", base["variante"]: f"Fase C ({base['variante']})"}
+    nomes = {"B2 (referência)": "B2"}
+    if base["variante"] != "B2 (referência)":
+        nomes[base["variante"]] = f"Fase C ({base['variante']})"
     linhas = []
+    sem = np.array(sorted(SEMENTES_FINAIS))
     for nome_c, rotulo in nomes.items():
-        ref = abl[abl["config"] == nome_c].sort_values("semente")["RMSE_X"].values
-        dif = ref - d
-        ep = dif.std(ddof=1) / np.sqrt(len(dif))
-        linhas.append({
-            "referencia": rotulo, "RMSE_ref_media": ref.mean(), "RMSE_D_media": d.mean(), "RMSE_D_dp": d.std(ddof=1),
-            "ganho_medio": dif.mean(), "ep_ganho_pareado": ep, "ganho_claro": bool(dif.mean() > ep),
-            "p_t_pareado": float(stats.ttest_rel(ref, d).pvalue), "p_wilcoxon": float(stats.wilcoxon(ref, d).pvalue),
-            "n_D_melhor_de_10": int((dif > 0).sum()),
-        })
+        ref_all = abl[abl["config"] == nome_c].sort_values("semente")["RMSE_X"].values
+        # "10 sementes" e "7 sementes fora da busca" (a busca usou 42 a 44; ganho dessas é otimista)
+        for escopo, mask in (("10 sementes", sem >= 0), ("7 sementes não vistas na busca (45 a 51)", ~np.isin(sem, SEMENTES_BUSCA))):
+            ref, dd = ref_all[mask], d[mask]
+            dif = ref - dd
+            ep = dif.std(ddof=1) / np.sqrt(len(dif))
+            linhas.append({
+                "referencia": rotulo, "escopo": escopo, "n_sementes": int(mask.sum()),
+                "RMSE_ref_media": ref.mean(), "RMSE_D_media": dd.mean(), "RMSE_D_dp": dd.std(ddof=1),
+                "ganho_medio": dif.mean(), "ep_ganho_pareado": ep, "ganho_claro": bool(dif.mean() > ep),
+                "p_t_pareado": float(stats.ttest_rel(ref, dd).pvalue), "p_wilcoxon": float(stats.wilcoxon(ref, dd).pvalue),
+                "n_D_melhor": int((dif > 0).sum()),
+            })
     tab = pd.DataFrame(linhas)
     tab.to_csv(OUT / "tabela_fase_d_comparacao.csv", index=False)
     (OUT / "melhor_config_fase_d.json").write_text(json.dumps({

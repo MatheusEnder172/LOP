@@ -6,6 +6,38 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-08 12:51] - Etapa 2 (continuação): Fase D (ajuste fino ponta a ponta) e D1 com γ menor; D2 descartada por decisão do usuário
+
+### 1. Objetivo da Atividade
+- Continuar a Etapa 2 depois de o usuário observar que a lei física exige velocidade de retração sempre positiva (irreversibilidade), mas não exige que ela decresça no tempo, e que os pontos experimentais têm erro. Executar a Fase D sem D2 e testar se D1 com γ menor evita o colapso da rede.
+
+### 2. Hipótese / Decisão de Design
+- **D2 (monotonia ∂ν/∂t ≤ 0) fica de fora do modelo final.** A lei física (ν ≥ 0, logo δ e X não decrescentes) já é imposta por construção: ν = expm1(softplus(·)) e X acumulado (cummax) e limitado a min(1, η). A monotonia temporal de ν é só uma expectativa. Distinção a manter no texto: positividade é lei; queda monotônica da taxa não é.
+- Base da Fase D: a B2 original (sem D1, que colapsou em alguns treinos, e sem D2). Arquivo `fase_d/base_fase_d.json`; o `melhor_config_fase_c.json` (que apontava "+ D2") não é usado.
+- Ajuste fino com a rede em modo de avaliação (sem dropout). Como a busca usou as sementes 42 a 44, a comparação final traz também as 7 sementes não vistas (45 a 51).
+
+### 3. Ações Executadas
+- Medida da positividade no comitê v2: em 20.000 pontos sorteados do domínio, ν mínimo de 3,4e-5 (nenhum ≤ 0); por membro, mínimo de 1,8e-6. Dos 960 alvos de ν do problema inverso, 126 valem exatamente 0, todos nos ensaios 1, 3, 5 e 9 (ácido esgotado: η = 0,5 e 1,0).
+- Fase D: pré-treino da B2 (40 redes, 3,1 min), busca (87 tentativas, 1 min) e comparação com 10 sementes; figuras `fig_fd_01` a `fig_fd_05` e README em `Código/outputs/etapa_3_2/subetapa_3_2_6_mlp_otimizacao/fase_d/`.
+- `d1segura` em `fase_c_perdas_fisicas.py`: D1 com γ = 0,5; 1,0; 1,5, taxa de aprendizado e épocas originais da B2, 10 sementes (7,7 min). Adendo no README da Fase C.
+- Correções: o teste "pré-treino já existe" olhava dobras 0 a 3 (são 1 a 4), então o pré-treino foi refeito uma vez (resultado idêntico, diferença 0,0). Também falhou uma primeira execução do D1 seguro por falta de memória virtual (WinError 1455), ao rodar duas rotinas de 28 processos ao mesmo tempo; repetida sozinha, com 24 processos.
+
+### 4. O que Funcionou e Métricas Obtidas
+- **Fase D** (RMSE de X_Zn fora da dobra): B2 0,0326 → 0,0310 ± 0,0057 em 10 sementes (ganho 0,0016; EP 0,0006; t pareado p = 0,020; Wilcoxon p = 0,037; 8 de 10 sementes melhores; 11 de 13 ensaios melhores). Nas 7 sementes não vistas na busca: 0,0334 → 0,0322 (ganho 0,0013; EP 0,0007; p = 0,135; 5 de 7). Parâmetros escolhidos (tentativa 82): taxa de aprendizado 0,00187, 17 épocas, λ_ν = 0,0115. Sem colapso de rede (maior RMSE por dobra 0,078 contra 0,072 da B2).
+- **D1 seguro:** γ = 0,5 → 0,0375 (pior; p = 0,055); γ = 1,0 → 0,0391 (pior; p = 0,014); γ = 1,5 → 0,0302 (ganho 0,0025; EP 0,0021; p = 0,27). Nenhum colapso em 120 treinos.
+
+### 5. O que Falhou / Problemas Encontrados
+- D1 não dá ganho confiável: o resultado não é monotônico em γ (0,5 e 1,0 pioram; 1,5 melhora um pouco), padrão de ruído. D2 foi neutra e agora está descartada.
+- O ganho da Fase D é pequeno (cerca de 5%) e estatisticamente fraco nas sementes não vistas (p = 0,14); piora nos ensaios 5 e 9. Pelo critério fixado (ganho médio pareado maior que 1 EP) ele passa por pouco.
+- Não verificado: o teste cego de uma eventual v3 (não foi avaliado, pelo cuidado de que o teste já foi visto uma vez).
+
+### 6. Ações Corretivas e Próximos Passos
+- Decisão do usuário: adotar ou não a Fase D como v3. Adotar significa ajustar com a mesma receita os 10 membros do comitê (hoje treinados em todos os 13 ensaios) e relatar o teste cego novo ao lado do da v2 (0,0202). Se não adotar, a v2 fica como modelo final e C e D entram como resultado neutro no Apêndice E (em vermelho), com os números dos CSVs.
+- Redação: acrescentar ao texto (Métodos, uma frase; Apêndice E, em vermelho, o resultado de D1, D2 e Fase D) a distinção entre a lei física (ν positiva) e a monotonia temporal (descartada).
+- Seguem pendentes a Etapa 2b (pesos λ do problema inverso) e as Etapas 3 a 6. Parada de segurança: terça 10/11 ao meio-dia.
+
+---
+
 ## [2026-11-07 22:30] - Etapa 2 (parcial): Fase C (perdas físicas D1 e D2) concluída; Fase D não executada
 
 ### 1. Objetivo da Atividade

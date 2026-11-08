@@ -17,6 +17,7 @@ pareada por semente (B2 − variante, 10 sementes) maior que 1 erro-padrão da p
 Uso:
     python fase_c_perdas_fisicas.py buscar --tentativas 80 --trabalhadores 26
     python fase_c_perdas_fisicas.py ablacao --trabalhadores 26
+    python fase_c_perdas_fisicas.py d1segura --trabalhadores 26
     python fase_c_perdas_fisicas.py figuras
 """
 
@@ -313,9 +314,48 @@ def ablacao(n_trab: int) -> None:
     print(tab.to_string(index=False))
 
 
+def ablacao_d1_segura(n_trab: int, gammas=(0.5, 1.0, 1.5)) -> None:
+    """D1 com a taxa de aprendizado e as épocas originais da B2 e γ menores (sem D2), 10 sementes.
+
+    Motivo (08/11/2026): na ablação principal, D1 com γ = 1,84 e lr reajustada colapsou a rede em
+    1 de 40 treinos. Aqui se testa se um γ menor preserva o ganho sem o colapso. A referência
+    (B2, 10 sementes) vem da ablação principal, que é determinística por semente.
+    """
+    from scipy import stats
+
+    b2 = config_b2()
+    jobs = [(f"D1 γ={g}", dict(b2), float(g), s) for g in gammas for s in SEMENTES_ABLACAO]
+    t0 = time.time()
+    with ProcessPoolExecutor(max_workers=n_trab, mp_context=mp.get_context("spawn")) as ex:
+        saidas = list(ex.map(_avaliar_variante, jobs))
+    print(f"Ablação D1 segura em {(time.time() - t0) / 60:.1f} min")
+    for chave in ("por_dobra", "por_semente", "oof", "mono", "curvas"):
+        pd.concat([s[chave] for s in saidas], ignore_index=True).to_csv(OUT / f"ablacao_d1_segura_{chave}.csv", index=False)
+    ps = pd.concat([s["por_semente"] for s in saidas], ignore_index=True)
+    pdb = pd.concat([s["por_dobra"] for s in saidas], ignore_index=True)
+    ref = pd.read_csv(OUT / "ablacao_por_semente.csv")
+    ref = ref[ref["config"] == "B2 (referência)"].sort_values("semente")["RMSE_X"].values
+    linhas = []
+    for g in gammas:
+        nome = f"D1 γ={g}"
+        v = ps[ps["config"] == nome].sort_values("semente")["RMSE_X"].values
+        dif = ref - v
+        ep = dif.std(ddof=1) / np.sqrt(len(dif))
+        linhas.append({
+            "variante": nome, "gamma": g, "RMSE_X_media": v.mean(), "RMSE_X_dp": v.std(ddof=1),
+            "ganho_medio_vs_B2": dif.mean(), "ep_ganho_pareado": ep, "ganho_claro": bool(dif.mean() > ep),
+            "p_t_pareado": float(stats.ttest_rel(ref, v).pvalue), "p_wilcoxon": float(stats.wilcoxon(ref, v).pvalue),
+            "n_melhor_que_B2_de_10": int((dif > 0).sum()),
+            "n_colapsos_de_40": int((pdb[pdb["config"] == nome]["RMSE_X"] > 0.1).sum()),
+        })
+    tab = pd.DataFrame(linhas)
+    tab.to_csv(OUT / "tabela_fase_c_d1_segura.csv", index=False)
+    print(tab.to_string(index=False))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("etapa", choices=["buscar", "ablacao", "figuras"])
+    ap.add_argument("etapa", choices=["buscar", "ablacao", "d1segura", "figuras"])
     ap.add_argument("--tentativas", type=int, default=80)
     ap.add_argument("--trabalhadores", type=int, default=26)
     a = ap.parse_args()
@@ -323,6 +363,8 @@ def main() -> None:
         buscar(a.tentativas, a.trabalhadores)
     elif a.etapa == "ablacao":
         ablacao(a.trabalhadores)
+    elif a.etapa == "d1segura":
+        ablacao_d1_segura(a.trabalhadores)
     else:
         from figuras_fase_c import gerar_tudo
 
