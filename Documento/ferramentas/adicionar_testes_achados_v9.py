@@ -4,7 +4,8 @@ Alterações (decisão do usuário em 08/11/2026: a v2 fica como modelo final; r
 achados):
 1. Em Métodos (cor normal), logo depois do parágrafo da saída softplus, um parágrafo curto: a positividade
    da taxa é a única restrição física imposta; não se impõe monotonia temporal da taxa.
-2. No Apêndice E (texto em vermelho, fora de Métodos), quatro seções novas:
+2. Acrescenta à lista de referências (em vermelho) Psichogios; Ungar (1992) e Thompson; Kramer (1994), citadas em E.9.
+3. No Apêndice E (texto em vermelho, fora de Métodos), quatro seções novas:
    - E.8  Perdas com informação física (Fase C): D1 (peso pela sensibilidade) e D2 (monotonia), com ablação
           de 10 sementes e o teste de D1 com γ menor; por que a monotonia foi descartada.
    - E.9  Ajuste fino ponta a ponta pelo balanço populacional (Fase D).
@@ -33,7 +34,7 @@ from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).parent))
 from adicionar_resultados_apendices_v8 import achar, reduzir, texto, v  # noqa: E402
-from docx_utils import SectionWriter, pintar  # noqa: E402
+from docx_utils import SectionWriter, add_references, pintar  # noqa: E402
 
 DOC_DIR = Path(__file__).resolve().parents[1]
 CODIGO = DOC_DIR.parent / "Código"
@@ -43,6 +44,13 @@ OUT = CODIGO / "outputs"
 SUB = OUT / "etapa_3_2" / "subetapa_3_2_6_mlp_otimizacao"
 NOVOS = OUT / "etapa_4_3_previsao_novos_ensaios"
 SUB_CODIGO = CODIGO / "etapas" / "etapa_3_2" / "subetapa_3_2_6_mlp_otimizacao"
+# Referências citadas na seção E.9 que não estavam na lista da v8 (entram em vermelho; conferir os dados)
+REFERENCIAS_NOVAS = [
+    "PSICHOGIOS, D. C.; UNGAR, L. H. A hybrid neural network-first principles approach to process modeling. "
+    "AIChE Journal, v. 38, n. 10, p. 1499–1511, 1992.",
+    "THOMPSON, M. L.; KRAMER, M. A. Modeling chemical processes using prior knowledge and neural networks. "
+    "AIChE Journal, v. 40, n. 8, p. 1328–1340, 1994.",
+]
 ANCORA_METODOS = "Função de perda e algoritmo de treinamento"
 PARAGRAFO_SOFTPLUS = "Como a função softplus só assume valores positivos"
 
@@ -457,6 +465,8 @@ def main() -> None:
         secao_e10(w, sub, fig, d)
         secao_e11(w, sub, fig, d)
         pintar(list(w.inserted))
+        novas = add_references(doc, REFERENCIAS_NOVAS)
+        print(f"Referências adicionadas: {len(novas)}")
         saida.parent.mkdir(parents=True, exist_ok=True)
         doc.save(str(saida))
     print(f"Documento salvo em: {saida}")

@@ -27,7 +27,7 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ### 5. O que Falhou / Problemas Encontrados
 - **Correções a registros de hoje:** (a) a entrada do DEVLOG "Decisão: a v2 ... fica como modelo da Etapa 2" e a entrada da Fase D/D1 dizem que os 126 alvos nulos estão nos ensaios "1, 3, 5 e 9"; o correto é **3, 5 e 9** (o ensaio 1 tem alvos abaixo de 1e-3, mas não nulos). (b) O README da Fase C dizia que a D1 "funciona na maioria das sementes"; na verdade ela só foi melhor que a v2 em 5 de 10 sementes (corrigido no README). (c) Na revisão do texto da v9 foi retirada uma conclusão não sustentada ("o erro restante vem dos alvos"): o erro de 0,033 é cerca de 2,3 vezes o teto de 0,014, e os testes não esclarecem se o limite está nos ensaios ou nos alvos.
-- Não verificado: a renderização no Word (equações em OMML, tabelas e figuras); a conferência visual é do usuário. As referências Psichogios; Ungar (1992) e Thompson; Kramer (1994), citadas em E.9, já constam na revisão do documento segundo o plano, mas não foram conferidas na lista do documento.
+- Não verificado: a renderização no Word (equações em OMML, tabelas e figuras); a conferência visual é do usuário. As referências Psichogios; Ungar (1992) e Thompson; Kramer (1994), citadas em E.9, **não estavam na lista de referências do documento** (o plano dizia que já constavam); foram acrescentadas à lista da v9, em vermelho, e os dados bibliográficos (AIChE Journal, v. 38, n. 10, p. 1499–1511, 1992; v. 40, n. 8, p. 1328–1340, 1994) devem ser conferidos pelo usuário.
 - Letras e números (Tabelas E.8 a E.13, Figuras E.12 a E.17, Seções E.8 a E.11) seguem a sequência da v8 e podem mudar na numeração final com o grupo.
 
 ### 6. Ações Corretivas e Próximos Passos
