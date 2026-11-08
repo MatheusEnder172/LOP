@@ -6,6 +6,36 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-08 13:16] - Etapa 3: previsão a priori dos 4 ensaios novos de laboratório com a v2 (modelagem pausada)
+
+### 1. Objetivo da Atividade
+- Gerar e guardar, antes de qualquer medição, as previsões da MLP v2 para os 4 ensaios novos (E1: η = 0,75, C_A0 = 0,25; E2: η = 1,25, C_A0 = 0,75; E3: η = 2,25, C_A0 = 0,75; E4: η = 0,40, C_A0 = 0,25; V = 200 mL; T = 40 °C; 1000 rpm), com as relações esperadas, figuras e tabela.
+
+### 2. Hipótese / Decisão de Design
+- A pedido do usuário (08/11): modelagem pausada, tudo mantido na v2, e prioridade para escrever (Resultados do híbrido serial e apêndices, que o usuário já começou). Etapa 2b adiada. O usuário observou que, quando as medições chegarem, talvez seja preciso voltar atrás e treinar com os 16 ensaios originais (incluindo os 3 do teste cego), validando só com os 4 novos; fica como possibilidade, sem ação agora.
+- Pasta nova `etapa_4_3_previsao_novos_ensaios` (a numeração "etapa 6" já é do regime contínuo no plano mestre). A previsão é gravada uma vez; o script recusa refazê-la, confere os hashes do comitê antes de prever e aborta a comparação com medições se algum arquivo gravado mudou.
+- Referências na mesma figura: fenomenológico puro (α = 0), MLP v1 (na tabela) e uma interpolação linear dos 16 ensaios medidos em (C_A0, η), instante a instante, só como referência simples.
+
+### 3. Ações Executadas
+- `prever_novos_ensaios.py` (comandos `prever` e `comparar --medicoes`), `gerar_relatorio_previsao.py`, `test_previsao_novos_ensaios.py` e as saídas em `Código/outputs/etapa_4_3_previsao_novos_ensaios/`: 2 CSVs de previsão (instantes de amostragem e curvas de 0 a 15 min), XLSX, `medicoes_template.csv`, 6 figuras em PNG e PDF (300 DPI: uma por ensaio, painel e contexto com os ensaios originais vizinhos), `relatorio_previsao_a_priori.md` e `INTEGRIDADE_previsao_a_priori.json`.
+- **Previsão gerada em 2026-11-08 13:14:18** com o comitê v2 inalterado. SHA-256 (16 primeiros caracteres) dos membros 42 a 51: 91671bc6319d9794, 13a4ecc00c08b5cd, 9e8de474fa657dea, 8e4137f8dd4b0855, f8d34163cb66439d, ba3d7e2a7d6e8f44, 2cd1e020e2ebb058, e78a536fccbc13ac, c5ccbac9e6bbd27e, c5a1007d458b5f82; config: f204c8e04121174d. SHA-256 dos arquivos de previsão: instantes c63c3de8ee31ce95; curvas cd2591c68832e0c6; modelo de medições 7e9b424e2bcaac98 (valores completos no JSON).
+
+### 4. O que Funcionou e Métricas Obtidas
+- X_Zn prevista em 15 min (faixa dos 10 membros): E1 0,713 (0,700 a 0,724; limite 0,75), E2 0,929 (0,926 a 0,931; limite 1,00), E3 0,989 (0,987 a 0,990; limite 1,00), E4 0,400 (limite 0,40, atingido em cerca de 1 min). Em 0,5 min: E1 0,616, E2 0,889, E3 0,923, E4 0,365.
+- Relações esperadas: ordem E3 > E2 > E1 > E4 (segue η); patamares de E1 e E2 abaixo do limite estequiométrico, coerente com os ensaios originais (η = 1,0 termina em 0,85 a 0,87; η = 0,5 termina em 0,49 a 0,50); reação rápida (99% do valor final em 1,0 a 4,7 min), então os instantes de 0,5 e 1 min são os mais informativos; o fenomenológico puro tende a superestimar E1 e E2. Razão sólido/líquido: 33,5; 60,5; 33,5 e 63,0 g/L, dentro da faixa dos originais (3 a 300 g/L).
+- Testes: 4 passaram (hashes do comitê, integridade dos arquivos gravados, limites físicos e geração/recusa/adulteração com pasta temporária).
+
+### 5. O que Falhou / Problemas Encontrados
+- E4 (η = 0,40) está abaixo do mínimo do treino (0,5): extrapolação, sinalizada nos gráficos e na tabela; como o modelo impõe X ≤ min(1, η), a previsão de E4 é praticamente "X = η a partir de 1 min".
+- Não verificado: o efeito do volume (200 mL em vez de 400 mL), que o modelo não conhece; é hipótese, não foi testada. A faixa dos membros não é intervalo de confiança. A C_Af prevista é derivada da conversão pela estequiometria, não é independente.
+- A interpolação dos 16 ensaios é uma referência grosseira (linear em C_A0 e η); a do E4 extrapola.
+
+### 6. Ações Corretivas e Próximos Passos
+- Esperar as medições (data desconhecida): preencher `medicoes_template.csv` e rodar `prever_novos_ensaios.py comparar --medicoes <arquivo>`.
+- Etapas 4 e 5 (Resultados e apêndices, que o usuário já começou; checklist dos 115 comentários) e Etapa 6 (numeração com o grupo). Nenhum `.docx` foi alterado nesta etapa.
+
+---
+
 ## [2026-11-08 12:59] - Decisão: a v2 (comitê da B2) fica como modelo da Etapa 2; hashes registrados
 
 ### 1. Objetivo da Atividade

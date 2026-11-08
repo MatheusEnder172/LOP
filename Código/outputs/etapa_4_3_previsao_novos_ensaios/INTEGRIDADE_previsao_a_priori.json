@@ -1,0 +1,23 @@
+{
+  "data_geracao": "2026-11-08 13:14:18",
+  "descricao": "Previsão a priori (antes de qualquer medição) dos 4 ensaios novos com a MLP v2 (comitê de 10 redes).",
+  "modelo": "MLP v2 (Subetapa 3.2.6, Fase E mínima), pesos conferidos contra SHA256SUMS.txt",
+  "sha256_modelo": {
+    "membro_semente_42.pt": "91671bc6319d97946a8828bf1874d22369a114827f7846910dae63050f7d9020",
+    "membro_semente_43.pt": "13a4ecc00c08b5cd192e665303acf45bb259deefa165e0c02fa81c8f7179a314",
+    "membro_semente_44.pt": "9e8de474fa657dea024413e1744957b476bf183c6c37cf4e8aca9851a3e7d797",
+    "membro_semente_45.pt": "8e4137f8dd4b08554a64166f69cf7aef61b67d6c0accb79d6d825e4da6854deb",
+    "membro_semente_46.pt": "f8d34163cb66439d89b0ef8229d1f0d87f1ad57aa10775202fd5ef5ddc337ded",
+    "membro_semente_47.pt": "ba3d7e2a7d6e8f44fa0799575d3da8d8236ee25663464804ffa8c6de1520f142",
+    "membro_semente_48.pt": "2cd1e020e2ebb05859383e0237b43b2bd684649682ff12a33d0a2ca0a78f574f",
+    "membro_semente_49.pt": "e78a536fccbc13ac234ab8b7dbeb56bc4d3da25e20d6545b03092782e8f21b4d",
+    "membro_semente_50.pt": "c5ccbac9e6bbd27eaac6e81856c0506227071c6a94356dd49c878497d64fd03b",
+    "membro_semente_51.pt": "c5a1007d458b5f82d61fd57eb9e549f497637a477e7da1f2ed42a81f28dd817a",
+    "mlp_v2_config.json": "f204c8e04121174dd7aca2899726dbdf0c3b447d3de78c6465e3b5df339a7733"
+  },
+  "sha256_previsoes": {
+    "previsao_a_priori_instantes_amostrados.csv": "c63c3de8ee31ce95ec1f3a80c1c67157f01e556351d2828ea8b6805e7ad95f46",
+    "previsao_a_priori_curvas.csv": "cd2591c68832e0c69ff29f387b3f7d54e12ccfdd538aacdc866eb2727ca71bb1",
+    "medicoes_template.csv": "7e9b424e2bcaac98f6d1bf16a9ac823a438595b4ec05ff648ddd91cc1ec5824a"
+  }
+}
