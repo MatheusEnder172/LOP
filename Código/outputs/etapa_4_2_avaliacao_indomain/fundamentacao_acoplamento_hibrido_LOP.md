@@ -15,31 +15,38 @@ Esta etapa consolidou a avaliação de ponta a ponta do acoplamento híbrido ser
 | **White-Box Puro (RRB ÷ D³, Sem α)** | Global (16 ensaios, N=112) | 0.8709 | 0.0702 | 0.0516 | 0.1634 | — |
 | **DDM Puro (MLP sem Herbst)** | Global (16 ensaios, N=112) | 0.9827 | 0.0257 | 0.0188 | 0.0822 | Viola teto estequiométrico |
 | **Híbrido Serial Campeão (MLP → PBM)** | **Global (16 ensaios, N=112)** | **0.9827** | **0.0257** | **0.0188** | **0.0822** | **+63.4%** |
+| Híbrido Serial (MLP v2, comitê de 10 redes → PBM) | Global (16 ensaios, N=112) | 0.9935 | 0.0157 | 0.0117 | 0.0403 | +77.6% |
 | White-Box Puro (RRB ÷ D³, Sem α) | Teste Cego (3 ensaios, N=21) | -0.6747 | 0.0780 | 0.0637 | 0.1255 | — |
 | **Híbrido Serial Campeão (MLP → PBM)** | **Teste Cego (3 ensaios, N=21)** | **0.6570** | **0.0353** | **0.0269** | **0.0822** | **+54.7%** |
+| Híbrido Serial (MLP v2, comitê de 10 redes → PBM) | Teste Cego (3 ensaios, N=21) | 0.8881 | 0.0202 | 0.0165 | 0.0403 | +74.2% |
+
+> A linha da MLP v2 foi acrescentada em 07/11/2026 (Subetapa 3.2.6, Fase E). O teste cego já havia sido visto uma vez na Fase E; os números aqui apenas reproduzem aquela avaliação. A linha "Híbrido Serial Campeão" continua sendo a MLP v1 do pipeline oficial.
 
 ---
 
 ## 2. Comparativo Completo dos 4 Modelos Híbridos Acoplados ao PBM (t > 0)
 
 ```
-                              Particao                       Modelo        R2     RMSE      MAE  MaxError
-  Global (16 ensaios - 112 pts, t > 0)   FPM Puro (RRB ÷ D³, Sem α)  0.870943 0.070170 0.051571  0.163418
-  Global (16 ensaios - 112 pts, t > 0)    DDM Puro (MLP sem Herbst)  0.982672 0.025712 0.018756  0.082177
-  Global (16 ensaios - 112 pts, t > 0) Híbrido Serial (MLP Campeão)  0.982672 0.025712 0.018756  0.082177
-  Global (16 ensaios - 112 pts, t > 0)          Híbrido Serial (RF)  0.987685 0.021676 0.015365  0.086589
-  Global (16 ensaios - 112 pts, t > 0)     Híbrido Serial (XGBoost)  0.993019 0.016320 0.011698  0.060173
-  Global (16 ensaios - 112 pts, t > 0)         Híbrido Serial (SVR)  0.681255 0.110277 0.078184  0.307775
-   Treino (13 ensaios - 91 pts, t > 0)   FPM Puro (RRB ÷ D³, Sem α)  0.890015 0.068232 0.048763  0.163418
-   Treino (13 ensaios - 91 pts, t > 0)    DDM Puro (MLP sem Herbst)  0.987575 0.022934 0.016888  0.063610
-   Treino (13 ensaios - 91 pts, t > 0) Híbrido Serial (MLP Campeão)  0.987575 0.022934 0.016888  0.063610
-   Treino (13 ensaios - 91 pts, t > 0)          Híbrido Serial (RF)  0.992615 0.017681 0.013175  0.053980
-   Treino (13 ensaios - 91 pts, t > 0)     Híbrido Serial (XGBoost)  0.995145 0.014335 0.010316  0.037618
-   Treino (13 ensaios - 91 pts, t > 0)         Híbrido Serial (SVR)  0.663072 0.119423 0.087605  0.307775
-Teste Cego (3 ensaios - 21 pts, t > 0)   FPM Puro (RRB ÷ D³, Sem α) -0.674701 0.078017 0.063739  0.125524
-Teste Cego (3 ensaios - 21 pts, t > 0)    DDM Puro (MLP sem Herbst)  0.656951 0.035310 0.026851  0.082177
-Teste Cego (3 ensaios - 21 pts, t > 0) Híbrido Serial (MLP Campeão)  0.656951 0.035310 0.026851  0.082177
-Teste Cego (3 ensaios - 21 pts, t > 0)          Híbrido Serial (RF)  0.683227 0.033931 0.024853  0.086589
-Teste Cego (3 ensaios - 21 pts, t > 0)     Híbrido Serial (XGBoost)  0.854175 0.023022 0.017686  0.060173
-Teste Cego (3 ensaios - 21 pts, t > 0)         Híbrido Serial (SVR)  0.158817 0.055292 0.037362  0.149694
+                              Particao                          Modelo        R2     RMSE      MAE  MaxError
+  Global (16 ensaios - 112 pts, t > 0)      FPM Puro (RRB ÷ D³, Sem α)  0.870943 0.070170 0.051571  0.163418
+  Global (16 ensaios - 112 pts, t > 0)       DDM Puro (MLP sem Herbst)  0.982672 0.025712 0.018756  0.082177
+  Global (16 ensaios - 112 pts, t > 0)    Híbrido Serial (MLP Campeão)  0.982672 0.025712 0.018756  0.082177
+  Global (16 ensaios - 112 pts, t > 0) Híbrido Serial (MLP v2, comitê)  0.993531 0.015711 0.011664  0.040335
+  Global (16 ensaios - 112 pts, t > 0)             Híbrido Serial (RF)  0.987685 0.021676 0.015365  0.086589
+  Global (16 ensaios - 112 pts, t > 0)        Híbrido Serial (XGBoost)  0.993019 0.016320 0.011698  0.060173
+  Global (16 ensaios - 112 pts, t > 0)            Híbrido Serial (SVR)  0.681255 0.110277 0.078184  0.307775
+   Treino (13 ensaios - 91 pts, t > 0)      FPM Puro (RRB ÷ D³, Sem α)  0.890015 0.068232 0.048763  0.163418
+   Treino (13 ensaios - 91 pts, t > 0)       DDM Puro (MLP sem Herbst)  0.987575 0.022934 0.016888  0.063610
+   Treino (13 ensaios - 91 pts, t > 0)    Híbrido Serial (MLP Campeão)  0.987575 0.022934 0.016888  0.063610
+   Treino (13 ensaios - 91 pts, t > 0) Híbrido Serial (MLP v2, comitê)  0.995040 0.014490 0.010558  0.037087
+   Treino (13 ensaios - 91 pts, t > 0)             Híbrido Serial (RF)  0.992615 0.017681 0.013175  0.053980
+   Treino (13 ensaios - 91 pts, t > 0)        Híbrido Serial (XGBoost)  0.995145 0.014335 0.010316  0.037618
+   Treino (13 ensaios - 91 pts, t > 0)            Híbrido Serial (SVR)  0.663072 0.119423 0.087605  0.307775
+Teste Cego (3 ensaios - 21 pts, t > 0)      FPM Puro (RRB ÷ D³, Sem α) -0.674701 0.078017 0.063739  0.125524
+Teste Cego (3 ensaios - 21 pts, t > 0)       DDM Puro (MLP sem Herbst)  0.656951 0.035310 0.026851  0.082177
+Teste Cego (3 ensaios - 21 pts, t > 0)    Híbrido Serial (MLP Campeão)  0.656951 0.035310 0.026851  0.082177
+Teste Cego (3 ensaios - 21 pts, t > 0) Híbrido Serial (MLP v2, comitê)  0.888130 0.020164 0.016457  0.040335
+Teste Cego (3 ensaios - 21 pts, t > 0)             Híbrido Serial (RF)  0.683227 0.033931 0.024853  0.086589
+Teste Cego (3 ensaios - 21 pts, t > 0)        Híbrido Serial (XGBoost)  0.854175 0.023022 0.017686  0.060173
+Teste Cego (3 ensaios - 21 pts, t > 0)            Híbrido Serial (SVR)  0.158817 0.055292 0.037362  0.149694
 ```

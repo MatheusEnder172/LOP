@@ -1,0 +1,12 @@
+{
+  "tentativa_optuna": 82,
+  "valor_3_sementes": 0.02844919598088848,
+  "params": {
+    "lr_ft": 0.0018740744856066587,
+    "epocas_ft": 17,
+    "lambda_nu": 0.011545367779178362
+  },
+  "base_pretreino": "B2 (referência)",
+  "RMSE_X_media_10_sementes": 0.031049453609230643,
+  "RMSE_X_dp_10_sementes": 0.005726960862464022
+}

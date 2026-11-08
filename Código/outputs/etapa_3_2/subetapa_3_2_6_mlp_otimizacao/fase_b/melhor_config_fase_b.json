@@ -1,0 +1,23 @@
+{
+  "origem": "Tentativa 211",
+  "config": {
+    "hidden_dims": [
+      21,
+      21,
+      21,
+      21
+    ],
+    "activation": "Tanh",
+    "use_layer_norm": false,
+    "dropout_rate": 0.1456585594122226,
+    "lr": 0.005919830803896044,
+    "weight_decay": 0.00014662849381975973,
+    "batch_size": 64,
+    "modo_parada": "epocas_fixas",
+    "mono_lambda": 0.0,
+    "patience": 0,
+    "max_epochs": 1714
+  },
+  "RMSE_X_media_10_sementes": 0.036348354743429276,
+  "RMSE_X_dp_10_sementes": 0.005258476810409789
+}

@@ -1,0 +1,7 @@
+Ablação em 21.1 min
+                  variante  RMSE_X_media  RMSE_X_dp  ganho_medio_vs_B2  ep_ganho_pareado  ganho_claro  p_t_pareado  p_wilcoxon  n_melhor_que_B2_de_10    gamma  mono_lambda       lr  max_epochs
+           B2 (referência)      0.032638   0.004964           0.000000          0.000000        False          NaN         NaN                      0 0.000000          0.0 0.004078         928
+B2 reajustada (lr, épocas)      0.033997   0.002579          -0.001360          0.001634        False     0.426884    0.375000                      3 0.000000          0.0 0.004380        1101
+                      + D1      0.063859   0.110323          -0.031221          0.034971        False     0.395218    0.556641                      5 1.844344          0.0 0.004380        1101
+                      + D2      0.033582   0.004280          -0.000944          0.002630        False     0.727900    0.769531                      4 0.000000          0.1 0.004380        1101
+                 + D1 + D2      0.099754   0.146350          -0.067116          0.046741        False     0.184856    0.921875                      5 1.844344          0.1 0.004380        1101

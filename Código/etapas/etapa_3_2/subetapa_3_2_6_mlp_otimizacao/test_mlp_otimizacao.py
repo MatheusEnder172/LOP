@@ -1,0 +1,141 @@
+"""Testes da Subetapa 3.2.6 (otimização da MLP).
+
+Verifica:
+1. Disjunção entre treino, parada interna, validação e teste cego em todas as dobras e sementes.
+2. Determinismo do sorteio dos ensaios de parada interna e ausência dos vértices.
+3. Não-negatividade e formato da taxa do `KineticsMLPEnsemble`.
+4. Penalidade de monotonia nula para uma rede que não depende do tempo.
+5. Treino curto do `MLPTrainerV2` (com penalidade) sem erro e com pesos restaurados da melhor época.
+6. Ensemble final da Fase E: membros salvos carregáveis, ν ≥ 0 e média correta.
+"""
+
+import sys
+from pathlib import Path
+
+import numpy as np
+import pytest
+import torch
+
+SUBETAPA_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SUBETAPA_DIR))
+
+from modelo_mlp_v2 import KineticsMLP, KineticsMLPEnsemble, MLPTrainerV2  # noqa: E402
+from protocolo_cv import ENSAIOS_TESTE, VERTICES, carregar_dados, ensaios_parada_interna  # noqa: E402
+
+
+@pytest.fixture(scope="module")
+def dados():
+    return carregar_dados()
+
+
+def test_particoes_disjuntas(dados) -> None:
+    todos = set(dados.train_df["ensaio"])
+    assert not todos & set(ENSAIOS_TESTE)
+    for fold in dados.folds:
+        val = set(fold["val_ensaios"])
+        treino = sorted(todos - val)
+        for s in (42, 43, 44):
+            es = set(ensaios_parada_interna(treino, fold["fold"], s))
+            tr = set(treino) - es
+            assert len(es) == 2
+            assert not (tr & val) and not (es & val) and not (tr & es)
+            assert not es & set(VERTICES)
+            assert tr | es | val == todos
+
+
+def test_sorteio_deterministico() -> None:
+    a = ensaios_parada_interna([3, 4, 6, 9, 10, 12, 13, 15], 2, 42)
+    b = ensaios_parada_interna([3, 4, 6, 9, 10, 12, 13, 15], 2, 42)
+    assert a == b
+
+
+def test_ensemble_nao_negativo() -> None:
+    membros = [KineticsMLP(input_dim=3, hidden_dims=[16, 8]) for _ in range(3)]
+    ens = KineticsMLPEnsemble(membros)
+    x = torch.randn(50, 3) * 10
+    out = ens(x)
+    assert out.shape == (50, 1)
+    assert (out >= 0).all()
+    assert ens.forward_membros(x).shape == (3, 50, 1)
+
+
+def test_penalidade_nula_sem_tempo(dados) -> None:
+    model = KineticsMLP(input_dim=3, hidden_dims=[8])
+    with torch.no_grad():
+        model.network[0].weight[:, 2] = 0.0  # rede independente de t
+    x = torch.randn(64, 3, requires_grad=True)
+    assert float(MLPTrainerV2.penalidade_monotonia(model, x)) == pytest.approx(0.0, abs=1e-12)
+
+
+def test_espaco_de_busca_reconstrucao() -> None:
+    """A configuração reconstruída dos parâmetros gravados é igual à sugerida na tentativa."""
+    import optuna
+
+    from fase_b_optuna_hpo import PARAMS_V1, config_de_params, sugerir_config
+
+    for params in (PARAMS_V1, {**PARAMS_V1, "n_camadas": 3, "forma": "constante", "modo_parada": "epocas_fixas",
+                               "max_epochs_fixas": 120}):
+        p = {k: v for k, v in params.items() if not (params["modo_parada"] == "epocas_fixas"
+                                                     and k in ("patience", "max_epochs_interna"))}
+        cfg = sugerir_config(optuna.trial.FixedTrial(p))
+        assert cfg == config_de_params(p)
+    assert config_de_params(PARAMS_V1)["hidden_dims"] == [64, 32]
+
+
+def test_epocas_fixas_curto(dados) -> None:
+    tr = MLPTrainerV2(hidden_dims=[16], max_epochs=3, batch_size=128, seed=0)
+    m = dados.mascara([1, 2, 3])
+    model, hist = tr.fit_epocas_fixas(dados.X_train_s[m], dados.y_train[m])
+    assert len(hist["train_loss"]) == 3 and np.isfinite(hist["train_loss"]).all()
+
+
+def test_entrada_log_t(dados) -> None:
+    """KineticsMLPLogT aplica ln t corretamente, preserva ν ≥ 0 e é reconhecida como MLP."""
+    from modelo_mlp_v2 import MALHA_T, KineticsMLPLogT
+
+    base = KineticsMLP(input_dim=3, hidden_dims=[8])
+    sc = dados.scaler_X
+    m = KineticsMLPLogT(base, float(sc.mean_[2]), float(sc.scale_[2]))
+    x_fis = np.array([[0.5, 1.0, 0.25], [0.5, 1.0, 15.0]])
+    x = torch.tensor(sc.transform(x_fis), dtype=torch.float32)
+    u = m._transformar(x)[:, 2].detach().numpy()
+    esperado = (np.log(x_fis[:, 2]) - np.log(MALHA_T).mean()) / np.log(MALHA_T).std()
+    assert np.allclose(u, esperado, atol=1e-5)
+    assert (m(x) >= 0).all()
+    assert "MLP" in type(m).__name__
+
+
+def test_inicializacao_xavier(dados) -> None:
+    tr = MLPTrainerV2(hidden_dims=[16, 16], activation="Tanh", inicializacao="xavier", seed=0)
+    m = tr.build_model()
+    lin = [mod for mod in m.modules() if isinstance(mod, torch.nn.Linear)]
+    assert all(torch.all(mod.bias == 0) for mod in lin)
+
+
+def test_ensemble_final_salvo(dados) -> None:
+    """Fase E: os 10 membros salvos carregam, dão ν ≥ 0 e o ensemble é a média dos membros."""
+    from fase_e_ensemble_final import MODELOS_DIR, carregar_membros
+
+    if not (MODELOS_DIR / "mlp_v2_config.json").exists():
+        pytest.skip("Membros da Fase E ainda não treinados.")
+    membros = carregar_membros(dados)
+    assert len(membros) == 10
+    ens = KineticsMLPEnsemble(membros).eval()
+    x = torch.tensor(dados.X_train_s[:200], dtype=torch.float32)
+    with torch.no_grad():
+        out = ens(x)
+        media = torch.stack([m(x) for m in membros]).mean(dim=0)
+    assert (out >= 0).all()
+    assert torch.allclose(out, media, atol=1e-6)
+
+
+def test_treino_curto_v2(dados) -> None:
+    tr = MLPTrainerV2(hidden_dims=[16, 8], mono_lambda=1.0, scaler_X=dados.scaler_X,
+                      max_epochs=5, patience=3, batch_size=64, seed=0)
+    m = dados.mascara([1, 2, 3, 4, 5, 6])
+    e = dados.mascara([9, 10])
+    model, hist = tr.fit_parada_interna(dados.X_train_s[m], dados.y_train[m],
+                                        dados.X_train_s[e], dados.y_train[e])
+    assert 1 <= hist["best_epoch"][0] <= 5
+    assert np.isfinite(hist["train_loss"]).all()
+    assert hist["mono_loss"][0] >= 0.0

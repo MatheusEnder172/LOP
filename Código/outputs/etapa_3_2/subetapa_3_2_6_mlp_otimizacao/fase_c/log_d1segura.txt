@@ -1,0 +1,5 @@
+Ablação D1 segura em 7.7 min
+variante  gamma  RMSE_X_media  RMSE_X_dp  ganho_medio_vs_B2  ep_ganho_pareado  ganho_claro  p_t_pareado  p_wilcoxon  n_melhor_que_B2_de_10  n_colapsos_de_40
+D1 γ=0.5    0.5      0.037452   0.003987          -0.004814          0.002180        False     0.054549    0.083984                      2                 0
+D1 γ=1.0    1.0      0.039087   0.004150          -0.006449          0.002117        False     0.013874    0.037109                      2                 0
+D1 γ=1.5    1.5      0.030157   0.003795           0.002481          0.002098         True     0.267436    0.275391                      5                 0

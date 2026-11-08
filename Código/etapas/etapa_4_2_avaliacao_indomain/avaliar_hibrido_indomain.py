@@ -5,7 +5,10 @@ em todos os 16 ensaios experimentais de Bortot Coelho (2017):
 1. FPM Puro (Baseline mecanicista tradicional com alpha = 3,43 um/min);
 2. DDM Puro (Predição Black-Box em malha aberta sem restrição de Herbst/estequiometria);
 3. Híbrido Serial Campeão (Random Forest -> PBM com restrições físicas estritas);
-4. Híbridos Alternativos (MLP, XGBoost e SVR acoplados ao PBM) para análise de sensibilidade.
+4. Híbridos Alternativos (MLP, XGBoost e SVR acoplados ao PBM) para análise de sensibilidade;
+5. Híbrido Serial com a MLP v2 (comitê de 10 redes da Subetapa 3.2.6, `model_type="mlp_v2"`),
+   acrescentado em 07/11/2026 sem alterar nenhuma das linhas anteriores (a v1 continua sendo
+   o "MLP Campeão"; a MCDA e o `modelo_campeao_info.json` não mudam).
 
 Produz 5 figuras científicas em 300 DPI (PNG + PDF vetorial), tabelas consolidadas
 em CSV e relatórios técnicos aprofundados.
@@ -97,6 +100,7 @@ class EvaluatorInDomain:
         # Modelos (MLP Campeão + White-Box Puro RRB ÷ D³ sem α)
         self.solver_fpm = BatchPBMSolver()
         self.hibrido_campeao = SerialHybridModel(model_type="mlp")
+        self.hibrido_v2 = SerialHybridModel(model_type="mlp_v2")
         self.out_dir = CODIGO_DIR / "outputs" / "etapa_4_2_avaliacao_indomain"
         self.out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -148,6 +152,10 @@ class EvaluatorInDomain:
                 sim_res = h_inst.simulate(T=40.0, ca0=ca0, eta=eta, t_eval=t_exp)
                 hib_preds_discrete[m_name] = sim_res["XZn"]
 
+            # Híbrido com a MLP v2 (comitê): média de ν antes do PBM e faixa dos membros isolados
+            sim_v2 = self.hibrido_v2.simulate(T=40.0, ca0=ca0, eta=eta, t_eval=t_exp)
+            mem_v2 = self.hibrido_v2.simulate_members(T=40.0, ca0=ca0, eta=eta, t_eval=t_exp)
+
             # Híbrido Campeão (MLP) contínuo
             sim_mlp_fine = self.hibrido_campeao.simulate(T=40.0, ca0=ca0, eta=eta, t_eval=t_fine)
 
@@ -177,6 +185,10 @@ class EvaluatorInDomain:
                     "XZn_FPM": fpm_discrete["XZn"][i],
                     "XZn_DDM_puro": x_ddm_discrete[i],
                     "XZn_Hibrido_MLP": hib_preds_discrete["Híbrido Serial (MLP Campeão)"][i],
+                    "XZn_Hibrido_MLP_v2": sim_v2["XZn"][i],
+                    "XZn_Hibrido_MLP_v2_min": mem_v2["XZn_min"][i],
+                    "XZn_Hibrido_MLP_v2_max": mem_v2["XZn_max"][i],
+                    "XZn_Hibrido_MLP_v2_dp": mem_v2["XZn_dp"][i],
                     "XZn_Hibrido_RF": hib_preds_discrete["Híbrido (RF)"][i],
                     "XZn_Hibrido_XGB": hib_preds_discrete["Híbrido (XGBoost)"][i],
                     "XZn_Hibrido_SVR": hib_preds_discrete["Híbrido (SVR)"][i],
@@ -200,6 +212,7 @@ class EvaluatorInDomain:
             m_fpm = compute_metrics(y_true, sub["XZn_FPM"].values)
             m_ddm = compute_metrics(y_true, sub["XZn_DDM_puro"].values)
             m_hib = compute_metrics(y_true, sub["XZn_Hibrido_MLP"].values)
+            m_v2 = compute_metrics(y_true, sub["XZn_Hibrido_MLP_v2"].values)
 
             delta_r2 = m_hib["R2"] - m_fpm["R2"]
             gain_rmse_pct = ((m_fpm["RMSE"] - m_hib["RMSE"]) / m_fpm["RMSE"]) * 100.0 if m_fpm["RMSE"] > 0 else 0.0
@@ -220,6 +233,9 @@ class EvaluatorInDomain:
                 "MAE_Hibrido": m_hib["MAE"],
                 "Delta_R2": delta_r2,
                 "Reducao_RMSE_pct": gain_rmse_pct,
+                "R2_Hibrido_v2": m_v2["R2"],
+                "RMSE_Hibrido_v2": m_v2["RMSE"],
+                "MAE_Hibrido_v2": m_v2["MAE"],
             })
         df_assays = pd.DataFrame(assay_records)
 
@@ -228,6 +244,7 @@ class EvaluatorInDomain:
             ("FPM Puro (RRB ÷ D³, Sem α)", "XZn_FPM"),
             ("DDM Puro (MLP sem Herbst)", "XZn_DDM_puro"),
             ("Híbrido Serial (MLP Campeão)", "XZn_Hibrido_MLP"),
+            ("Híbrido Serial (MLP v2, comitê)", "XZn_Hibrido_MLP_v2"),
             ("Híbrido Serial (RF)", "XZn_Hibrido_RF"),
             ("Híbrido Serial (XGBoost)", "XZn_Hibrido_XGB"),
             ("Híbrido Serial (SVR)", "XZn_Hibrido_SVR"),
@@ -555,6 +572,7 @@ class EvaluatorInDomain:
             "FPM Puro (RRB ÷ D³, Sem α)",
             "DDM Puro (MLP sem Herbst)",
             "Híbrido Serial (MLP Campeão)",
+            "Híbrido Serial (MLP v2, comitê)",
             "Híbrido Serial (RF)",
             "Híbrido Serial (XGBoost)",
             "Híbrido Serial (SVR)",
@@ -577,7 +595,7 @@ class EvaluatorInDomain:
         ax1.set_title(r"(a) Comparativo de Acurácia Global e Generalização ($R^2$, t > 0)", fontweight="bold")
         ax1.set_xticks(range(len(model_order)))
         ax1.set_xticklabels(
-            ["White-Box (Sem α)", "DDM Puro", "Híbrido (MLP)", "Híbrido (RF)", "Híbrido (XGB)", "Híbrido (SVR)"],
+            ["White-Box (Sem α)", "DDM Puro", "Híbrido (MLP v1)", "Híbrido (MLP v2)", "Híbrido (RF)", "Híbrido (XGB)", "Híbrido (SVR)"],
             rotation=20,
             ha="right",
         )
@@ -600,7 +618,7 @@ class EvaluatorInDomain:
         ax2.set_title(r"(b) Erro Residual de Predição da Conversão ($\mathrm{RMSE}$, t > 0)", fontweight="bold")
         ax2.set_xticks(range(len(model_order)))
         ax2.set_xticklabels(
-            ["White-Box (Sem α)", "DDM Puro", "Híbrido (MLP)", "Híbrido (RF)", "Híbrido (XGB)", "Híbrido (SVR)"],
+            ["White-Box (Sem α)", "DDM Puro", "Híbrido (MLP v1)", "Híbrido (MLP v2)", "Híbrido (RF)", "Híbrido (XGB)", "Híbrido (SVR)"],
             rotation=20,
             ha="right",
         )
@@ -685,12 +703,17 @@ class EvaluatorInDomain:
         # Métricas globais (t > 0)
         row_fpm_glob = df_summary[(df_summary["Particao"].str.startswith("Global")) & (df_summary["Modelo"].str.startswith("FPM"))].iloc[0]
         row_ddm_glob = df_summary[(df_summary["Particao"].str.startswith("Global")) & (df_summary["Modelo"].str.startswith("DDM"))].iloc[0]
-        row_hib_glob = df_summary[(df_summary["Particao"].str.startswith("Global")) & (df_summary["Modelo"].str.startswith("Híbrido Serial (MLP"))].iloc[0]
+        row_hib_glob = df_summary[(df_summary["Particao"].str.startswith("Global")) & (df_summary["Modelo"].str.startswith("Híbrido Serial (MLP Campeão"))].iloc[0]
 
         # Métricas teste cego (t > 0)
         row_fpm_te = df_summary[(df_summary["Particao"].str.startswith("Teste")) & (df_summary["Modelo"].str.startswith("FPM"))].iloc[0]
         row_ddm_te = df_summary[(df_summary["Particao"].str.startswith("Teste")) & (df_summary["Modelo"].str.startswith("DDM"))].iloc[0]
-        row_hib_te = df_summary[(df_summary["Particao"].str.startswith("Teste")) & (df_summary["Modelo"].str.startswith("Híbrido Serial (MLP"))].iloc[0]
+        row_hib_te = df_summary[(df_summary["Particao"].str.startswith("Teste")) & (df_summary["Modelo"].str.startswith("Híbrido Serial (MLP Campeão"))].iloc[0]
+
+        row_v2_glob = df_summary[(df_summary["Particao"].str.startswith("Global")) & (df_summary["Modelo"].str.startswith("Híbrido Serial (MLP v2"))].iloc[0]
+        row_v2_te = df_summary[(df_summary["Particao"].str.startswith("Teste")) & (df_summary["Modelo"].str.startswith("Híbrido Serial (MLP v2"))].iloc[0]
+        reduc_v2_glob = ((row_fpm_glob["RMSE"] - row_v2_glob["RMSE"]) / row_fpm_glob["RMSE"]) * 100.0
+        reduc_v2_te = ((row_fpm_te["RMSE"] - row_v2_te["RMSE"]) / row_fpm_te["RMSE"]) * 100.0
 
         reduc_rmse_glob = ((row_fpm_glob["RMSE"] - row_hib_glob["RMSE"]) / row_fpm_glob["RMSE"]) * 100.0
         reduc_rmse_te = ((row_fpm_te["RMSE"] - row_hib_te["RMSE"]) / row_fpm_te["RMSE"]) * 100.0
@@ -712,8 +735,12 @@ Esta etapa consolidou a avaliação de ponta a ponta do acoplamento híbrido ser
 | **White-Box Puro (RRB ÷ D³, Sem α)** | Global (16 ensaios, N=112) | {row_fpm_glob['R2']:.4f} | {row_fpm_glob['RMSE']:.4f} | {row_fpm_glob['MAE']:.4f} | {row_fpm_glob['MaxError']:.4f} | — |
 | **DDM Puro (MLP sem Herbst)** | Global (16 ensaios, N=112) | {row_ddm_glob['R2']:.4f} | {row_ddm_glob['RMSE']:.4f} | {row_ddm_glob['MAE']:.4f} | {row_ddm_glob['MaxError']:.4f} | Viola teto estequiométrico |
 | **Híbrido Serial Campeão (MLP → PBM)** | **Global (16 ensaios, N=112)** | **{row_hib_glob['R2']:.4f}** | **{row_hib_glob['RMSE']:.4f}** | **{row_hib_glob['MAE']:.4f}** | **{row_hib_glob['MaxError']:.4f}** | **+{reduc_rmse_glob:.1f}%** |
+| Híbrido Serial (MLP v2, comitê de 10 redes → PBM) | Global (16 ensaios, N=112) | {row_v2_glob['R2']:.4f} | {row_v2_glob['RMSE']:.4f} | {row_v2_glob['MAE']:.4f} | {row_v2_glob['MaxError']:.4f} | +{reduc_v2_glob:.1f}% |
 | White-Box Puro (RRB ÷ D³, Sem α) | Teste Cego (3 ensaios, N=21) | {row_fpm_te['R2']:.4f} | {row_fpm_te['RMSE']:.4f} | {row_fpm_te['MAE']:.4f} | {row_fpm_te['MaxError']:.4f} | — |
 | **Híbrido Serial Campeão (MLP → PBM)** | **Teste Cego (3 ensaios, N=21)** | **{row_hib_te['R2']:.4f}** | **{row_hib_te['RMSE']:.4f}** | **{row_hib_te['MAE']:.4f}** | **{row_hib_te['MaxError']:.4f}** | **+{reduc_rmse_te:.1f}%** |
+| Híbrido Serial (MLP v2, comitê de 10 redes → PBM) | Teste Cego (3 ensaios, N=21) | {row_v2_te['R2']:.4f} | {row_v2_te['RMSE']:.4f} | {row_v2_te['MAE']:.4f} | {row_v2_te['MaxError']:.4f} | +{reduc_v2_te:.1f}% |
+
+> A linha da MLP v2 foi acrescentada em 07/11/2026 (Subetapa 3.2.6, Fase E). O teste cego já havia sido visto uma vez na Fase E; os números aqui apenas reproduzem aquela avaliação. A linha "Híbrido Serial Campeão" continua sendo a MLP v1 do pipeline oficial.
 
 ---
 

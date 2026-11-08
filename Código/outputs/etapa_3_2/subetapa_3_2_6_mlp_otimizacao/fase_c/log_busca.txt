@@ -1,0 +1,314 @@
+[I 2026-11-07 20:27:25,047] A new study created in Journal with name: mlp_v2_fase_c_perdas_fisicas
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 131, in _main
+    prepare(preparation_data)
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py", line 38, in <module>
+    from protocolo_cv import OUTPUTS_DIR, TARGET, Dados
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\protocolo_cv.py", line 28, in <module>
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\__init__.py", line 70, in <module>
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 131, in _main
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 131, in _main
+    prepare(preparation_data)
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 246, in prepare
+    prepare(preparation_data)
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 297, in _fixup_main_from_path
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+    main_content = runpy.run_path(main_path,
+  File "<frozen runpy>", line 287, in run_path
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 88, in _run_code
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py", line 38, in <module>
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py", line 38, in <module>
+    from protocolo_cv import OUTPUTS_DIR, TARGET, Dados
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\protocolo_cv.py", line 28, in <module>
+    from protocolo_cv import OUTPUTS_DIR, TARGET, Dados
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\protocolo_cv.py", line 28, in <module>
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\__init__.py", line 70, in <module>
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\__init__.py", line 70, in <module>
+    from sklearn.base import clone  # noqa: E402
+    from sklearn.base import clone  # noqa: E402
+    from sklearn.base import clone  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\base.py", line 20, in <module>
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\base.py", line 20, in <module>
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\base.py", line 20, in <module>
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 131, in _main
+    exitcode = _main(fd, parent_sentinel)
+    exitcode = _main(fd, parent_sentinel)
+    prepare(preparation_data)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 131, in _main
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 131, in _main
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 246, in prepare
+    prepare(preparation_data)
+    prepare(preparation_data)
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 246, in prepare
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 297, in _fixup_main_from_path
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 297, in _fixup_main_from_path
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py", line 38, in <module>
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py", line 38, in <module>
+    main_content = runpy.run_path(main_path,
+    from protocolo_cv import OUTPUTS_DIR, TARGET, Dados
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\protocolo_cv.py", line 28, in <module>
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py", line 38, in <module>
+    from protocolo_cv import OUTPUTS_DIR, TARGET, Dados
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\protocolo_cv.py", line 28, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\__init__.py", line 70, in <module>
+    from protocolo_cv import OUTPUTS_DIR, TARGET, Dados
+  File "C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\protocolo_cv.py", line 28, in <module>
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\__init__.py", line 70, in <module>
+    from sklearn.base import clone  # noqa: E402
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\base.py", line 20, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\__init__.py", line 70, in <module>
+    from sklearn.base import clone  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\base.py", line 20, in <module>
+    from sklearn.base import clone  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\base.py", line 20, in <module>
+    from sklearn.utils._metadata_requests import _MetadataRequester, _routing_enabled
+    from sklearn.utils._metadata_requests import _MetadataRequester, _routing_enabled
+    from sklearn.utils._metadata_requests import _MetadataRequester, _routing_enabled
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\__init__.py", line 9, in <module>
+    from sklearn.utils._metadata_requests import _MetadataRequester, _routing_enabled
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\__init__.py", line 9, in <module>
+    from sklearn.utils._metadata_requests import _MetadataRequester, _routing_enabled
+    from sklearn.utils._metadata_requests import _MetadataRequester, _routing_enabled
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\__init__.py", line 9, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\__init__.py", line 9, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\__init__.py", line 9, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\__init__.py", line 9, in <module>
+    from sklearn.utils._chunking import gen_batches, gen_even_slices
+    from sklearn.utils._chunking import gen_batches, gen_even_slices
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_chunking.py", line 11, in <module>
+    from sklearn.utils._chunking import gen_batches, gen_even_slices
+    from sklearn.utils._chunking import gen_batches, gen_even_slices
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_chunking.py", line 11, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_chunking.py", line 11, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_chunking.py", line 11, in <module>
+    from sklearn.utils._chunking import gen_batches, gen_even_slices
+    from sklearn.utils._chunking import gen_batches, gen_even_slices
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_chunking.py", line 11, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_chunking.py", line 11, in <module>
+    from sklearn.utils._param_validation import Interval, validate_params
+    from sklearn.utils._param_validation import Interval, validate_params
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_param_validation.py", line 17, in <module>
+    from sklearn.utils._param_validation import Interval, validate_params
+    from sklearn.utils._param_validation import Interval, validate_params
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_param_validation.py", line 17, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_param_validation.py", line 17, in <module>
+    from sklearn.utils._param_validation import Interval, validate_params
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_param_validation.py", line 17, in <module>
+    from sklearn.utils._param_validation import Interval, validate_params
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_param_validation.py", line 17, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_param_validation.py", line 17, in <module>
+    from sklearn.utils.validation import _is_arraylike_not_scalar
+    from sklearn.utils.validation import _is_arraylike_not_scalar
+    from sklearn.utils.validation import _is_arraylike_not_scalar
+    from sklearn.utils.validation import _is_arraylike_not_scalar
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\validation.py", line 24, in <module>
+    from sklearn.utils.validation import _is_arraylike_not_scalar
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\validation.py", line 24, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\validation.py", line 24, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\validation.py", line 24, in <module>
+    from sklearn.utils.validation import _is_arraylike_not_scalar
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\validation.py", line 24, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\validation.py", line 24, in <module>
+    from sklearn.utils._array_api import (
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_array_api.py", line 16, in <module>
+    from sklearn.utils._array_api import (
+    from sklearn.utils._array_api import (
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_array_api.py", line 16, in <module>
+    from sklearn.utils._array_api import (
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_array_api.py", line 16, in <module>
+    from sklearn.utils._array_api import (
+    from sklearn.utils._array_api import (
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_array_api.py", line 16, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_array_api.py", line 23, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_array_api.py", line 23, in <module>
+    import scipy.special as special
+    from sklearn.utils.fixes import parse_version
+    import scipy.special as special
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\special\__init__.py", line 785, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\special\__init__.py", line 788, in <module>
+    from sklearn.utils.fixes import parse_version
+    import scipy.special as special
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\fixes.py", line 16, in <module>
+    import scipy.special as special
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\fixes.py", line 15, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\special\__init__.py", line 785, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\special\__init__.py", line 785, in <module>
+    import scipy.stats
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\stats\__init__.py", line 600, in <module>
+    import scipy.sparse.linalg
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\sparse\linalg\__init__.py", line 135, in <module>
+    from . import _basic
+    from . import _ufuncs
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\special\_basic.py", line 20, in <module>
+  File "scipy/special/_ufuncs.pyx", line 1, in init scipy.special._ufuncs
+    from . import _ufuncs
+  File "scipy/special/_ufuncs.pyx", line 1, in init scipy.special._ufuncs
+  File "scipy/special/_ellip_harm_2.pyx", line 1, in init scipy.special._ellip_harm_2
+  File "scipy/special/_ellip_harm_2.pyx", line 1, in init scipy.special._ellip_harm_2
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\linalg\__init__.py", line 213, in <module>
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\linalg\__init__.py", line 219, in <module>
+    from ._decomp_update import *
+    from ._matfuncs import *
+  File "scipy/linalg/_decomp_update.pyx", line 1, in init scipy.linalg._decomp_update
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\linalg\_matfuncs.py", line 20, in <module>
+ImportError: DLL load failed while importing cython_lapack: O arquivo de paginação é muito pequeno para que esta operação seja concluída.
+    from . import _ufuncs
+  File "scipy/special/_ufuncs.pyx", line 1, in init scipy.special._ufuncs
+  File "scipy/special/_ellip_harm_2.pyx", line 1, in init scipy.special._ellip_harm_2
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\linalg\__init__.py", line 201, in <module>
+    from ._misc import *
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\linalg\_misc.py", line 3, in <module>
+    from ._linalg_pythran import _funm_loops  # type: ignore[import-not-found]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ImportError: DLL load failed while importing _linalg_pythran: O arquivo de paginação é muito pequeno para que esta operação seja concluída.
+    from ._eigen import *
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\sparse\linalg\_eigen\__init__.py", line 11, in <module>
+    from .blas import get_blas_funcs
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\linalg\blas.py", line 247, in <module>
+    from ._svds import svds
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\sparse\linalg\_eigen\_svds.py", line 8, in <module>
+    from scipy.linalg import _fblas
+ImportError: DLL load failed while importing _fblas: O arquivo de paginação é muito pequeno para que esta operação seja concluída.
+    from scipy.sparse.linalg._svdp import _svdp
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\sparse\linalg\_svdp.py", line 9, in <module>
+    from . import _propack  # type: ignore[attr-defined]
+    ^^^^^^^^^^^^^^^^^^^^^^
+ImportError: DLL load failed while importing _propack: O arquivo de paginação é muito pequeno para que esta operação seja concluída.
+    from ._stats_py import *
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\stats\_stats_py.py", line 42, in <module>
+    from . import _specfun
+ImportError: DLL load failed while importing _specfun: O arquivo de paginação é muito pequeno para que esta operação seja concluída.
+    from scipy.optimize import milp, LinearConstraint
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\optimize\__init__.py", line 423, in <module>
+    from ._minimize import *
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\optimize\_minimize.py", line 32, in <module>
+    from ._tnc import _minimize_tnc
+  File "C:\Users\Usuário\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\optimize\_tnc.py", line 35, in <module>
+    from scipy.optimize import _moduleTNC as moduleTNC
+  File "<frozen importlib._bootstrap>", line 1357, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 418, in __enter__
+  File "<frozen importlib._bootstrap>", line 311, in acquire
+  File "<frozen importlib._bootstrap>", line 170, in __enter__
+  File "<frozen importlib._bootstrap>", line 132, in setdefault
+MemoryError
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+C:\us trem\Doc\UFMG\9\Lop\Codigo_v4\Código\etapas\etapa_3_2\subetapa_3_2_6_mlp_otimizacao\fase_c_perdas_fisicas.py:147: ExperimentalWarning: Argument ``group`` is an experimental feature. The interface can change in the future.
+  sampler=optuna.samplers.TPESampler(multivariate=True, group=True, seed=2042 + wid, n_startup_trials=24),
+Busca concluída em 99.1 min

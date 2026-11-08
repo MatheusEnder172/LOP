@@ -1,0 +1,25 @@
+{
+  "origem": "B2 – tentativa 511",
+  "config": {
+    "hidden_dims": [
+      90,
+      45,
+      22
+    ],
+    "activation": "GELU",
+    "use_layer_norm": false,
+    "use_residual": true,
+    "inicializacao": "padrao",
+    "entrada_log_t": true,
+    "dropout_rate": 0.12543102431411296,
+    "lr": 0.004078055233808696,
+    "weight_decay": 0.0010208014293023103,
+    "batch_size": 16,
+    "modo_parada": "epocas_fixas",
+    "patience": 0,
+    "max_epochs": 928,
+    "mono_lambda": 0.0
+  },
+  "RMSE_X_media_10_sementes": 0.03263755460033877,
+  "RMSE_X_dp_10_sementes": 0.004964477213038921
+}
