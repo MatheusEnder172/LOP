@@ -8,6 +8,8 @@ O prompt completo, pronto para colar, está em `Codigo_v4/PROMPT_NOVO_CHAT.md`.
 
 ## 1. Situação em uma página
 
+> **Atualização de 08/11/2026.** Etapa 1 feita (v2 integrada, commit `01c189b`). Etapa 2: Fases C e D concluídas sem ganho adotável; o usuário decidiu **manter a v2** (comitê da B2). D2 (monotonia) descartada: a lei física exige só ν > 0, já garantida por construção. Resultados em `Código/outputs/etapa_3_2/subetapa_3_2_6_mlp_otimizacao/fase_c` e `fase_d`; hashes da v2 em `models_saved/mlp_v2/SHA256SUMS.txt`. Próximo: Etapa 2b (pesos λ do problema inverso), depois Etapa 3.
+
 - **Modelo.** O pipeline oficial (`main`, commit `f62f39b`) usa a MLP v1. No branch `feat/mlp-otimizacao` há a **MLP v2**: comitê de 10 redes ([90, 45, 22] residual, GELU, entrada em ln t, 928 épocas fixas), com RMSE de X_Zn fora da dobra de 0,0326 ± 0,0050 (10 sementes) e **0,0202 no teste cego** (v1: 0,0353; fenomenológico puro: 0,0780). A v2 **ainda não está integrada** ao `SerialHybridModel` nem à Etapa 4.2.
 - **Teste cego (ensaios 7, 8 e 14) já foi visto uma vez**, na Fase E mínima. Qualquer mudança futura deve ser escolhida só pela validação cruzada.
 - **Relatório.** A v7 (`Documento/RELATÓRIO FINAL LOP_v7.docx`) tem a Metodologia do híbrido serial com 3.317 palavras (eram 6.296) e os Apêndices B a E, em vermelho, com a explicação completa. Os Resultados, as Conclusões, o Resumo e o Apêndice A continuam vazios no documento do grupo.

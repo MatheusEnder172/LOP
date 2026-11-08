@@ -6,6 +6,30 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-08 12:59] - Decisão: a v2 (comitê da B2) fica como modelo da Etapa 2; hashes registrados
+
+### 1. Objetivo da Atividade
+- Registrar a decisão do usuário sobre as Fases C e D e guardar o hash dos arquivos do comitê v2, para a rastreabilidade exigida antes das previsões dos 4 ensaios novos.
+
+### 2. Hipótese / Decisão de Design
+- Decisão do usuário (08/11): **manter a v2**; a Fase D (v3) não é adotada. As Fases C (D1, D2) e D entram como resultado neutro no Apêndice E, em vermelho, com números dos CSVs.
+- O congelamento definitivo do modelo final continua dependendo da Etapa 2b (pesos λ do problema inverso): só muda se ela der ganho maior que 1 erro-padrão em 10 sementes. Parada de segurança: terça 10/11 ao meio-dia.
+
+### 3. Ações Executadas
+- SHA-256 dos 10 membros e do `mlp_v2_config.json` gravados em `Código/outputs/models_saved/mlp_v2/SHA256SUMS.txt` (arquivos conferidos intactos desde o treino de 25/10).
+- Hashes (primeiros 16 caracteres): sementes 42 a 51 = 91671bc6319d9794, 13a4ecc00c08b5cd, 9e8de474fa657dea, 8e4137f8dd4b0855, f8d34163cb66439d, ba3d7e2a7d6e8f44, 2cd1e020e2ebb058, e78a536fccbc13ac, c5ccbac9e6bbd27e, c5a1007d458b5f82; config = f204c8e04121174d.
+
+### 4. O que Funcionou e Métricas Obtidas
+- Modelo vigente (v2): RMSE de X_Zn fora da dobra 0,0326 ± 0,0050 (10 sementes); teste cego 0,0202 (R² 0,888); global 0,0157.
+
+### 5. O que Falhou / Problemas Encontrados
+- Nada novo. Os hashes valem para a v2 atual; se a Etapa 2b a substituir, novos hashes devem ser gravados antes de gerar as previsões dos ensaios novos.
+
+### 6. Ações Corretivas e Próximos Passos
+- Etapa 2b (escolha criteriosa dos pesos λ do problema inverso, com validação cruzada deixando um instante de fora), depois a Etapa 3 (ensaios novos).
+
+---
+
 ## [2026-11-08 12:51] - Etapa 2 (continuação): Fase D (ajuste fino ponta a ponta) e D1 com γ menor; D2 descartada por decisão do usuário
 
 ### 1. Objetivo da Atividade
