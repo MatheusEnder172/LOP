@@ -6,6 +6,38 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-07 22:30] - Etapa 2 (parcial): Fase C (perdas físicas D1 e D2) concluída; Fase D não executada
+
+### 1. Objetivo da Atividade
+- Executar a Fase C do plano pendente da Subetapa 3.2.6 sobre a configuração da B2: perda ponderada pela sensibilidade de X_Zn a ν (D1) e penalidade de monotonia ∂ν/∂t ≤ 0 (D2), com busca Optuna e ablação com 10 sementes. Preparar a Fase D (ajuste fino ponta a ponta pelo PBM). Parar ao fim da ablação, a pedido do usuário (continua em outro dia).
+
+### 2. Hipótese / Decisão de Design
+- Critério de ganho claro (definido antes dos resultados): diferença média pareada por semente, B2 − variante, maior que 1 erro-padrão da própria diferença (10 sementes). Escolha só pela validação cruzada; teste cego (ensaios 7, 8 e 14) não foi usado.
+- Peso D1: soma, nos instantes experimentais tₖ ≥ tᵢ, de X′(δₖ)·∂δₖ/∂νᵢ·(1 + νᵢ), com δ no esquema serial; média 1, piso relativo de 1e-3, elevado a γ.
+- Ablação com 5 linhas, para separar o efeito do reajuste de taxa de aprendizado e épocas (da busca) do efeito das perdas: B2, B2 reajustada, + D1, + D2, + D1 + D2.
+
+### 3. Ações Executadas
+- Criados `fase_c_perdas_fisicas.py` (pesos, busca, ablação), `figuras_fase_c.py`, `Código/src/hybrid/pbm_torch.py` (PBM diferenciável), `fase_d_ponta_a_ponta.py`, `figuras_fase_d.py` e `test_fases_c_d.py` (5 testes), na pasta da subetapa 3.2.6.
+- Busca Optuna: 101 tentativas (91 concluídas, 10 podadas), 99 min. Ablação: 50 treinos de 4 dobras, 21 min. Saídas em `Código/outputs/etapa_3_2/subetapa_3_2_6_mlp_otimizacao/fase_c/` (README com a tabela completa e 6 figuras em PNG e PDF, 300 DPI).
+- Fase D: o código foi escrito e testado em escala pequena (rede de 60 épocas, pasta temporária), mas **não foi rodado de verdade** (sem pré-treino, busca nem comparação). Figuras da Fase D também não geradas.
+
+### 4. O que Funcionou e Métricas Obtidas
+- RMSE de X_Zn fora da dobra, 10 sementes: B2 0,0326 ± 0,0050 (reproduzido); B2 reajustada 0,0340 ± 0,0026; + D1 0,0639 ± 0,1103; + D2 0,0336 ± 0,0043; + D1 + D2 0,0998 ± 0,1464. **Nenhuma variante com ganho claro.**
+- D1 sem as sementes que colapsaram (9 de 10): 0,0290, ganho de 0,0037 sobre a B2 (EP 0,0021; p pareado 0,12). Na busca com 3 sementes (42 a 44) a melhor tentativa deu 0,0269 contra 0,0308 da B2: ganho superestimado pela escolha das sementes.
+- `pbm_torch` reproduz o `SerialHybridModel` com diferença menor que 1e-6 nos 16 ensaios (teste automático); pesos D1 com γ = 0 dão 1.
+
+### 5. O que Falhou / Problemas Encontrados
+- D1 (γ = 1,84) colapsou a rede para ν ≈ 0 em 1 de 40 treinos (semente 51, dobra 2; X previsto ≈ 1e-7; RMSE 0,784), e D1 + D2 em 2 de 40. A causa provável é a faixa muito larga dos pesos (cerca de 1e-7 a 200) com taxa de aprendizado maior; não foi testada.
+- D2 com λ = 0,1 não mudou a monotonia (cerca de 11% do domínio com ∂ν/∂t > 0, igual à B2) nem o RMSE. Valores maiores de λ só foram testados combinados com D1, que colapsa.
+- `melhor_config_fase_c.json` aponta "+ D2" como variante de menor RMSE médio, mas é só ruído (0,0336 contra 0,0340 da B2 reajustada); não vale como escolha. Registrado no README da pasta.
+
+### 6. Ações Corretivas e Próximos Passos
+- Decidir de qual rede partir na Fase D: a B2 original (a v2 atual) ou D1 com salvaguardas (γ menor, por exemplo ≤ 1; piso maior nos pesos; corte de gradiente), o que exigiria nova rodada curta de busca e ablação (cerca de 1 h).
+- Rodar a Fase D (pré-treino de 10 sementes, busca, comparação) com a base escolhida. Parada de segurança: terça 10/11 ao meio-dia; sem ganho claro, a v2 (B2) fica como modelo final.
+- Se a Fase C ficar como resultado neutro, registrar em poucas linhas no Apêndice E (em vermelho), com números dos CSVs. Etapa 2b (pesos λ do problema inverso) ainda não iniciada.
+
+---
+
 ## [2026-11-07 20:23] - Etapa 1: Integração do Comitê da MLP v2 ao SerialHybridModel e à Etapa 4.2 (sem mudar números)
 
 ### 1. Objetivo da Atividade
