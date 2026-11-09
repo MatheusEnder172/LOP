@@ -6,6 +6,64 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-09 16:21] - Decisão de escopo dos Resultados (modelo 13 + 3) e pacote de handoff para um novo chat
+
+### 1. Objetivo da Atividade
+- Registrar a decisão do usuário (09/11) sobre como apresentar os Resultados e deixar tudo documentado para continuar a escrita em outro chat, sem depender desta conversa.
+
+### 2. Hipótese / Decisão de Design
+- Os Resultados mostram a individualidade de cada modelagem do grupo; aqui entra só a serial (v2, comitê de 10 redes, congelada). Parte do modelo breve (só o que não está em Métodos nem nos Apêndices B a E); o foco é treinamento e validação: 13 ensaios de treino/validação cruzada e 3 de teste cego (7, 8 e 14).
+- Os 4 ensaios novos de laboratório ficam de fora por enquanto e entram depois como extra, se os dados forem esclarecidos (aguardando laboratório e orientador). Nenhum retreino.
+- Modo de trabalho do usuário: escrita pausada, um bloco por vez, com a opção de ele ler e editar ou de o texto entrar direto no Word (v11, nascida da v10) para feedback depois.
+
+### 3. Ações Executadas
+- Criada a pasta `Documento/handoff_resultados_13_3/` com: `00_LEIA_PRIMEIRO.md` (escopo, ordem de leitura, onde está cada coisa), `01_decisoes_e_regras.md` (modo de trabalho, regras do Word, estilo, regras de dados, DEVLOG, commits, armadilhas), `02_estado_do_documento_e_estrutura.md` (o que a v10 já tem, estrutura proposta em 8 subseções, análises opcionais, como construir a v11), `03_numeros_e_fontes.md` (números com os CSVs de origem, RMSE por ensaio, por dobra, ressalvas, não verificado), `04_ensaios_novos_depois.md` (estado e como entrarão) e `PROMPT_NOVO_CHAT.md`.
+- Números conferidos de novo nos CSVs (`fase_e`, `fase_a`, `fase_b2`, `etapa_4_4`); RMSE por dobra da validação cruzada calculado de `fase_b2/finalistas_por_dobra.csv` (tentativa 511): 0,0262; 0,0477; 0,0196; 0,0305.
+- Nenhum .docx, modelo ou número foi alterado.
+
+### 4. O que Funcionou e Métricas Obtidas
+- Conferência: v2 treino 0,0145 (R² 0,995; 91 pontos), teste cego 0,0202 (R² 0,888; 21 pontos), global 0,0157; validação cruzada fora da dobra 0,0326 ± 0,0050; teto 0,0142; v1 0,183 na validação cruzada (10 sementes). A dobra 2 (Ensaios 4, 10 e 15, bordas) é a pior.
+
+### 5. O que Falhou / Problemas Encontrados
+- Os arquivos `PROMPT_NOVO_CHAT.md` e `PLANO_RETOMADA_PROXIMO_CHAT.md` da raiz são de 07/11 e estão desatualizados (pedem etapas já feitas); não foram alterados, e o handoff novo avisa para não usá-los.
+- Não verificado: se há curva de perda por época salva; texto das Seções E.3 a E.7 e da Tabela E.2 não foi relido nesta passagem; a renderização no Word é do usuário.
+
+### 6. Ações Corretivas e Próximos Passos
+- Abrir o novo chat com `Documento/handoff_resultados_13_3/PROMPT_NOVO_CHAT.md`; escrever os Resultados (v11) por blocos, com aprovação do usuário a cada um.
+- Pendentes gerais: respostas do laboratório e do orientador sobre os 4 ensaios; checklist dos 115 comentários de 09/09; numeração definitiva com o grupo; PR #1 (descrição e merge só com autorização).
+
+---
+
+## [2026-11-09 16:45] - Padrão de gráficos do grupo para a seção de Resultados (estilo C, módulo, paleta e prompt para os colegas)
+
+### 1. Objetivo da Atividade
+- A pedido do usuário (09/11), padronizar os gráficos da seção de Resultados entre os 4 integrantes do grupo: propor formatações, escolher uma com o usuário e entregar um prompt para os colegas gerarem figuras iguais.
+
+### 2. Hipótese / Decisão de Design
+- Quatro candidatos desenhando a mesma figura com dados reais (A clássico P&B, B moderno colorido, C serifado colorido com redundância, D minimalista). O usuário escolheu o **C**: Times New Roman (fonte do Word), caixa completa, grade pontilhada leve, ticks para dentro.
+- Paleta Okabe-Ito fixa por modelo, com redundância (cor + linha + marcador + hachura): White-box (Fabrício) laranja #E69F00 tracejada; white-box novo azul #0072B2 pontilhada; MLP pura verde #009E73 traço-ponto; híbrido serial rosa #CC79A7 sólida. Extras: #D55E00, #56B4E9, #6E6E6E. Amarelo excluído.
+- Decisões que valem para toda figura (tomadas por mim, a confirmar com o grupo): 16 cm (ou 7,8) de largura, 300 DPI, PNG + PDF, sem título dentro da figura (legenda no Word, ABNT), vírgula decimal, (a)(b)(c) só com 2+ painéis, eixo do tempo linear com quadro ampliado quando a cinética se concentra no 1º minuto, asterisco nos ensaios de teste cego.
+- Pasta nova `Documento/padrao_graficos/`; nenhum script do projeto foi alterado.
+
+### 3. Ações Executadas
+- `padrao_graficos_lop.py` (módulo; margens em cm; vírgula decimal por formatador; `salvar` grava PNG e PDF com fonte embutida), `exemplo_figura_padrao.py` e `exemplo_figura_painel_unico.py` (figuras-modelo), `gerar_paleta.py` (folha da paleta com versão P&B e simulação de deuteranopia e protanopia), `test_padrao_graficos_lop.py` (7 testes, passam), `GUIA_PADRAO_GRAFICOS.md`, `PROMPT_PARA_COLEGAS.md`. Registro dos candidatos: `exemplos_estilos.py` e `exemplos/estilo_A..D.png`.
+- O prompt foi testado por um agente sem o contexto da conversa, fazendo o papel de colega (barras de RMSE por ensaio, em pasta temporária). Ele achou defeitos que foram corrigidos: margens fixas em fração cortavam o rótulo do eixo x em figura baixa (agora em cm); faltava rótulo "Ensaio", marcação de teste cego, `alpha`/`xlim` nas barras e legenda de barras com hachura; o prompt não dizia nada sobre painel único, altura, aviso de fonte e como achar a pasta da etapa.
+
+### 4. O que Funcionou e Métricas Obtidas
+- Figura-modelo em 16 cm x 300 DPI (1890 px), PDF com Times New Roman embutida (sem Type 3). 7 de 7 testes passam.
+- Luminância (Y): em preto e branco, MLP pura e híbrido (dupla mais próxima) diferem só 0,036; laranja e azul-claro, 0,011. Por isso a hachura, a linha e o marcador são obrigatórios.
+
+### 5. O que Falhou / Limitações
+- O teste do prompt foi com **um** agente e **uma** figura; não garante que todos os colegas (outras IAs, sem a fonte Times New Roman, sem acesso à pasta) obtenham o mesmo resultado. Sem a fonte o módulo só avisa e cai para outra serifada (o prompt manda parar).
+- Observação sobre o modelo (não sobre o padrão): a curva do híbrido serial sobe em linha reta de t = 0 a ≈ 0,25 min e só depois muda de inclinação (visível no quadro ampliado, ensaio 9). Origem não investigada.
+- Nada foi commitado; os `.docx` seguem fora dos commits.
+
+### 6. Ações Corretivas e Próximos Passos
+- O usuário confirma as decisões da seção 2 com o grupo e distribui `PROMPT_PARA_COLEGAS.md`. Depois, regenerar as figuras já existentes dos Resultados no padrão (hoje as Fig. 13a/13b e as do 4x4 ainda usam o estilo antigo).
+- Entender a rampa inicial do híbrido antes da banca.
+
+---
+
 ## [2026-11-09 14:11] - Medições dos 4 ensaios novos comparadas com a previsão a priori (E2 e E3 possivelmente trocados; E1 e E4 acima do limite estequiométrico)
 
 ### 1. Objetivo da Atividade
