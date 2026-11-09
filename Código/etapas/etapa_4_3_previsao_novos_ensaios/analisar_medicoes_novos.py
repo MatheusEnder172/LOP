@@ -216,6 +216,24 @@ def main() -> None:
     fig.savefig(OUT / "fig_ne_08_painel_medicoes_E2_E3_trocados.png", dpi=300)
     fig.savefig(OUT / "fig_ne_08_painel_medicoes_E2_E3_trocados.pdf", dpi=300)
     plt.close(fig)
+    # painel alternativo: rótulos como estão na planilha (sem trocar E2 e E3); eixo estendido para mostrar X > 1
+    cr = converter(bruto, w, troca=False)
+    med_r = cr[cr["t_min"] > 0][["ensaio", "t_min", "XZn_medido"]]
+    fig, axes = plt.subplots(2, 2, figsize=(13, 9), sharex=True, sharey=True)
+    for ax, nome in zip(axes.ravel(), pn.ENSAIOS_NOVOS):
+        pn._painel(ax, nome, tab, cur, med_r)
+        ax.set_ylim(-0.02, 1.85)
+        ax.axhspan(1.0, 1.85, color="k", alpha=0.05, lw=0)
+        acima = med_r[(med_r["ensaio"] == nome) & (med_r["XZn_medido"] > 1.0 + 1e-9)]
+        if len(acima):
+            ax.text(0.5, 0.93, "X_Zn medido > 1 (fisicamente impossível)", transform=ax.transAxes, ha="center", fontsize=9,
+                    color=pn.COR["med"], bbox=dict(boxstyle="round", fc="white", ec=pn.COR["med"], alpha=0.9))
+    axes[0, 0].legend(loc="upper right", fontsize=7.5)
+    fig.suptitle("Previsão a priori e medições dos 4 ensaios novos (rótulos como estão na planilha, sem trocar E2 e E3)", fontsize=12)
+    fig.tight_layout()
+    fig.savefig(OUT / "fig_ne_09_painel_medicoes_como_rotulado.png", dpi=300)
+    fig.savefig(OUT / "fig_ne_09_painel_medicoes_como_rotulado.pdf", dpi=300)
+    plt.close(fig)
     escrever_relatorio(r, ct, tab, w, w_dp)
     print(f"w = {w:.4f} ± {w_dp:.4f}")
     pd.set_option("display.width", 220)
