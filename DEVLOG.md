@@ -6,6 +6,91 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-09 14:11] - Medições dos 4 ensaios novos comparadas com a previsão a priori (E2 e E3 possivelmente trocados; E1 e E4 acima do limite estequiométrico)
+
+### 1. Objetivo da Atividade
+- Comparar as medições recebidas em 09/11 (`Base de dados/Experimentos novos/Resultados.xlsx`) com a previsão a priori da MLP v2 gravada em 08/11/2026 às 13h14 (arquivos conferidos por hash, sem refazer a previsão), e apontar o que falta para finalizar o projeto.
+
+### 2. Hipótese / Decisão de Design
+- A planilha dá só Zn (mg/L) = leitura × FD (FD = M2/M1) em 6 instantes (0,5; 1; 2; 3; 5; 15 min; **sem 4 min**). A conversão usa a conta dos 16 originais, X = C_Zn·V/(m·w), com V = 200 mL, as massas do plano (6,7; 12,1; 6,7; 12,6 g) e w = 0,611 ± 0,004 g Zn/g sólido, calibrado nos 16 ensaios antigos (todos concordam).
+- **Hipótese 1 (a confirmar):** falta uma diluição anterior; a coluna "Zn (mg/L)" só tem a ordem de grandeza esperada (16 a 35 g/L; originais: 2 a 90 g/L) se for lida como g/L (diluição de 1000×). Todos os X mudam na mesma proporção se o fator for outro.
+- Análise principal como rotulado na planilha; sensibilidades: rótulos E2 e E3 trocados e w ± 0,02.
+
+### 3. Ações Executadas
+- `Código/etapas/etapa_4_3_previsao_novos_ensaios/analisar_medicoes_novos.py` (lê a planilha sem alterá-la, calibra w, converte, roda o `comparar` da previsão gravada, faz as sensibilidades, a figura e o relatório). Saídas: `Base de dados/Experimentos novos/medicoes_XZn_ensaios_novos.csv`; `Código/outputs/etapa_4_3_previsao_novos_ensaios/` (comparação como rotulado) e `.../medicoes/` (conversão completa, sensibilidade, `fig_ne_07`, `fig_ne_08` e `relatorio_comparacao_medicoes.md`).
+
+### 4. O que Funcionou e Métricas Obtidas
+- **Como rotulado:** impossível. E3 dá X_Zn = 1,69 em 15 min (acima de 1) e E2 dá 0,54 (previsto 0,93); RMSE global 0,379. O Zn do "E3" (34,6 g/L) só cabe na massa de 12,1 g (E2) e o do "E2" (19,9 g/L) na de 6,7 g (E3).
+- **Com E2 e E3 trocados** (a confirmar com o laboratório), RMSE da v2: E2 0,049; E3 0,042; E4 0,041; E1 0,144; global 0,081 (24 pontos) e **0,044 sem o E1**. Patamares de E2 e E3 bem previstos (0,936 medido contra 0,929 previsto; 0,971 contra 0,989). O erro desses dois vem dos instantes iniciais (previsão 0,04 a 0,07 acima em 0,5 e 1 min). A v2 foi melhor que o fenomenológico em E2 e E3 (0,117 e 0,072) e em E1 foi pior que ele (0,081).
+- Referências de erro do modelo: 0,033 (validação cruzada) e 0,020 (teste cego). 50% dos pontos ficaram a menos de 0,05 da previsão.
+
+### 5. O que Falhou / Problemas Encontrados
+- **E1 e E4 (C_A0 = 0,25 mol/L, η < 1):** o X_Zn medido fica acima do limite estequiométrico em **todos** os instantes (E1: 0,77 a 0,87 contra 0,75; E4: 0,42 a 0,45 contra 0,40), o que é impossível com as condições nominais; em E1 o X medido ainda cai de 0,87 (1 min) para 0,81 (15 min). Portanto o desvio de E1 (RMSE 0,144) não pode ser atribuído ao modelo antes de esclarecer o dado. Hipóteses, **não testadas**: concentração real do ácido, massa ou volume diferentes dos nominais, teor de Zn do sólido, viés analítico ou de diluição. Um ajuste exploratório do fator de escala em C_A0 e η dá 1,11 para E4 (RMSE 0,009) mas acima de 1,3 para E1, então um único erro de ácido não explicaria os dois.
+- A interpolação linear simples dos 16 ensaios medidos foi ligeiramente melhor que a v2 em E2 e E3 (RMSE 0,031 contra 0,049 e 0,042): o ganho do modelo dentro do domínio não é demonstrado por estes dois ensaios.
+- O efeito do volume (200 contra 400 mL) não pode ser separado dos problemas de dados acima.
+- Não verificado: tudo depende da confirmação do laboratório sobre rótulos, massas pesadas, diluições, titulação do ácido e teor de Zn deste lote.
+
+### 6. Ações Corretivas e Próximos Passos
+- Pedir ao laboratório: rótulos de E2 e E3; diluições (fator anterior à coluna FD); massa pesada e volume reais; concentração real do ácido (titulação); teor de Zn do lote de calcina; ponto de 4 min; volume retirado por amostra e réplicas analíticas. Com isso, rodar de novo `analisar_medicoes_novos.py` (um comando).
+- Atualizar o Apêndice E.11 e acrescentar a validação externa aos Resultados (v11), com as ressalvas acima; decidir se os 4 ensaios entram como treino ou ficam como validação (ver plano completo na resposta ao usuário).
+
+---
+
+## [2026-11-08 15:31] - Comparativos gráficos: white-box do Fabrício, white-box novo, MLP pura e híbrido serial
+
+### 1. Objetivo da Atividade
+- A pedido do usuário (08/11), gráficos comparativos para a discussão: (i) white-box original × novo; (ii) os quatro modelos (white-box do Fabrício, white-box novo, MLP pura da 3.2.7 e híbrido serial com a MLP v2) ensaio a ensaio.
+
+### 2. Hipótese / Decisão de Design
+- Só leitura de modelos congelados (nenhum treino). Métricas em t > 0 (112 pontos), teste cego = ensaios 7, 8 e 14. "Fabrício" = RRB em massa + α = 5500 µm/min; "novo" = RRB ÷ D³ + α = 0; híbrido = comitê MLP v2 → PBM (campeão do projeto).
+- Scripts novos, sem alterar os existentes: `etapas/etapa_1_3_baseline_fpm/gerar_grafico_comparativo_whitebox.py` e `..._whitebox_4x4.py` (saídas em `outputs/etapa_1_3/`); `etapas/etapa_4_2_avaliacao_indomain/gerar_grafico_comparativo_4_modelos.py` (saídas `fig_13a` e `fig_13b` e duas tabelas CSV em `outputs/etapa_4_2_avaliacao_indomain/`).
+
+### 3. Ações Executadas
+- Figura-resumo e painel 4x4 do white-box antigo × novo; painel 4x4 com os quatro modelos (RMSE por quadro, estrela no menor erro do ensaio, faixa dos 10 membros do híbrido); resumo com RMSE por partição e mapa de calor do RMSE por ensaio.
+
+### 4. O que Funcionou (com métricas)
+- RMSE de X_Zn, treino / teste cego / global: Fabrício 0,1156 / 0,0651 / 0,1079; white-box novo 0,0682 / 0,0780 / 0,0702 (R² global 0,87); MLP pura 0,0055 / 0,0184 / 0,0094; híbrido v2 0,0145 / 0,0202 / 0,0157.
+- O white-box novo reduz o RMSE global em 35% em relação ao do Fabrício e corrige o patamar de η = 0,5 (50% em vez de 38,3%); o híbrido reduz ainda mais.
+
+### 5. O que Falhou / Limitações
+- O white-box novo piora nos ensaios com η = 1,0 (8, 9 e 10; RMSE de 11 a 15%, satura perto de 100% contra 85 a 87% medido) e, no teste cego, fica pior que o do Fabrício (0,0780 contra 0,0651), porque satura em 100% nos ensaios com η ≥ 1,5, onde o medido fica em 95 a 97%.
+- A MLP pura tem o menor RMSE em 15 dos 16 ensaios, mas sem física (viola o teto, ondula, não extrapola) e sem diferença conclusiva contra o híbrido no teste cego (3 ensaios, 21 pontos, todos dentro do planejamento). A comparação decisiva é fora do domínio (ensaios novos; η = 0,40).
+
+### 6. Próximos Passos
+- Decidir com o usuário se algum desses gráficos entra nos Resultados/Apêndices (hoje só ficam em `outputs/`). Comparação em extrapolação quando houver os ensaios novos.
+
+---
+
+## [2026-11-08 15:26] - Subetapa 3.2.7: MLP pura (caixa-preta direta) em X_Zn, para comparação futura
+
+### 1. Objetivo da Atividade
+- A pedido do usuário (08/11), ter uma MLP "pura" treinada só com os pares (C_A0, η, t) → X_Zn, sem PBM, para comparar depois com o white-box e o híbrido serial. Até então todas as MLPs aprendiam a taxa |ν| (e o "DDM Puro" da Etapa 4.2 passa a taxa pelo PBM).
+
+### 2. Hipótese / Decisão de Design
+- Mesmo protocolo da 3.2.6: treino nos 13 ensaios (91 pontos t > 0); teste cego (7, 8 e 14) usado uma vez, com o comitê congelado; seleção só por validação cruzada nas 4 dobras da Etapa 3.1 (3 sementes, RMSE de X_Zn fora da dobra).
+- Entradas [C_A0, η, ln t] padronizadas; saída linear, sem sigmoide, sem teto min(1, η), sem monotonia (é o que torna o modelo "puro"). Comitê de 10 redes (sementes 42 a 51), média como previsão.
+- Pasta nova (nada existente foi alterado): `Código/etapas/etapa_3_2/subetapa_3_2_7_mlp_puro_xzn/`; saídas em `Código/outputs/etapa_3_2/subetapa_3_2_7_mlp_puro_xzn/`; modelos em `Código/outputs/models_saved/mlp_puro_xzn/` (SHA256SUMS.txt; o treino recusa sobrescrever).
+
+### 3. Ações Executadas
+- Rodada 1 da busca (8 configurações, parada antecipada em 2 ensaios internos): RMSE da CV 0,108 a 0,156, desvio alto entre sementes, parada em cerca de 30 épocas (subtreino). Rodada 2 (24 configurações: 4 arquiteturas, 2 taxas, 150/400/900 épocas fixas): melhor RMSE da CV 0,0421 ± 0,0035; as 15 melhores entre 0,042 e 0,055 (dentro do ruído), busca encerrada. A rodada 2 foi decidida depois de ver a rodada 1, só com a CV (teste cego intacto); as duas rodadas ficam registradas em CSV.
+- Escolhida: [90, 45, 22], GELU, lr 0,01, AdamW (wd 1e-4), lote 16, 900 épocas. Comitê treinado e congelado; hashes em `models_saved/mlp_puro_xzn/SHA256SUMS.txt`.
+- Avaliação (teste cego consultado uma vez; depois só reajustei o desenho da figura, sem mexer no modelo): figura 4x4 por ensaio (300 DPI), tabelas de métricas (global, por ensaio contra white-box e híbridos v1/v2), violações físicas, curvas densas. Relatório: `relatorio_mlp_puro_xzn.md`. Testes: `test_mlp_puro_xzn.py` (4 passam).
+
+### 4. O que Funcionou (com métricas)
+- RMSE de X_Zn: treino 0,0055; **teste cego 0,0184** (R² 0,907); global 0,0094 (R² 0,998). Referências: híbrido v2 0,0145 / 0,0202 / 0,0157; híbrido v1 0,0229 / 0,0353 / 0,0257; white-box novo 0,0682 / 0,0780 / 0,0702.
+- Na CV (fora da dobra) o híbrido v2 ainda leva vantagem: 0,0326 (10 sementes) contra 0,0421 (3 sementes).
+
+### 5. O que Falhou / Limitações
+- A diferença no teste cego (0,0184 contra 0,0202) não é conclusiva (3 ensaios, 21 pontos, todos dentro do planejamento). Esse teste não mede extrapolação, onde o híbrido deve ter vantagem (por exemplo o ensaio novo com η = 0,40).
+- Sobreajuste ao ruído (treino 0,0055 contra teste 0,0184; curvas onduladas). Sem física: média do comitê até 1,2 p.p. acima do teto nos ensaios 3 e 4 (3 pontos experimentais de 112 acima do teto) e quedas de X_Zn(t) de até 0,22 p.p. Abaixo de 0,5 min a rede extrapola (trecho pontilhado na figura).
+- Ao escrever o relatório, a linha "DDM Puro" da Etapa 4.2 tem métricas idênticas às do híbrido com a MLP v1 (R², RMSE e MAE iguais), ou seja, ela não é um modelo independente; não foi investigado aqui.
+
+### 6. Próximos Passos
+- Comparação futura com o white-box e o híbrido, de preferência em extrapolação (ensaios novos do laboratório, em especial η = 0,40), onde a diferença entre os modelos deve aparecer.
+- Se o usuário quiser a MLP pura nos Resultados/Apêndice E, decidir com o grupo (decisão 3 de 24/10 limitava a Metodologia à MLP em ν).
+
+---
+
 ## [2026-11-08 14:35] - Relatório v10: seção de Resultados do híbrido serial (sem depender de ensaios novos)
 
 ### 1. Objetivo da Atividade
