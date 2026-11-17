@@ -1,0 +1,33 @@
+modelo,ensaio,particao,n,RMSE_pp,MAE_pp,Emax_pp,incons_fis_pct
+White-box (novo),1,treino,7,3.4081,2.539,6.8495,0.0
+White-box (novo),2,treino,7,3.1807,2.7482,4.9844,0.0
+White-box (novo),3,treino,7,2.236,1.5714,4.9999,0.0
+White-box (novo),4,treino,7,2.0354,1.5714,3.0,0.0
+White-box (novo),5,treino,7,1.8127,1.5714,3.0,0.0
+White-box (novo),6,treino,7,7.4018,6.878,10.7393,0.0
+White-box (novo),7,teste cego,7,5.2146,3.3696,11.5959,0.0
+White-box (novo),8,teste cego,7,11.49,11.3667,12.5524,0.0
+White-box (novo),9,treino,7,13.9594,13.882,16.0485,0.0
+White-box (novo),10,treino,7,15.0936,15.0303,16.3418,0.0
+White-box (novo),11,treino,7,5.2086,4.6772,8.5563,0.0
+White-box (novo),12,treino,7,1.6446,0.9988,3.9915,0.0
+White-box (novo),13,treino,7,5.3735,5.2163,7.7043,0.0
+White-box (novo),14,teste cego,7,4.8361,4.3854,8.7043,0.0
+White-box (novo),15,treino,7,5.5828,5.2791,8.954,0.0
+White-box (novo),16,treino,7,1.9272,1.4286,4.0,0.0
+MLP pura,1,treino,7,0.4298,0.358,0.6704,30.5085
+MLP pura,2,treino,7,0.4175,0.3251,0.7633,0.0
+MLP pura,3,treino,7,0.3801,0.2506,0.9183,32.2034
+MLP pura,4,treino,7,1.1554,0.9419,1.9816,54.2373
+MLP pura,5,treino,7,0.5179,0.4628,0.7324,18.6441
+MLP pura,6,treino,7,0.2823,0.2524,0.4345,15.2542
+MLP pura,7,teste cego,7,1.3212,0.9649,2.7381,0.0
+MLP pura,8,teste cego,7,2.305,1.8062,4.1761,13.5593
+MLP pura,9,treino,7,0.477,0.4404,0.696,15.2542
+MLP pura,10,treino,7,0.2796,0.2012,0.641,6.7797
+MLP pura,11,treino,7,0.6644,0.547,1.063,11.8644
+MLP pura,12,treino,7,0.4928,0.3918,0.9065,18.6441
+MLP pura,13,treino,7,0.4337,0.3565,0.7093,10.1695
+MLP pura,14,teste cego,7,1.7635,1.3026,3.1233,11.8644
+MLP pura,15,treino,7,0.5151,0.4538,0.9058,5.0847
+MLP pura,16,treino,7,0.5852,0.5082,1.0106,5.0847

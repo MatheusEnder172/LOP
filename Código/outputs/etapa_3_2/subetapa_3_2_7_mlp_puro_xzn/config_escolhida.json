@@ -1,0 +1,20 @@
+{
+  "config": {
+    "modo": "fixas",
+    "epocas": 900,
+    "hidden_dims": [
+      90,
+      45,
+      22
+    ],
+    "lr": 0.01,
+    "weight_decay": 0.0001,
+    "batch_size": 16,
+    "dropout": 0.0,
+    "epocas_finais": 900
+  },
+  "RMSE_cv_medio": 0.042140999122352606,
+  "RMSE_cv_dp": 0.0034889773305724465,
+  "criterio": "menor RMSE de X_Zn fora da dobra (91 pontos, 4 dobras, 3 sementes); épocas = mediana das melhores épocas",
+  "data": "2026-11-08T15:24:36"
+}

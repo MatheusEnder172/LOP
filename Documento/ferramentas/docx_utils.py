@@ -59,6 +59,25 @@ def latex_to_omml(latex: str) -> etree._Element:
     return copy.deepcopy(omml)
 
 
+def _limites_acima_e_abaixo(omml) -> None:
+    """Em equação destacada, os limites de somatórios e integrais ficam acima e abaixo do símbolo (como no restante do relatório)."""
+    for nary in omml.iter(qn("m:nary")):
+        pr = nary.find(qn("m:naryPr"))
+        if pr is None:
+            pr = parse_xml(f"<m:naryPr {nsdecls('m')}/>")
+            nary.insert(0, pr)
+        loc = pr.find(qn("m:limLoc"))
+        if loc is None:
+            loc = parse_xml(f'<m:limLoc {nsdecls("m")} m:val="undOvr"/>')
+            ch = pr.find(qn("m:chr"))
+            if ch is not None:
+                ch.addnext(loc)
+            else:
+                pr.insert(0, loc)
+        else:
+            loc.set(qn("m:val"), "undOvr")
+
+
 def _norm(text: str) -> str:
     return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().upper()
 
@@ -144,7 +163,8 @@ class SectionWriter:
 
     def equation(self, latex: str, number: str) -> None:
         """Equação centralizada com numeração à direita (tabela sem bordas de 3 colunas)."""
-        w_side, w_mid = 900, TEXT_WIDTH_TWIPS - 1800
+        w_esq, w_num = 900, 1520   # a coluna do número precisa caber "(4.5.1.1)" numa linha
+        w_mid = TEXT_WIDTH_TWIPS - w_esq - w_num
         tbl = parse_xml(
             f"<w:tbl {nsdecls('w')}>"
             "<w:tblPr><w:tblW w:w=\"0\" w:type=\"auto\"/><w:jc w:val=\"center\"/>"
@@ -152,23 +172,25 @@ class SectionWriter:
             "<w:right w:val=\"nil\"/><w:insideH w:val=\"nil\"/><w:insideV w:val=\"nil\"/></w:tblBorders>"
             "<w:tblLayout w:type=\"fixed\"/>"
             "<w:tblLook w:val=\"0000\"/></w:tblPr>"
-            f"<w:tblGrid><w:gridCol w:w=\"{w_side}\"/><w:gridCol w:w=\"{w_mid}\"/><w:gridCol w:w=\"{w_side}\"/></w:tblGrid>"
+            f"<w:tblGrid><w:gridCol w:w=\"{w_esq}\"/><w:gridCol w:w=\"{w_mid}\"/><w:gridCol w:w=\"{w_num}\"/></w:tblGrid>"
             "</w:tbl>"
         )
         tr = parse_xml(f"<w:tr {nsdecls('w')}/>")
-        for width, kind in ((w_side, "empty"), (w_mid, "math"), (w_side, "num")):
+        for width, kind in ((w_esq, "empty"), (w_mid, "math"), (w_num, "num")):
             tc = parse_xml(
                 f"<w:tc {nsdecls('w')}><w:tcPr><w:tcW w:w=\"{width}\" w:type=\"dxa\"/>"
                 "<w:vAlign w:val=\"center\"/></w:tcPr></w:tc>"
             )
             p = parse_xml(
                 f"<w:p {nsdecls('w')}><w:pPr><w:spacing w:before=\"120\" w:after=\"120\"/>"
-                "<w:ind w:left=\"0\" w:firstLine=\"0\"/>"
+                "<w:ind w:left=\"0\" w:right=\"0\" w:firstLine=\"0\"/>"
                 f"<w:jc w:val=\"{'right' if kind == 'num' else 'center'}\"/></w:pPr></w:p>"
             )
             if kind == "math":
                 para = parse_xml(f"<m:oMathPara {nsdecls('m')}/>")
-                para.append(latex_to_omml(latex))
+                omml = latex_to_omml(latex)
+                _limites_acima_e_abaixo(omml)
+                para.append(omml)
                 p.append(para)
             elif kind == "num":
                 for k, piece in enumerate(PLACEHOLDER_RE.split(f"({number})")):
@@ -213,7 +235,7 @@ class SectionWriter:
                 )
                 p = parse_xml(
                     f"<w:p {nsdecls('w')}><w:pPr><w:spacing w:before=\"40\" w:after=\"40\" w:line=\"240\" "
-                    "w:lineRule=\"auto\"/><w:ind w:left=\"0\" w:firstLine=\"0\"/><w:jc w:val=\"center\"/>"
+                    "w:lineRule=\"auto\"/><w:ind w:left=\"0\" w:right=\"0\" w:firstLine=\"0\"/><w:jc w:val=\"center\"/>"
                     "<w:rPr><w:sz w:val=\"22\"/></w:rPr></w:pPr></w:p>"
                 )
                 self._fill(p, text, bold_all=(i == 0))

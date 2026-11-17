@@ -1,0 +1,4 @@
+particao,R2,RMSE,MAE,n_viola_teto,n_pontos
+"Treino (13 ensaios, 91 pts)",0.99928,0.00553,0.00422,3,91
+"Teste cego (3 ensaios, 21 pts)",0.90674,0.01841,0.01358,0,21
+"Global (16 ensaios, 112 pts)",0.99768,0.0094,0.00598,3,112

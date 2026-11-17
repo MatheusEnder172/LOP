@@ -1,0 +1,7 @@
+modelo,particao,n_ensaios,n_pontos,RMSE_pp,MAE_pp,R2,Emax_pp,incons_fis_pct
+White-box (novo),Treino,13,91,6.8232,4.8763,0.89,16.3418,0.0
+White-box (novo),Teste cego,3,21,7.8017,6.3739,-0.6747,12.5524,0.0
+White-box (novo),Global,16,112,7.017,5.1571,0.8709,16.3418,0.0
+Híbrido serial,Treino,13,91,1.449,1.0558,0.995,3.7087,0.0
+Híbrido serial,Teste cego,3,21,2.0164,1.6457,0.8881,4.0335,0.0
+Híbrido serial,Global,16,112,1.5711,1.1664,0.9935,4.0335,0.0

@@ -6,6 +6,260 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
+## [2026-11-11 07:50] - Relatório v17: Métodos (4.1.4 a 4.1.7) passa a descrever o black-box usado nos Resultados
+
+### 1. Objetivo da Atividade
+- As Seções 4.1.4 a 4.1.7 descreviam a rede-base da PINN (4 camadas de 64 neurônios, tanh, sigmoide, Min-Max, 3.000 épocas) como se fosse o black-box. O usuário pediu para ajustar Métodos à MLP pura dos Resultados.
+
+### 2. Hipótese / Decisão de Design
+- 4.1.4 a 4.1.7 reescritas para a MLP pura (entradas C_A0, η e ln t com escore Z; camadas 90, 45 e 22; GELU; saída linear; AdamW; 900 épocas; escolha por validação cruzada entre 32 configurações; comitê de 10 redes), mantendo a explicação geral de alimentação direta e backpropagation que a PINN cita.
+- A descrição da rede da PINN, que saiu dali, virou um parágrafo no início da seção da PINN, com a figura da arquitetura. Usa só o que o texto anterior já dizia; precisa da conferência do integrante da PINN.
+- Texto novo em azul (0070C0), a legenda de texto novo do documento de sugestões do grupo, por serem seções de outros integrantes.
+
+### 3. Ações Executadas
+- `Documento/ferramentas/ajustar_metodos_blackbox_v17.py` (v16 -> v17): 14 blocos antigos retirados, 13 novos; função de perda, antes imagem, virou equação nativa (4.1.7.1); comentário do orientador sobre a partição 13/3 reancorado no parágrafo novo.
+- `docx_utils.py`: equações destacadas passam a sair com os limites do somatório acima e abaixo. `adicionar_blackbox_v15.py`: a seção de Resultados do black-box remete às Seções 4.1.4 a 4.1.7.
+
+### 4. O que Funcionou e Métricas Obtidas
+- Renderização do bloco conferida em PDF gerado pelo Word (3 páginas): equação, símbolos e figura corretos. 38 comentários e 38 âncoras preservados; sem ids duplicados.
+
+### 5. O que Falhou / Limitações
+- A v17 parte do texto antigo dessas seções (o da v10), não do texto com as sugestões em azul e vermelho do Google Docs; ao levar para o oficial, o texto novo substitui as duas versões.
+- A Tabela 4.2.2 do documento de sugestões ainda diz que o black-box limita X < 1 por saída sigmoide; com a MLP pura, a linha vira "não imposta". Ela não existe no Word local e precisa ser ajustada no documento do grupo.
+- A Equação (3.24) citada vem do texto anterior e não foi conferida contra a numeração atual da revisão.
+
+### 6. Ações Corretivas e Próximos Passos
+- Usuário levar ao grupo: texto novo de 4.1.4 a 4.1.7, parágrafo da rede da PINN e ajuste da Tabela 4.2.2. Depois: comparação entre modelagens, conclusão e revisão dos Apêndices A a D.
+
+---
+
+## [2026-11-10 21:00] - Relatório v15 e v16: Resultados do black-box (MLP pura, 10 redes) e conferência da renderização pelo Word
+
+### 1. Objetivo da Atividade
+- Repetir para a linha de base black-box (MLP pura, comitê de 10 redes da Subetapa 3.2.7) o molde de Resultados da serial, com apêndice completo; depois renderizar o Word e conferir equações e tabelas.
+
+### 2. Hipótese / Decisão de Design
+- Seção do black-box depois da serial, com numeração provisória 5.X (amarelo): a ordem é do grupo. Resultados completos nas Seções E.3 e E.4 do Apêndice E, que passa a reunir os dois modelos.
+- Validação cruzada da MLP pura com dez sementes (item 3 da auditoria 4.5). Curvas a partir de 0,5 min (a rede usa ln t e não recebe a condição inicial).
+- Renderização conferida numa cópia reduzida do documento (seção 4.5, Resultados e apêndices), exportada para PDF pelo Word por automação com limite de tempo; o documento inteiro travava a exportação.
+
+### 3. Ações Executadas
+- `Código/etapas/etapa_4_2_avaliacao_indomain/gerar_resultados_mlp_pura.py` (hashes do comitê conferidos; saída em `resultados_por_modelagem/mlp_pura/`); `resultados_lop.py` aceita a chave `puro` em `gerar_do_modelo` e `gerar_ensaios_novos`.
+- `Documento/ferramentas/adicionar_blackbox_v15.py` (v14 -> v15) e `corrigir_renderizacao_v16.py` (v15 -> v16); `docx_utils.py` corrigido (recuo direito zero nas células; coluna do número da equação mais larga).
+
+### 4. O que Funcionou e Métricas Obtidas
+- MLP pura, treino / teste cego / global: RMSE 0,55 / 1,84 / 0,94 p.p.; R2 0,999 / 0,907 / 0,998; erro máximo 1,98 / 4,18 / 4,18 p.p.; inconsistência física 17,2 / 8,5 / 15,6% dos nós. Validação cruzada (10 sementes): 4,37 ± 0,41 p.p. Cada rede isolada no teste cego: 2,24 ± 0,74 p.p.
+- Ensaios novos (RMSE, p.p.): E1 13,34; E2 3,67; E3 4,74; E4 5,06; sem o E1 4,53. Em E4 (η = 0,40, fora da faixa de treino) a curva fica acima do limite estequiométrico em todos os nós, em até 10,8 p.p.
+- Defeitos de renderização encontrados e corrigidos na v16: (a) recuo direito padrão de 0,72 cm dentro das células, que estreitava colunas e quebrava palavras, números e os números das equações; (b) 8 somatórios com o termo fora do operador (quadrado pontilhado) e 2 limites vazios; (c) 3 expoentes com base vazia (min⁻¹) em tabelas do Apêndice A; (d) 17 tabelas mais largas que o bloco de texto. No PDF final: 12 de 12 números de equação da 4.5 numa linha, nenhum marcador de parte vazia, nenhum cabeçalho quebrado no meio da palavra nas tabelas de Resultados e do Apêndice E.
+
+### 5. O que Falhou / Limitações
+- A Seção 4.1.4 a 4.1.7 de Métodos (do grupo) descreve outro black-box (4 camadas de 64 neurônios, tanh, saída sigmoide, 3.000 épocas); a MLP pura usada aqui é [90, 45, 22], GELU, ln t, sem sigmoide, 900 épocas, 10 redes. Falta alinhar com o grupo.
+- A previsão do black-box para os ensaios novos não foi registrada antes das medições (o comitê é de 08/11 e os hashes conferem, mas a previsão foi calculada depois).
+- Tabelas antigas do Apêndice D ainda têm cabeçalhos quebrados no meio da palavra (colunas estreitas de origem); ficam para a revisão dos apêndices. O documento inteiro não foi renderizado, só as partes da serial e do black-box.
+
+### 6. Ações Corretivas e Próximos Passos
+- Leitura da v16 pelo usuário; alinhar a descrição do black-box em Métodos; comparação entre modelagens e conclusão no fim; revisão dos Apêndices A a D.
+
+---
+
+## [2026-11-10 19:10] - Relatório v14: apêndices sobem uma letra (B→A ... F→E) e saída do Apêndice A vazio
+
+### 1. Objetivo da Atividade
+- O Apêndice A do relatório não existe (era só um título de marcação). O usuário decidiu subir os apêndices uma letra e pediu a troca dos rótulos e do que mais fosse necessário, sem mexer no texto dos apêndices.
+
+### 2. Hipótese / Decisão de Design
+- Troca só de rótulos e remissões, num passo único e por padrão estrito: `X.n` (figura, tabela, equação, seção, título de subseção) e `Apêndice X`. Os nomes das fases da busca (Fase B, B2, C, D, E), as variantes D1 e D2, as referências bibliográficas e o "Apêndice A1" da dissertação não casam com os padrões e ficam como estão.
+- Os scripts da v11 à v13 continuam com as letras antigas; a v14 é sempre gerada por último, sobre a saída deles.
+
+### 3. Ações Executadas
+- `Documento/ferramentas/renomear_apendices_v14.py` (v13 -> v14; `--listar` mostra as trocas sem gravar). Retirados o título "APÊNDICE A - XX" e três parágrafos de marcação.
+
+### 4. O que Funcionou e Métricas Obtidas
+- 201 rótulos trocados (B→A 37, C→B 27, D→C 27, E→D 94, F→E 16), nenhum fora das partes da serial. Conferência: as 53 figuras e tabelas de apêndice citadas têm legenda correspondente; toda seção de apêndice citada tem título; 38 comentários preservados; sem ids duplicados.
+- Novo mapa: A problema inverso; B base de dados e partição; C arquitetura e treinamento; D seleção da configuração e avaliação; E resultados completos da serial.
+
+### 5. O que Falhou / Limitações
+- O sumário do Word é um campo: precisa ser atualizado pelo usuário (clicar no sumário e F9). A renderização não foi conferida por mim.
+- O texto dos apêndices A a D não foi revisado: continua em fração, com marcadores 4.XX e 5.XX e em vermelho.
+
+### 6. Ações Corretivas e Próximos Passos
+- Leitura da v14 pelo usuário; depois, comparação com as outras modelagens e conclusão final; revisão dos apêndices quando ele pedir.
+
+---
+
+## [2026-11-10 18:40] - Relatório v13: Resultados da serial com duas figuras 2x2 (1, 7, 8, 14 e ensaios novos) e Apêndice F
+
+### 1. Objetivo da Atividade
+- Pedido do usuário sobre a v12: figura 2x2 com o Ensaio 1 e os três de teste cego; segunda figura 2x2 com os 4 ensaios novos e comparação rápida; apêndice novo com os resultados completos (16 + 4 ensaios, valores tabelados).
+
+### 2. Hipótese / Decisão de Design
+- Ensaios novos com o modelo congelado, sem novo ajuste; rótulos E2 e E3 tratados como trocados (laboratório ainda não confirmou); E1 apontado como dado com indício de erro experimental (cai de 0,87 em 1 min para 0,81 em 15 min e fica acima do limite de 0,75).
+- A comparação com os ensaios novos virou função do módulo comum (`rl.gerar_ensaios_novos`), para as outras modelagens usarem o mesmo arquivo de medições e as mesmas métricas.
+
+### 3. Ações Executadas
+- `Código/etapas/etapa_4_3_previsao_novos_ensaios/exportar_medicoes_E2_E3_trocados.py` -> `Base de dados/Experimentos novos/medicoes_XZn_ensaios_novos_E2_E3_trocados.csv` (planilha e CSV como rotulado intactos).
+- `Documento/padrao_graficos/resultados_lop.py`: `ENSAIOS_FIGURA_TEXTO = (1, 7, 8, 14)`, `carregar_ensaios_novos`, `metricas_ensaios_novos`, `gerar_ensaios_novos`; `gerar_resultados_serial.py` chama a função e confere com a previsão a priori de 08/11 (diferença máxima < 1e-6). Guia atualizado; 10 testes passam.
+- `Documento/ferramentas/reescrever_resultados_v13.py`: v12 -> v13. Seção 5.4 (21 blocos: Tabelas 5.4.1 e 5.4.2, Figuras 5.4.1 e 5.4.2) e Apêndice F (22 blocos: Figura F.1 com o 4x4 e Tabelas F.1 a F.4), em vermelho; última frase da Seção E.11 passa a remeter à comparação.
+
+### 4. O que Funcionou e Métricas Obtidas
+- Ensaios novos, serial (RMSE em p.p.): E1 14,40; E2 4,87; E3 4,16; E4 4,13; os quatro 8,15; sem o E1 4,40. White-box novo: 8,08; 11,71; 7,19; 3,62; 8,17; 8,20. Em E1 e E4, 100% das medições acima do limite estequiométrico.
+- Integridade da v13: 38 comentários preservados, sem ids duplicados; v12 intacta.
+
+### 5. O que Falhou / Limitações
+- A renderização no Word não foi conferida por mim (a automação do Word travou na primeira tentativa e não foi repetida).
+- A conversão das medições em X_Zn depende da leitura da coluna da planilha em g/L e da troca E2/E3; se o laboratório disser outra coisa, basta regerar o CSV e rodar os scripts.
+- Os Apêndices B a E ainda estão em fração (0,0326) e com remissões antigas (4.XX, 5.XX); os Resultados estão em p.p.
+
+### 6. Ações Corretivas e Próximos Passos
+- Revisar os Apêndices B a E (enxugar um pouco, conferir, remissões, unidade, tirar o vermelho); definir o conteúdo do Apêndice A; colegas atualizarem o `resultados_lop.py` e rodarem `gerar_ensaios_novos`.
+
+---
+
+## [2026-11-10 17:10] - Relatório v11 e v12: seção 4.5 final, métricas comuns do grupo e Resultados da serial (5.4)
+
+### 1. Objetivo da Atividade
+- Fechar as partes do usuário no relatório do grupo: seção de Métodos da serial conforme o documento de sugestões (azul entra, vermelho sai), métricas comuns do grupo e Resultados da serial no molde combinado.
+
+### 2. Hipótese / Decisão de Design
+- Entrega em Word local; o Google Docs do grupo segue só leitura. A serial passa a ser a Seção 4.5 com seis subseções (4.5.1 a 4.5.6): o que é comum às híbridas foi para a nova Seção 4.2 e virou remissão.
+- Numeração definitiva: equações (4.5.s.n), Figuras 4.5.1 a 4.5.6, Tabela 4.5.1; a curva X_Zn(delta) é citada como Figura 4.2.1 (a confirmar com o grupo).
+- Resultados no molde comum: ajuste nos 13 ensaios, teste cego (7, 8 e 14) com R2, RMSE, MAE, erro máximo e inconsistência física, figura 2x2 (Ensaios 3, 9, 7* e 14*) e um resultado próprio (validação cruzada e comitê). Unidade: p.p. R2 com os pontos da partição juntos (por ensaio ele é enganoso: Ensaio 8 dá -0,89 com RMSE de 2,5 p.p.).
+- Inconsistência física medida na curva do modelo em malha comum de 0,25 min (61 nós), com tolerância de 1e-6.
+
+### 3. Ações Executadas
+- `Documento/ferramentas/reescrever_serial_v11.py`: v10 -> v11 (seção 4.5; símbolos como equações nativas; correção de m_tau/s_tau e Theta; frase do alfa; sem marcadores 4.XX).
+- `Documento/padrao_graficos/resultados_lop.py`: colunas `Emax_pp` e `incons_fis_pct` em `metricas`, função `inconsistencia_fisica` e figura `fig_<modelo>_2x2_texto_ensaios_03_09_07_14`; testes atualizados (10 passam).
+- `Documento/ferramentas/reescrever_resultados_v12.py`: v11 -> v12, substitui o bloco longo de Resultados herdado da v10 pela Seção 5.4 (13 blocos, em vermelho), com números lidos dos CSVs e asserções.
+
+### 4. O que Funcionou e Métricas Obtidas
+- Serial, treino / teste cego / global: RMSE 1,45 / 2,02 / 1,57 p.p.; MAE 1,06 / 1,65 / 1,17 p.p.; R2 0,995 / 0,888 / 0,994; erro máximo 3,71 / 4,03 / 4,03 p.p.; inconsistência física 0%. White-box novo: erro máximo 16,34 / 12,55 p.p.; inconsistência 0%.
+- Integridade: 38 comentários do Word preservados na v11 e na v12, sem ids duplicados; v10 intacta.
+
+### 5. O que Falhou / Limitações
+- A exportação para PDF pelo Word (automação COM) travou; a renderização da v11 e da v12 não foi conferida por mim.
+- A v11 estava aberta no Word, por isso os Resultados foram gravados numa v12 em vez de regravar a v11.
+- Os Apêndices ainda citam numeração antiga (4.XX, 5.XX, Figura 4.XX.4) e o 4x4 dos 16 ensaios, citado na 5.4, ainda não está no Apêndice E.
+
+### 6. Ações Corretivas e Próximos Passos
+- Seção 5.6 (4 ensaios novos, modelos congelados, E2 e E3 tratados como trocados, ressalva do erro experimental em E1); Apêndices B a E (enxugar um pouco, conferir, acertar remissões, tirar o vermelho); colegas rodarem de novo o `resultados_lop.py` para terem as duas métricas novas.
+
+---
+
+## [2026-11-09 16:46] - Figura de comparação final dos Resultados: formato 2x2 por ensaio (4 figuras), com script que incorpora PINN e paralelo quando forem entregues
+
+### 1. Objetivo da Atividade
+- O usuário escolheu (09/11) o formato **2x2 por ensaio** para a comparação entre modelos nos Resultados. Gerar o conjunto completo (16 ensaios em 4 figuras) com o que já existe e deixar o fluxo pronto para as modelagens dos colegas.
+
+### 2. Hipótese / Decisão de Design
+- Cada quadro: pontos experimentais, limite estequiométrico min(1; η) e uma curva por modelo nas cores fixas. Com 3 ou mais modelos o quadro não mostra RMSE por ensaio (ficam em CSV).
+- `gerar_comparacao_final_2x2.py` lê sozinho as modelagens que já entregaram `curvas_<nome>.csv` (white-box novo entra sempre); `--referencias` acrescenta o white-box do Fabrício e a MLP pura. Os valores nos pontos experimentais vêm de `dados_plotados.csv` (exatos) quando existir, senão de interpolação da curva densa.
+- Referências reais movidas para o módulo (`curvas_whitebox_fabricio`, `curvas_mlp_pura`); guia e Prompt B atualizados.
+
+### 3. Ações Executadas
+- `Código/etapas/etapa_4_2_avaliacao_indomain/gerar_comparacao_final_2x2.py`; ajustes em `Documento/padrao_graficos/resultados_lop.py`; um teste novo (17 testes passam no total).
+- Saídas em `Código/outputs/resultados_por_modelagem/`: `comparacao_com_referencias/` (Fabrício, white-box novo, MLP pura, serial: 4 figuras 2x2 em PNG + PDF e 2 CSV de métricas) e `comparacao/` (hoje white-box novo + serial; PINN e paralelo ainda não entregaram).
+
+### 4. O que Funcionou e Métricas Obtidas
+- RMSE de X_Zn (p.p.), treino / teste cego / global: Fabrício 11,56 / 6,51 / 10,79; white-box novo 6,82 / 7,80 / 7,02; MLP pura 0,55 / 1,84 / 0,94; serial 1,45 / 2,02 / 1,57. Iguais aos registrados em 08/11.
+
+### 5. O que Falhou / Limitações
+- Um teste novo falhou na primeira rodada por comparação exata de ponto flutuante após ida e volta por CSV (diferença de ordem 1e-16, não do código); a tolerância do teste foi ajustada para 1e-9. Isso não afeta os resultados.
+- A pasta `exemplo_comparacao/` (gerada antes, com a ilustração de curvas fictícias de PINN e paralelo) continua lá e é só ilustração; não usar nos Resultados.
+- Dependência do grupo: `curvas_<nome>.csv` e `dados_plotados.csv` precisam ficar na pasta de saída de cada colega, sem renomear. O Prompt B ainda não foi testado por um agente-colega.
+
+### 6. Ações Corretivas e Próximos Passos
+- Cada colega roda o Prompt B; depois, `gerar_comparacao_final_2x2.py` gera a comparação real com as quatro modelagens. Decidir se Fabrício e MLP pura entram na figura final ou ficam como referência no apêndice.
+
+---
+
+## [2026-11-09 16:42] - Exemplo de comparação entre modelos no estilo novo (white-box Fabrício, white-box novo, MLP pura, híbrido serial) e ilustração do layout com as 4 modelagens do grupo
+
+### 1. Objetivo da Atividade
+- A pedido do usuário (09/11), mostrar como fica um gráfico comparando todos os modelos no padrão novo (estilo C, cores fixas por modelo), para ver as cores juntas antes de os colegas entregarem as suas modelagens.
+
+### 2. Hipótese / Decisão de Design
+- "Todos" = todos os que **já têm resultado real**: white-box do Fabrício (laranja), white-box novo (azul), MLP pura (verde) e híbrido serial (rosa). PINN e híbrido paralelo ainda não existem; não foram inventados como resultado.
+- Para ver as seis cores juntas, uma figura **ilustrativa** à parte usa curvas **fictícias** de PINN e paralelo (deslocamentos do serial), com a marca "ILUSTRATIVO" desenhada na imagem e nota "curvas fictícias". Serve só para layout e cores; não entra nos Resultados.
+- Mesmas funções de `resultados_lop.py` (2x2 e 4x4); a legenda de 6 itens quebra em duas linhas.
+
+### 3. Ações Executadas
+- Script novo `Código/etapas/etapa_4_2_avaliacao_indomain/gerar_exemplo_comparacao_todos.py` (só leitura de modelos congelados; a MLP pura vem do CSV da 3.2.7). Saídas em `Código/outputs/resultados_por_modelagem/exemplo_comparacao/`: `fig_comparacao_2x2_ensaios_03_09_07_14`, `fig_comparacao_4x4_todos`, `ilustrativo_layout_4_modelagens_2x2` (PNG + PDF), `metricas_resumo.csv`, `metricas_por_ensaio.csv`.
+
+### 4. O que Funcionou e Métricas Obtidas
+- RMSE de X_Zn (p.p.), treino / teste cego / global: Fabrício 11,56 / 6,51 / 10,79; white-box novo 6,82 / 7,80 / 7,02; MLP pura 0,55 / 1,84 / 0,94; híbrido serial 1,45 / 2,02 / 1,57. Reproduzem os valores já registrados em 08/11.
+- Em η = 0,5 o white-box do Fabrício satura em ≈ 0,38 contra limite e medido de 0,5; o novo corrige isso, mas satura no limite em η ≥ 1 (medido 0,85 a 0,87 em η = 1). Serial e MLP pura ficam praticamente sobrepostos aos pontos.
+
+### 5. O que Falhou / Limitações
+- Na figura de comparação a curva da MLP pura (linha mais fina) fica escondida atrás da do serial na maior parte dos ensaios; a diferença entre as duas só aparece nas ondulações da MLP pura (ex.: ensaio 14). Se a comparação final for só entre serial e MLP pura, vale um formato com painel de resíduos.
+- Com mais de 2 modelos o quadro não mostra RMSE por ensaio (ficam nos CSV). A curva da MLP pura começa em 0,5 min (sem dado antes).
+- As curvas fictícias da ilustração não representam nenhum resultado; só PINN e paralelo reais dos colegas valem.
+
+### 6. Ações Corretivas e Próximos Passos
+- Quando PINN e paralelo estiverem prontos, `juntar_curvas` + `grafico_2x2`/`grafico_4x4` geram a comparação real com as mesmas cores. Decidir com o grupo se MLP pura e white-box do Fabrício entram na figura final ou ficam como referência no apêndice.
+
+---
+
+## [2026-11-09 16:36] - Modelo de gráficos da parte de Resultados por modelagem (individual, 2x2, 4x4) com cores fixas por modelagem; exemplo do híbrido serial
+
+### 1. Objetivo da Atividade
+- A pedido do usuário (09/11), um modelo para cada integrante do grupo escrever a sua parte de Resultados: comparar os 16 ensaios (13 de treino + 3 de teste cego) da sua modelagem contra o white-box novo (RRB ÷ D³, α = 0), só com o painel principal (sem o zoom de 0 a 2 min), nas cores fixas de cada modelagem, para depois unir as comparações. Formatos: individual, 2x2 e 4x4 (os 16 ensaios numa imagem).
+
+### 2. Hipótese / Decisão de Design
+- A paleta tinha cor só para o híbrido serial. **PINN e híbrido paralelo não tinham cor definida**; atribuí as duas primeiras cores que estavam reservadas: **PINN = vermelhão #D55E00** (traço-ponto-ponto, triângulo para baixo) e **paralelo = azul-claro #56B4E9** (traço longo, cruz). Serial segue rosa #CC79A7 e white-box novo azul #0072B2. Sobrou só uma cor extra (cinza #6E6E6E). A cor do paralelo (azul-claro) é da mesma família do white-box (azul): se o grupo preferir, é trocável (`pg.MODELOS`).
+- Interface: as funções recebem um dicionário {modelagem: curvas}. Hoje com 2 chaves (white-box e a minha modelagem); na comparação final com 4, sem mudar nada além das chaves (`juntar_curvas` lê os `curvas_<modelagem>.csv`). O colega só escreve `prever(modelo, ca0, eta, t)` (ou entrega um CSV de curvas densas).
+- Malhas de ensaios identificam o quadro por "Ensaio N" (asterisco no teste cego), sem letras (a), (b). Limite estequiométrico = min(1, η). Só leitura de modelos congelados.
+- Mudanças no padrão (`padrao_graficos_lop.py`): chaves `pinn` e `par`, apelidos (`serial`, `paralelo`, `whitebox`), escala de fonte para malhas, legenda em 2 linhas quando há mais de 4 itens (com 4 modelagens a legenda de 6 itens estourava a largura da figura e cortava "Experimental"; corrigido e conferido com curvas sintéticas fora do projeto), margens em cm.
+
+### 3. Ações Executadas
+- `Documento/padrao_graficos/resultados_lop.py` (módulo), `template_resultados_meu_modelo.py` (em branco, testado em pasta temporária), `test_resultados_lop.py` (9 testes; junto com os 7 do padrão, 16 passam), guia e prompts (Prompt B para os colegas) atualizados.
+- `Código/etapas/etapa_4_2_avaliacao_indomain/gerar_resultados_serial.py` (template preenchido para o serial). Saída em `Código/outputs/resultados_por_modelagem/serial/`: 16 individuais, 4 gráficos 2x2, 1 gráfico 4x4 (PNG + PDF, 42 arquivos), `metricas_resumo.csv`, `metricas_por_ensaio.csv`, `dados_plotados.csv`, `curvas_serial.csv`.
+- Nenhum script ou modelo existente foi alterado nem retreinado.
+
+### 4. O que Funcionou e Métricas Obtidas
+- RMSE de X_Zn (p.p.), treino / teste cego / global: white-box novo 6,82 / 7,80 / 7,02 (R² 0,890 / −0,675 / 0,871); híbrido serial 1,45 / 2,02 / 1,57 (R² 0,995 / 0,888 / 0,994). Reproduz os valores já registrados (0,0682 / 0,0780 / 0,0702 e 0,0145 / 0,0202 / 0,0157).
+- O Prompt B usa esses números do white-box como verificação: se o colega obtiver outros, o white-box ou os dados estão errados.
+
+### 5. O que Falhou / Limitações
+- O Prompt B ainda **não foi testado por um agente-colega** (só o Prompt A foi); o template e o fluxo foram testados por mim.
+- Luminância em cinza: PINN × white-box novo diferem só 0,069 (par que aparece junto em toda figura de PINN); distinguem-se por cor, linha e marcador. Não verificado com impressão real em P&B.
+- R² negativo do white-box no teste cego (−0,675) vem de 3 ensaios de baixa variância; não é erro de cálculo, mas é uma métrica pouco informativa com 21 pontos.
+- A rampa inicial do híbrido serial (t = 0 a ≈ 0,25 min) continua sem origem investigada.
+
+### 6. Ações Corretivas e Próximos Passos
+- O usuário confirma as cores de PINN e paralelo com o grupo, distribui o Prompt B e cada colega roda o seu. Depois, `juntar_curvas` + `grafico_4x4` para a comparação final das quatro modelagens.
+- Decidir quais ensaios entram no corpo dos Resultados e quais no apêndice.
+
+---
+
+## [2026-11-09 16:24] - Figuras por ensaio: híbrido serial × white-box novo, com limite estequiométrico (16 figuras no padrão C)
+
+### 1. Objetivo da Atividade
+- A pedido do usuário (09/11), comparar separadamente, ensaio a ensaio, a modelagem híbrida e o white-box, mostrando pontos experimentais, uma curva de cada modelo e uma linha pontilhada com o limite estequiométrico, usando o padrão de gráficos do grupo.
+
+### 2. Hipótese / Decisão de Design
+- Interpretação (a confirmar com o usuário): "cada um" = cada um dos 16 ensaios; "modelagem" = híbrido serial (comitê MLP v2 → PBM); "white-box puro" = **white-box novo** (RRB ÷ D³, sem α). O white-box do Fabrício sai com `--whitebox fab`.
+- Limite estequiométrico = min(1, η). Cada figura tem (a) cinética de 0 a 15 min e (b) ampliação de 0 a 2 min, 16 cm × 7,8 cm, 300 DPI, PNG + PDF.
+- Ajuste no padrão: a linha de referência passou a ter pontos finos e espaçados (`LS_REFERENCIA`), para não se confundir com a curva pontilhada grossa do white-box novo.
+- Só leitura de modelos congelados; nada foi treinado nem alterado.
+
+### 3. Ações Executadas
+- Script novo `Código/etapas/etapa_4_2_avaliacao_indomain/gerar_fig_por_ensaio_hibrido_vs_whitebox.py`. Saídas em `Código/outputs/etapa_4_2_avaliacao_indomain/por_ensaio_novo/`: `fig_ensaio_01..16_hibrido_vs_whitebox_novo.png/.pdf` e `dados_plotados_por_ensaio.csv` (112 pontos: experimental, híbrido, white-box e limite).
+
+### 4. O que Funcionou e Métricas Obtidas
+- RMSE de X_Zn (p.p.), híbrido contra white-box novo: menor no híbrido em 15 dos 16 ensaios (exceção: ensaio 4, 2,13 contra 2,04). Maiores diferenças em η = 1,0: ensaios 8, 9 e 10 (2,5 contra 11,5; 1,2 contra 14,0; 1,7 contra 15,1). Teste cego (7, 8, 14): híbrido 2,17; 2,49; 1,13 e white-box 5,21; 11,49; 4,84.
+- O white-box novo satura no limite estequiométrico em η ≥ 1 (curva colada em 1,0) enquanto o medido fica em 0,85 a 0,97 em η = 1.
+
+### 5. O que Falhou / Limitações
+- 6 pontos experimentais ficam acima do limite estequiométrico, por 1 a 3 p.p.: ensaio 1 (t = 4), 3 (t = 3), 4 (t = 2, 4 e 5) e 7 (t = 15). Provável ruído analítico, não investigado; o híbrido fica no teto e não os alcança.
+- A rampa do híbrido de t = 0 a ≈ 0,25 min (visível no painel b) aparece em todos os ensaios; origem não investigada.
+- Os ensaios de teste cego já foram vistos; as figuras não servem para escolher nada novo.
+
+### 6. Ações Corretivas e Próximos Passos
+- O usuário confirma a interpretação acima (ou pede o white-box do Fabrício, a MLP pura ou outra variante) e escolhe quais ensaios entram nos Resultados e quais vão para o apêndice.
+- Se desejado, gerar a versão com `--whitebox fab` para mostrar o ganho sobre o modelo original.
+
+---
+
 ## [2026-11-09 16:21] - Decisão de escopo dos Resultados (modelo 13 + 3) e pacote de handoff para um novo chat
 
 ### 1. Objetivo da Atividade
@@ -34,7 +288,7 @@ Este diário registra o histórico de alterações, decisões de modelagem híbr
 
 ---
 
-## [2026-11-09 16:45] - Padrão de gráficos do grupo para a seção de Resultados (estilo C, módulo, paleta e prompt para os colegas)
+## [2026-11-09 16:20] - Padrão de gráficos do grupo para a seção de Resultados (estilo C, módulo, paleta e prompt para os colegas)
 
 ### 1. Objetivo da Atividade
 - A pedido do usuário (09/11), padronizar os gráficos da seção de Resultados entre os 4 integrantes do grupo: propor formatações, escolher uma com o usuário e entregar um prompt para os colegas gerarem figuras iguais.

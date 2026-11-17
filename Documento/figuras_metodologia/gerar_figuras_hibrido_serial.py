@@ -701,7 +701,7 @@ def fig_busca_hiperparametros() -> None:
         ((0.8, 11.6), "Histórico das tentativas\n(configuração e nota)", LIGHTER, NAVY),
         ((7.4, 11.6), "Divisão: melhores, $\\ell(\\mathbf{x})$,\ne demais, $g(\\mathbf{x})$", LIGHT, BLUE),
         ((7.4, 6.4), "Nova configuração:\nmaior razão $\\ell(\\mathbf{x})/g(\\mathbf{x})$", LIGHT, BLUE),
-        ((0.8, 6.4), "Avaliação pelo protocolo\n(Figura 4.X.14)", TEAL_LIGHT, TEAL),
+        ((0.8, 6.4), "Avaliação pela\nvalidação cruzada", TEAL_LIGHT, TEAL),
     ]
     for (x, y), txt, fc, ec in ciclo:
         box(ax, (x, y), 5.4, 2.3, txt, fc=fc, ec=ec, fs=10.2)
@@ -753,7 +753,7 @@ def fig_comite_redes() -> None:
             arrow(ax, (9.8, y + 0.7), (17.4, y + 0.7), color=GRAY, lw=0.9, ls="--", ms=8)
     ax.text(7.5, 6.05, "$\\vdots$", ha="center", va="center", fontsize=22, color=BLUE)
     box(ax, (12.2, 5.0), 3.8, 2.4, "Média das taxas\n$\\bar{\\nu}(t)$", fc=TEAL_LIGHT, ec=TEAL, fs=10.5)
-    box(ax, (17.4, 5.0), 3.6, 2.4, "Acoplamento\n(Seção 4.X)", fc=LIGHT, ec=BLUE, fs=10.5)
+    box(ax, (17.4, 5.0), 3.6, 2.4, "Acoplamento\nfenomenológico", fc=LIGHT, ec=BLUE, fs=10.5)
     arrow(ax, (16.0, 6.2), (17.4, 6.2), lw=1.3)
     box(ax, (22.0, 5.0), 3.7, 2.4, "Previsão\n$\\hat{X}_{Zn}(t)$, $C_A(t)$", fc=ORANGE_LIGHT, ec=ORANGE, fs=10.5,
         bold=True)
@@ -770,12 +770,12 @@ def fig_comite_redes() -> None:
 def fig_algoritmo_simulacao() -> None:
     """Figura 17: algoritmo de simulação do modelo híbrido serial para uma condição (C_A0, eta)."""
     passos = [
-        ("Malha canônica", "$t_k=0{,}25\\,k$ min, $k=1,\\ldots,60$ (ou até o maior tempo solicitado)"),
+        ("Malha temporal","$t_k=0{,}25\\,k$ min, $k=1,\\ldots,60$ (ou até o maior tempo solicitado)"),
         ("Taxa de retração", "rede neural (ou comitê) $\\rightarrow$ $\\hat{\\nu}(t_k)\\geq0$ em cada nó"),
-        ("Retração acumulada", "$\\delta_1=\\hat{\\nu}(t_1)\\,t_1$ e regra do trapézio (Eq. 4.X.6)"),
-        ("Conversão", "$X_{Zn}(\\delta_k)$ pela curva pré-calculada com interpolação PCHIP (Eq. 4.X.3)"),
+        ("Retração acumulada", "$\\delta_1=\\hat{\\nu}(t_1)\\,t_1$ e regra do trapézio"),
+        ("Conversão", "$X_{Zn}(\\delta_k)$ pela curva pré-calculada com interpolação PCHIP"),
         ("Restrições físicas", "conversão não decrescente e $X_{Zn}\\leq\\min(1,\\eta)$; $\\delta$ congelado se o ácido se esgota"),
-        ("Ácido livre", "$C_A=C_{A0}\\,[1-X_{Zn}/\\eta]$ (Eq. 4.X.4)"),
+        ("Ácido livre", "$C_A=C_{A0}\\,[1-X_{Zn}/\\eta]$"),
         ("Saída", "condição inicial imposta em $t=0$ e interpolação nos tempos solicitados"),
     ]
     n = len(passos)

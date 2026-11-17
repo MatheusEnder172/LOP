@@ -1,0 +1,13 @@
+modelo,particao,n_ensaios,n_pontos,RMSE_pp,MAE_pp,R2
+White-box (Fabrício),Treino,13,91,11.5598,8.6396,0.6843
+White-box (Fabrício),Teste cego,3,21,6.5147,5.1371,-0.1678
+White-box (Fabrício),Global,16,112,10.795,7.9829,0.6946
+White-box (novo),Treino,13,91,6.8232,4.8763,0.89
+White-box (novo),Teste cego,3,21,7.8017,6.3739,-0.6747
+White-box (novo),Global,16,112,7.017,5.1571,0.8709
+MLP pura,Treino,13,91,0.5528,0.4223,0.9993
+MLP pura,Teste cego,3,21,1.8411,1.358,0.9067
+MLP pura,Global,16,112,0.9401,0.5978,0.9977
+Híbrido serial,Treino,13,91,1.449,1.0558,0.995
+Híbrido serial,Teste cego,3,21,2.0164,1.6457,0.8881
+Híbrido serial,Global,16,112,1.5711,1.1664,0.9935

@@ -1,0 +1,33 @@
+modelo,ensaio,particao,n,RMSE_pp,MAE_pp
+White-box (novo),1,treino,7,3.4081,2.539
+White-box (novo),2,treino,7,3.1807,2.7482
+White-box (novo),3,treino,7,2.236,1.5714
+White-box (novo),4,treino,7,2.0354,1.5714
+White-box (novo),5,treino,7,1.8127,1.5714
+White-box (novo),6,treino,7,7.4018,6.878
+White-box (novo),7,teste cego,7,5.2146,3.3696
+White-box (novo),8,teste cego,7,11.49,11.3667
+White-box (novo),9,treino,7,13.9594,13.882
+White-box (novo),10,treino,7,15.0936,15.0303
+White-box (novo),11,treino,7,5.2086,4.6772
+White-box (novo),12,treino,7,1.6446,0.9988
+White-box (novo),13,treino,7,5.3735,5.2163
+White-box (novo),14,teste cego,7,4.8361,4.3854
+White-box (novo),15,treino,7,5.5828,5.2791
+White-box (novo),16,treino,7,1.9272,1.4286
+Híbrido serial,1,treino,7,1.0389,0.7469
+Híbrido serial,2,treino,7,0.4711,0.3457
+Híbrido serial,3,treino,7,1.0201,0.7598
+Híbrido serial,4,treino,7,2.1323,1.8117
+Híbrido serial,5,treino,7,1.4251,1.1142
+Híbrido serial,6,treino,7,1.4902,1.3519
+Híbrido serial,7,teste cego,7,2.1743,1.626
+Híbrido serial,8,teste cego,7,2.4874,2.2838
+Híbrido serial,9,treino,7,1.154,0.7976
+Híbrido serial,10,treino,7,1.6953,1.3555
+Híbrido serial,11,treino,7,2.5853,2.0987
+Híbrido serial,12,treino,7,0.7035,0.5749
+Híbrido serial,13,treino,7,1.2837,0.8962
+Híbrido serial,14,teste cego,7,1.1328,1.0274
+Híbrido serial,15,treino,7,0.9028,0.7471
+Híbrido serial,16,treino,7,1.5187,1.1248
